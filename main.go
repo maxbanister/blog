@@ -2,7 +2,6 @@ package main
 
 import (
 	"embed"
-	"fmt"
 	"io/fs"
 	"log"
 	"net/http"
@@ -20,13 +19,18 @@ func main() {
 	fs := http.FileServer(http.FS(htmlContent))
 
 	// Serve static files
-	http.Handle("/", fs)
+	http.Handle("/", printRequest(fs))
 
-	port := "9000"
-
-	log.Printf("Listening on :%s...\n", port)
-	err = http.ListenAndServe(fmt.Sprintf(":%s", port), nil)
+	err = http.ListenAndServe(":9000", nil)
 	if err != nil {
 		log.Fatal(err)
 	}
+}
+
+func printRequest(h http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		log.Println(r.Header)
+		log.Println(r.Body)
+		h.ServeHTTP(w, r)
+	})
 }
