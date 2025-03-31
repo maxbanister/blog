@@ -20,12 +20,21 @@ func main() {
 	fs := http.FileServer(http.FS(htmlContent))
 
 	// Serve static files
+	http.HandleFunc("/.well-known/webfinger", webfinger)
 	http.Handle("/", printRequest(fs))
 
 	err = http.ListenAndServe(":9000", nil)
 	if err != nil {
 		log.Fatal(err)
 	}
+}
+
+func webfinger(w http.ResponseWriter, r *http.Request) {
+	log.Println(r.URL)
+	body, _ := io.ReadAll(r.Body)
+	log.Println(string(body))
+	w.Header().Set("Content-Type", "application/json")
+	http.ServeFile(w, r, "public/.well-known/webfinger")
 }
 
 func printRequest(h http.Handler) http.Handler {
