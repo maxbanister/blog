@@ -2,7 +2,6 @@ package main
 
 import (
 	"embed"
-	"encoding/json"
 	"io"
 	"io/fs"
 	"log"
@@ -31,8 +30,7 @@ func main() {
 
 func printRequest(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		headers, _ := json.MarshalIndent(r.Header, "", "")
-		log.Println(string(headers))
+		log.Println(r.URL)
 		body, _ := io.ReadAll(r.Body)
 		log.Println(string(body))
 		h.ServeHTTP(w, r)
