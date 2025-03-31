@@ -2,12 +2,14 @@ package main
 
 import (
 	"embed"
+	"encoding/json"
+	"io"
 	"io/fs"
 	"log"
 	"net/http"
 )
 
-//go:embed public
+//go:embed public/*
 var staticFiles embed.FS
 
 func main() {
@@ -29,8 +31,10 @@ func main() {
 
 func printRequest(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		log.Println(r.Header)
-		log.Println(r.Body)
+		headers, _ := json.MarshalIndent(r.Header, "", "")
+		log.Println(string(headers))
+		body, _ := io.ReadAll(r.Body)
+		log.Println(string(body))
 		h.ServeHTTP(w, r)
 	})
 }
