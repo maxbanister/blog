@@ -34,13 +34,12 @@ func redirectBlog(w http.ResponseWriter, r *http.Request) {
 	log.Println(r.URL)
 	body, _ := io.ReadAll(r.Body)
 	log.Println(string(body))
-	log.Println()
 	log.Println(r.Header)
 
 	if r.Header.Get("Accept") == "application/ld+json" {
-		http.ServeFile(w, r, "public/@blog")
-	} else {
 		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
+	} else {
+		http.ServeFile(w, r, "public/@blog")
 	}
 }
 
