@@ -2,10 +2,12 @@ package main
 
 import (
 	"embed"
+	"fmt"
 	"io"
 	"io/fs"
 	"log"
 	"net/http"
+	"strings"
 )
 
 //go:embed public/*
@@ -36,10 +38,13 @@ func redirectBlog(w http.ResponseWriter, r *http.Request) {
 	log.Println(string(body))
 	log.Println(r.Header)
 
-	if r.Header.Get("Accept") == "application/ld+json" {
-		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
-	} else {
+	fmt.Println(r.Header.Values("Accept"))
+	if acceptValues(r.Header.Values("Accept")) {
+		fmt.Println("here")
+		w.Header().Set("Content-Type", "application/activity+json")
 		http.ServeFile(w, r, "public/@blog")
+	} else {
+		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
 	}
 }
 
@@ -47,7 +52,7 @@ func webfinger(w http.ResponseWriter, r *http.Request) {
 	log.Println(r.URL)
 	body, _ := io.ReadAll(r.Body)
 	log.Println(string(body))
-	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Content-Type", "application/activity+json")
 	http.ServeFile(w, r, "public/.well-known/webfinger")
 }
 
@@ -58,4 +63,13 @@ func printRequest(h http.Handler) http.Handler {
 		log.Println(string(body))
 		h.ServeHTTP(w, r)
 	})
+}
+
+func acceptValues(vals []string) bool {
+	for _, val := range vals {
+		if strings.Contains(val, "application/ld+json") {
+			return true
+		}
+	}
+	return false
 }
