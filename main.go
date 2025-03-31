@@ -20,6 +20,7 @@ func main() {
 	fs := http.FileServer(http.FS(htmlContent))
 
 	// Serve static files
+	http.HandleFunc("/@blog", redirectBlog)
 	http.HandleFunc("/.well-known/webfinger", webfinger)
 	http.Handle("/", printRequest(fs))
 
@@ -27,6 +28,13 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+}
+
+func redirectBlog(w http.ResponseWriter, r *http.Request) {
+	log.Println(r.URL)
+	body, _ := io.ReadAll(r.Body)
+	log.Println(string(body))
+	http.Redirect(w, r, "/", http.StatusPermanentRedirect)
 }
 
 func webfinger(w http.ResponseWriter, r *http.Request) {

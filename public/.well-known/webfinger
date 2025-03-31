@@ -7,7 +7,7 @@
         {
             "rel": "self",
             "type": "application/activity+json",
-            "href": "https://max-blog.koyeb.app/blog.json"
+            "href": "https://max-blog.koyeb.app/@blog"
         },
         {
             "rel":"http://webfinger.net/rel/profile-page",
