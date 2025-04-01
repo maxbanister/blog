@@ -24,6 +24,7 @@ func main() {
 	// Serve static files
 	http.HandleFunc("/@blog", redirectBlog)
 	http.HandleFunc("/ap/outbox", outbox)
+	http.HandleFunc("/notes/note-a", notea)
 	http.HandleFunc("/.well-known/webfinger", webfinger)
 	http.Handle("/", printRequest(fs))
 
@@ -63,6 +64,14 @@ func outbox(w http.ResponseWriter, r *http.Request) {
 	log.Println(string(body))
 	w.Header().Set("Content-Type", "application/activity+json")
 	http.ServeFile(w, r, "public/ap/outbox")
+}
+
+func notea(w http.ResponseWriter, r *http.Request) {
+	log.Println(r.URL)
+	body, _ := io.ReadAll(r.Body)
+	log.Println(string(body))
+	w.Header().Set("Content-Type", "application/activity+json")
+	http.ServeFile(w, r, "public/notes/note-a")
 }
 
 func printRequest(h http.Handler) http.Handler {
