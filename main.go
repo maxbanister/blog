@@ -23,7 +23,7 @@ func main() {
 
 	// Serve static files
 	http.HandleFunc("/@blog", redirectBlog)
-	http.HandleFunc("/outbox", outbox)
+	http.HandleFunc("/ap/outbox", outbox)
 	http.HandleFunc("/.well-known/webfinger", webfinger)
 	http.Handle("/", printRequest(fs))
 
@@ -62,7 +62,7 @@ func outbox(w http.ResponseWriter, r *http.Request) {
 	body, _ := io.ReadAll(r.Body)
 	log.Println(string(body))
 	w.Header().Set("Content-Type", "application/activity+json")
-	http.ServeFile(w, r, "public/outbox")
+	http.ServeFile(w, r, "public/ap/outbox")
 }
 
 func printRequest(h http.Handler) http.Handler {
