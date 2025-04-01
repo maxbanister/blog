@@ -67,7 +67,9 @@ func printRequest(h http.Handler) http.Handler {
 
 func acceptValues(vals []string) bool {
 	for _, val := range vals {
-		if strings.Contains(val, "application/ld+json") {
+		if strings.Contains(val, "application/ld+json") ||
+			strings.Contains(val, "application/activity+json") ||
+			strings.Contains(val, "application/json") {
 			return true
 		}
 	}
