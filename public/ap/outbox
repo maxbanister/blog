@@ -7,7 +7,7 @@
 	"orderedItems": [
 		{
 			"@context": "https://www.w3.org/ns/activitystreams",
-			"id": "https://max-blog.koyeb.app/notes/1dff22b5faf3fbebc5aaf2bb5b5dbe2c",
+			"id": "https://max-blog.koyeb.app/notes/note-a",
 			"type": "Note",
 			"content": "The Gendered Lens of AI: Unpacking Bias in Language  ... html content",
 			"url": "https://max-blog.koyeb.app/2024/02/the-gendered-lens-of-ai-unpacking-bias-in-language-models/",
@@ -42,7 +42,7 @@
 		},
 		{
 			"@context": "https://www.w3.org/ns/activitystreams",
-			"id": "https://max-blog.koyeb.app/notes/1dff22b5faf3fbebc5aaf2bb5b5dbe2d",
+			"id": "https://max-blog.koyeb.app/notes/note-b",
 			"type": "Note",
 			"content": "The Ungendered Lens of AI: Unpacking Bias in Language  ... html content",
 			"url": "https://max-blog.koyeb.app/2024/02/the-ungendered-lens-of-ai-unpacking-bias-in-language-models/",
