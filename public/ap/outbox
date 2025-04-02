@@ -1,6 +1,6 @@
 {
 	"@context": "https://www.w3.org/ns/activitystreams",
-	"id": "https://max-blog.koyeb.app/outbox",
+	"id": "https://max-blog.koyeb.app/ap/outbox",
 	"type": "OrderedCollection",
 	"summary": "Recent posts from Max's blog",
 	"totalItems": 1,
