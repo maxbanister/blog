@@ -5,6 +5,7 @@ import (
 	"io/fs"
 	"log"
 	"net/http"
+	"path/filepath"
 	"strings"
 )
 
@@ -50,14 +51,13 @@ func handleCondJSON(w http.ResponseWriter, r *http.Request) {
 	if acceptsJSON(r.Header.Values("Accept")) {
 		handleJSON(w, r)
 	} else {
-		http.ServeFile(w, r, "public"+r.URL.Path)
+		http.ServeFile(w, r, filepath.Join("public", r.URL.Path))
 	}
 }
 
 func handleJSON(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/activity+json")
-	res := "public" + r.URL.Path
-	http.ServeFile(w, r, res)
+	http.ServeFile(w, r, filepath.Join("public", r.URL.Path))
 }
 
 func acceptsJSON(vals []string) bool {

@@ -1,9 +1,9 @@
 {
     "@context": "https://www.w3.org/ns/activitystreams",
-    "id": "https://max-blog.koyeb.app/notes/note-a",
+    "id": "https://max-blog.koyeb.app/posts/note-a",
     "type": "Note",
     "content": "The Gendered Lens of AI: Unpacking Bias in Language  ... html content",
-    "url": "https://max-blog.koyeb.app/notes/note-a",
+    "url": "https://max-blog.koyeb.app/posts/note-a",
     "attributedTo": "https://max-blog.koyeb.app/ap/users/@blog",
     "to": [
         "https://www.w3.org/ns/activitystreams#Public"
