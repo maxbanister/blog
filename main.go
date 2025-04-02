@@ -2,7 +2,6 @@ package main
 
 import (
 	"embed"
-	"fmt"
 	"io/fs"
 	"log"
 	"net/http"
@@ -23,9 +22,9 @@ func main() {
 
 	// Serve static files
 	http.HandleFunc("/ap/users/@blog", redirectUser)
-	http.HandleFunc("/ap/outbox", activityJson)
-	http.HandleFunc("/notes/", activityJson)
-	http.HandleFunc("/.well-known/webfinger", activityJson)
+	http.HandleFunc("/ap/outbox", handleJSON)
+	http.HandleFunc("/posts/", handleCondJSON)
+	http.HandleFunc("/.well-known/webfinger", handleJSON)
 	http.Handle("/", fs2)
 
 	log.Fatal(http.ListenAndServe(":9000", nil))
@@ -34,27 +33,34 @@ func main() {
 func handleLog(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		log.Println(r.URL.Path)
+		log.Println("Accept:", r.Header.Values("Accept"))
 		h.ServeHTTP(w, r)
 	})
 }
 
 func redirectUser(w http.ResponseWriter, r *http.Request) {
-	fmt.Println(r.Header.Values("Accept"))
-	if acceptVals(r.Header.Values("Accept")) {
-		w.Header().Set("Content-Type", "application/activity+json")
-		http.ServeFile(w, r, "public/ap/users/@blog")
+	if acceptsJSON(r.Header.Values("Accept")) {
+		handleJSON(w, r)
 	} else {
 		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
 	}
 }
 
-func activityJson(w http.ResponseWriter, r *http.Request) {
+func handleCondJSON(w http.ResponseWriter, r *http.Request) {
+	if acceptsJSON(r.Header.Values("Accept")) {
+		handleJSON(w, r)
+	} else {
+		http.ServeFile(w, r, "public"+r.URL.Path)
+	}
+}
+
+func handleJSON(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/activity+json")
 	res := "public" + r.URL.Path
 	http.ServeFile(w, r, res)
 }
 
-func acceptVals(vals []string) bool {
+func acceptsJSON(vals []string) bool {
 	opts := []string{"ld+json", "activity+json", "json"}
 	for _, val := range vals {
 		for _, opt := range opts {
