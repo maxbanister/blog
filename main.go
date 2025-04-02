@@ -3,7 +3,6 @@ package main
 import (
 	"embed"
 	"fmt"
-	"io"
 	"io/fs"
 	"log"
 	"net/http"
@@ -20,75 +19,48 @@ func main() {
 		log.Fatal(err)
 	}
 	fs := http.FileServer(http.FS(htmlContent))
+	fs2 := handleLog(fs)
 
 	// Serve static files
-	http.HandleFunc("/@blog", redirectBlog)
-	http.HandleFunc("/ap/outbox", outbox)
-	http.HandleFunc("/notes/note-a", notea)
-	http.HandleFunc("/.well-known/webfinger", webfinger)
-	http.Handle("/", printRequest(fs))
+	http.HandleFunc("/ap/users/@blog", redirectUser)
+	http.HandleFunc("/ap/outbox", activityJson)
+	http.HandleFunc("/notes/", activityJson)
+	http.HandleFunc("/.well-known/webfinger", activityJson)
+	http.Handle("/", fs2)
 
-	err = http.ListenAndServe(":9000", nil)
-	if err != nil {
-		log.Fatal(err)
-	}
+	log.Fatal(http.ListenAndServe(":9000", nil))
 }
 
-func redirectBlog(w http.ResponseWriter, r *http.Request) {
-	log.Println(r.URL)
-	body, _ := io.ReadAll(r.Body)
-	log.Println(string(body))
-	log.Println(r.Header)
+func handleLog(h http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		log.Println(r.URL.Path)
+		h.ServeHTTP(w, r)
+	})
+}
 
+func redirectUser(w http.ResponseWriter, r *http.Request) {
 	fmt.Println(r.Header.Values("Accept"))
-	if acceptValues(r.Header.Values("Accept")) {
-		fmt.Println("here")
+	if acceptVals(r.Header.Values("Accept")) {
 		w.Header().Set("Content-Type", "application/activity+json")
-		http.ServeFile(w, r, "public/@blog")
+		http.ServeFile(w, r, "public/ap/users/@blog")
 	} else {
 		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
 	}
 }
 
-func webfinger(w http.ResponseWriter, r *http.Request) {
-	log.Println(r.URL)
-	body, _ := io.ReadAll(r.Body)
-	log.Println(string(body))
+func activityJson(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/activity+json")
-	http.ServeFile(w, r, "public/.well-known/webfinger")
+	res := "public" + r.URL.Path
+	http.ServeFile(w, r, res)
 }
 
-func outbox(w http.ResponseWriter, r *http.Request) {
-	log.Println(r.URL)
-	body, _ := io.ReadAll(r.Body)
-	log.Println(string(body))
-	w.Header().Set("Content-Type", "application/activity+json")
-	http.ServeFile(w, r, "public/ap/outbox")
-}
-
-func notea(w http.ResponseWriter, r *http.Request) {
-	log.Println(r.URL)
-	body, _ := io.ReadAll(r.Body)
-	log.Println(string(body))
-	w.Header().Set("Content-Type", "application/activity+json")
-	http.ServeFile(w, r, "public/notes/note-a")
-}
-
-func printRequest(h http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		log.Println(r.URL)
-		body, _ := io.ReadAll(r.Body)
-		log.Println(string(body))
-		h.ServeHTTP(w, r)
-	})
-}
-
-func acceptValues(vals []string) bool {
+func acceptVals(vals []string) bool {
+	opts := []string{"ld+json", "activity+json", "json"}
 	for _, val := range vals {
-		if strings.Contains(val, "application/ld+json") ||
-			strings.Contains(val, "application/activity+json") ||
-			strings.Contains(val, "application/json") {
-			return true
+		for _, opt := range opts {
+			if strings.Contains(strings.ToLower(val), "application/"+opt) {
+				return true
+			}
 		}
 	}
 	return false
