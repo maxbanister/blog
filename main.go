@@ -34,7 +34,9 @@ func main() {
 func handleLog(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		log.Println(r.URL.Path)
-		log.Println("Accept:", r.Header.Values("Accept"))
+		log.Println(r.Header.Values)
+		body, _ := r.GetBody()
+		log.Println(body)
 		h.ServeHTTP(w, r)
 	})
 }
