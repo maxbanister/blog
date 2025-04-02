@@ -2,6 +2,7 @@ package main
 
 import (
 	"embed"
+	"io"
 	"io/fs"
 	"log"
 	"net/http"
@@ -35,12 +36,7 @@ func handleLog(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		log.Println(r.URL.Path)
 		log.Println(r.Header)
-		body, err := r.GetBody()
-		if err != nil {
-			log.Println(err)
-		} else {
-			log.Println(body)
-		}
+		log.Println(io.ReadAll(r.Body))
 		h.ServeHTTP(w, r)
 	})
 }
