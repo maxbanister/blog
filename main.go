@@ -25,6 +25,7 @@ func main() {
 	// Serve static files
 	http.HandleFunc("/ap/users/@blog", redirectUser)
 	http.HandleFunc("/ap/outbox", handleJSON)
+	http.HandleFunc("/ap/inbox", handleInbox)
 	http.HandleFunc("/posts/", handleCondJSON)
 	http.HandleFunc("/.well-known/webfinger", handleJSON)
 	http.Handle("/", fs2)
@@ -72,4 +73,10 @@ func acceptsJSON(vals []string) bool {
 		}
 	}
 	return false
+}
+
+func handleInbox(w http.ResponseWriter, r *http.Request) {
+	log.Println(r.Header)
+	log.Println(r.Body)
+	http.NotFound(w, r)
 }
