@@ -77,6 +77,6 @@ func acceptsJSON(vals []string) bool {
 
 func handleInbox(w http.ResponseWriter, r *http.Request) {
 	log.Println(r.Header)
-	log.Println(r.Body)
+	log.Println(io.ReadAll(r.Body))
 	http.NotFound(w, r)
 }
