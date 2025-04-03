@@ -1,7 +1,9 @@
 package main
 
 import (
+	"bytes"
 	"embed"
+	"encoding/json"
 	"io"
 	"io/fs"
 	"log"
@@ -20,24 +22,30 @@ func main() {
 		log.Fatal(err)
 	}
 	fs := http.FileServer(http.FS(htmlContent))
-	fs2 := handleLog(fs)
+
+	mux := http.NewServeMux()
 
 	// Serve static files
-	http.HandleFunc("/ap/users/@blog", redirectUser)
-	http.HandleFunc("/ap/outbox", handleJSON)
-	http.HandleFunc("/ap/inbox", handleInbox)
-	http.HandleFunc("/posts/", handleCondJSON)
-	http.HandleFunc("/.well-known/webfinger", handleJSON)
-	http.Handle("/", fs2)
+	mux.HandleFunc("/ap/users/@blog", redirectUser)
+	mux.HandleFunc("/ap/outbox", handleJSON)
+	mux.HandleFunc("/ap/inbox", handleInbox)
+	mux.HandleFunc("/posts/", handleCondJSON)
+	mux.HandleFunc("/.well-known/webfinger", handleJSON)
+	mux.Handle("/", fs)
 
-	log.Fatal(http.ListenAndServe(":9000", nil))
+	log.Fatal(http.ListenAndServe(":9000", logHandler(mux)))
 }
 
-func handleLog(h http.Handler) http.Handler {
+func logHandler(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		log.Println(r.URL.Path)
-		log.Println(r.Header)
-		log.Println(io.ReadAll(r.Body))
+		log.Println("Path:", r.URL.Path)
+		log.Println("Headers:", r.Header)
+		buf, _ := io.ReadAll(r.Body)
+		newBody := io.NopCloser(bytes.NewBuffer(buf))
+		r.Body = newBody
+		if len(buf) > 0 {
+			log.Println("Body:", string(buf))
+		}
 		h.ServeHTTP(w, r)
 	})
 }
@@ -76,12 +84,15 @@ func acceptsJSON(vals []string) bool {
 }
 
 func handleInbox(w http.ResponseWriter, r *http.Request) {
-	log.Println(r.Header)
-	res, err := io.ReadAll(r.Body)
+	jsonData := new(map[string]interface{})
+	err := json.NewDecoder(r.Body).Decode(&jsonData)
 	if err != nil {
-		log.Println(res)
+		http.Error(w, "bad json syntax: "+err.Error(), http.StatusBadRequest)
 	}
-	http.NotFound(w, r)
+	// fetch user object
+	// verify signature
+	// nothing will send a 200 OK
+	go AcceptRequest()
 }
 
 func AcceptRequest() {
