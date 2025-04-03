@@ -154,7 +154,6 @@ func handleInbox(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "unsupported digest algorithm", http.StatusBadRequest)
 		return
 	}
-	fmt.Println(digestBase64)
 	digestBytes, err := base64.StdEncoding.DecodeString(digestBase64)
 	if err != nil {
 		http.Error(w, "couldn't decode base64 digest: "+err.Error(),
@@ -170,8 +169,7 @@ func handleInbox(w http.ResponseWriter, r *http.Request) {
 	reqBodyHash := sha256.Sum256(followReqBody)
 	// I don't think this needs to be constant time...
 	if !bytes.Equal(reqBodyHash[:], digestBytes) {
-		http.Error(w, "digest did not match message body: "+err.Error(),
-			http.StatusBadRequest)
+		http.Error(w, "digest didn't match message body", http.StatusBadRequest)
 		return
 	}
 
@@ -183,6 +181,7 @@ func handleInbox(w http.ResponseWriter, r *http.Request) {
 	var sigBase64 string
 	for _, sig := range sigHeaders {
 		sigParts := strings.Split(sig, "=")
+		fmt.Println(sigParts)
 		sigData := sigParts[1]
 		if strings.ToLower(sigParts[0]) == "signature" && len(sigData) > 1 {
 			// remove quotes
