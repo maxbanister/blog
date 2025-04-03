@@ -154,6 +154,7 @@ func handleInbox(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "unsupported digest algorithm", http.StatusBadRequest)
 		return
 	}
+	fmt.Println(digestBase64)
 	digestBytes, err := base64.StdEncoding.DecodeString(digestBase64)
 	if err != nil {
 		http.Error(w, "couldn't decode base64 digest: "+err.Error(),
