@@ -174,18 +174,17 @@ func handleInbox(w http.ResponseWriter, r *http.Request) {
 	}
 
 	sigHeaders, ok := r.Header["Signature"]
-	if !ok {
+	if !ok || len(sigHeaders) == 0 {
 		http.Error(w, "no signature header", http.StatusBadRequest)
 		return
 	}
 	var sigBase64 string
-	for _, sig := range sigHeaders {
-		sigParts := strings.Split(sig, "=")
-		fmt.Println(sigParts)
-		sigData := sigParts[1]
-		if strings.ToLower(sigParts[0]) == "signature" && len(sigData) > 1 {
+	for _, sig := range strings.Split(sigHeaders[0], ",") {
+		sigKey, sigVal, found := strings.Cut(sig, "=")
+		fmt.Println(sigKey, sigVal, found)
+		if found && strings.ToLower(sigKey) == "signature" && len(sigVal) > 1 {
 			// remove quotes
-			sigBase64 = sigData[1 : len(sigData)-1]
+			sigBase64 = sigVal[1 : len(sigVal)-1]
 		}
 	}
 	if sigBase64 == "" {
