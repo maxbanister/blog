@@ -139,13 +139,13 @@ func handleInbox(w http.ResponseWriter, r *http.Request) {
 	var digestFound bool
 	var digestBase64 string
 	for _, digest := range digests {
-		digestParts := strings.Split(digest, "=")
-		if len(digestParts) < 2 {
+		digestAlgo, digestRaw, hasSep := strings.Cut(digest, "=")
+		if !hasSep {
 			http.Error(w, "malformed digest header", http.StatusBadRequest)
 			return
 		}
-		if strings.ToLower(digestParts[0]) == "sha-256" {
-			digestBase64 = digestParts[1]
+		if strings.ToLower(digestAlgo) == "sha-256" {
+			digestBase64 = digestRaw
 			digestFound = true
 			break
 		}
