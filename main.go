@@ -78,11 +78,7 @@ func logHandler(h http.Handler) http.Handler {
 		log.Println("Path:", r.URL.Path)
 		log.Println("Headers:", r.Header)
 		buf, _ := io.ReadAll(r.Body)
-		newBody := io.NopCloser(bytes.NewBuffer(buf))
-		buf2, _ := io.ReadAll(newBody)
-		log.Println(string(buf2))
-		newBody2 := io.NopCloser(bytes.NewBuffer(buf2))
-		r.Body = newBody2
+		r.Body = io.NopCloser(bytes.NewBuffer(buf))
 		if len(buf) > 0 {
 			log.Println("Body:", string(buf))
 		}
@@ -201,13 +197,7 @@ func handleInbox(w http.ResponseWriter, r *http.Request) {
 	}
 
 	requestJson := new(map[string]interface{})
-	buf, err := io.ReadAll(r.Body)
-	if err != nil {
-		log.Println("could not decode:", err.Error())
-	}
-	log.Println(string(buf))
-	err = json.Unmarshal(buf, requestJson)
-	//err = json.NewDecoder(r.Body).Decode(requestJson)
+	err = json.Unmarshal(followReqBody, requestJson)
 	if err != nil {
 		http.Error(w, "bad json syntax: "+err.Error(), http.StatusBadRequest)
 		return
