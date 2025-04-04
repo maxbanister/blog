@@ -177,11 +177,8 @@ func handleInbox(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "no signature header", http.StatusBadRequest)
 		return
 	}
-	var keyID, sigAlgo, sigHeaders, sigBase64 string
-	fmt.Sscanf(signatureHeader[0],
-		`keyId="%s",algorithm="%s",headers="%s",signature="%s"`,
-		&keyID, &sigAlgo, &sigHeaders, &sigBase64)
-	/*for _, sig := range strings.Split(signatureHeader[0], ",") {
+	var keyID, sigBase64 string
+	for _, sig := range strings.Split(signatureHeader[0], ",") {
 		sigKey, sigVal, found := strings.Cut(sig, "=")
 		if !found || len(sigVal) < 2 {
 			continue
@@ -205,16 +202,6 @@ func handleInbox(w http.ResponseWriter, r *http.Request) {
 				http.Error(w, "wrong header order", http.StatusBadRequest)
 			}
 		}
-	}*/
-	fmt.Println("sig:", keyID, sigAlgo, sigHeaders, sigBase64)
-	if sigAlgo != "rsa-sha256" {
-		http.Error(w, "unsupported signature algorithm",
-			http.StatusBadRequest)
-		return
-	}
-	if sigHeaders != "host date digest content-type (request-target)" {
-		http.Error(w, "wrong header order", http.StatusBadRequest)
-		return
 	}
 	if keyID == "" || sigBase64 == "" {
 		http.Error(w, "invalid signature", http.StatusBadRequest)
