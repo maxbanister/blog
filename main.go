@@ -235,6 +235,7 @@ func handleInbox(w http.ResponseWriter, r *http.Request) {
 	publicKeyJSONMap, ok2 := publicKeyJSON.(map[string]interface{})
 	publicKeyPEM, ok3 := publicKeyJSONMap["publicKeyPem"]
 	publicKeyPEMBytes, ok4 := publicKeyPEM.([]byte)
+	fmt.Println(publicKeyJSONMap, ok1, ok2, ok3, ok4)
 	if !ok1 || !ok2 || !ok3 || !ok4 {
 		http.Error(w, "no actor public key found", http.StatusBadRequest)
 		return
