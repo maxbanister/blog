@@ -240,7 +240,10 @@ func handleInbox(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "no actor public key found", http.StatusBadRequest)
 		return
 	}
-	publicBlock, _ := pem.Decode([]byte(publicKeyPEMStr))
+	publicBlock, rest := pem.Decode([]byte(publicKeyPEMStr))
+	if rest != nil {
+		fmt.Println("rest", rest)
+	}
 	if publicBlock == nil || publicBlock.Type != "PUBLIC KEY" {
 		http.Error(w, "failed to decode public key", http.StatusBadRequest)
 		return
@@ -260,7 +263,7 @@ func handleInbox(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("pub key", rsaPublicKey)
 	fmt.Println("digest", digestBytes)
 	fmt.Println("signature", sigBytes)
-	err = rsa.VerifyPKCS1v15(rsaPublicKey, crypto.SHA256, digestBytes, sigBytes)
+	err = rsa.VerifyPSS(rsaPublicKey, crypto.SHA256, digestBytes, sigBytes, nil)
 	if err != nil {
 		http.Error(w, "signature did not match digest"+err.Error(),
 			http.StatusUnauthorized)
