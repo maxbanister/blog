@@ -185,6 +185,7 @@ func handleInbox(w http.ResponseWriter, r *http.Request) {
 		}
 		// remove quotes
 		sigVal = sigVal[1 : len(sigVal)-1]
+		fmt.Println(sigVal)
 		switch strings.ToLower(sigKey) {
 		case "signature":
 			sigBase64 = sigVal
