@@ -180,15 +180,14 @@ func handleInbox(w http.ResponseWriter, r *http.Request) {
 	var keyID, sigBase64 string
 	for _, sig := range strings.Split(signatureHeader[0], ",") {
 		sigKey, sigVal, found := strings.Cut(sig, "=")
-		if !found {
+		if !found || len(sigVal) < 2 {
 			continue
 		}
+		// remove quotes
+		sigVal = sigVal[1 : len(sigVal)-1]
 		switch strings.ToLower(sigKey) {
 		case "signature":
-			if len(sigVal) > 1 {
-				// remove quotes
-				sigBase64 = sigVal[1 : len(sigVal)-1]
-			}
+			sigBase64 = sigVal
 		case "keyId":
 			keyID = sigVal
 		case "algorithm":
