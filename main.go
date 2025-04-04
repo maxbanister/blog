@@ -172,21 +172,39 @@ func handleInbox(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	sigHeaders, ok := r.Header["Signature"]
-	if !ok || len(sigHeaders) == 0 {
+	signatureHeader, ok := r.Header["Signature"]
+	if !ok || len(signatureHeader) == 0 {
 		http.Error(w, "no signature header", http.StatusBadRequest)
 		return
 	}
-	var sigBase64 string
-	for _, sig := range strings.Split(sigHeaders[0], ",") {
+	var keyID, sigBase64 string
+	for _, sig := range strings.Split(signatureHeader[0], ",") {
 		sigKey, sigVal, found := strings.Cut(sig, "=")
-		if found && strings.ToLower(sigKey) == "signature" && len(sigVal) > 1 {
-			// remove quotes
-			fmt.Println("sigval", sigVal)
-			sigBase64 = sigVal[1 : len(sigVal)-1]
+		if !found {
+			continue
+		}
+		switch strings.ToLower(sigKey) {
+		case "signature":
+			if len(sigVal) > 1 {
+				// remove quotes
+				sigBase64 = sigVal[1 : len(sigVal)-1]
+			}
+		case "keyId":
+			keyID = sigVal
+		case "algorithm":
+			if strings.ToLower(sigVal) != "rsa-sha256" {
+				http.Error(w, "unsupported signature algorithm",
+					http.StatusBadRequest)
+				return
+			}
+		case "headers":
+			// headers are always lowercase in signature
+			if sigVal != "host date digest content-type (request-target)" {
+				http.Error(w, "wrong header order", http.StatusBadRequest)
+			}
 		}
 	}
-	if sigBase64 == "" {
+	if keyID == "" || sigBase64 == "" {
 		http.Error(w, "invalid signature", http.StatusBadRequest)
 		return
 	}
@@ -213,6 +231,12 @@ func handleInbox(w http.ResponseWriter, r *http.Request) {
 	if !ok1 || !ok2 {
 		http.Error(w, "no actor found", http.StatusBadRequest)
 		return
+	}
+	keyURL, _, _ := strings.Cut(keyID, ",")
+	log.Println("key url:", keyURL)
+	if keyURL != actorURL {
+		http.Error(w, "actor does not match key in signature",
+			http.StatusBadRequest)
 	}
 
 	req, err := http.NewRequest("GET", actorURL, nil)
@@ -260,10 +284,17 @@ func handleInbox(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, errMsg, http.StatusBadRequest)
 		return
 	}
-	fmt.Println("pub key", rsaPublicKey)
-	fmt.Println("digest", digestBytes)
-	fmt.Println("signature", sigBytes)
-	err = rsa.VerifyPSS(rsaPublicKey, crypto.SHA256, digestBytes, sigBytes, nil)
+	signingString := "host: " + r.Host + "\n" +
+		"date: " + r.Header["Date"][0] + "\n" +
+		"digest: " + r.Header["Digest"][0] + "\n" +
+		"content-type: " + r.Header["Content-Type"][0] + "\n" +
+		"(request-target): post " + r.URL.Path
+
+	hashed := sha256.Sum256([]byte(signingString))
+	log.Println("signing string:", signingString)
+	log.Println("hashed:", hashed)
+
+	err = rsa.VerifyPKCS1v15(rsaPublicKey, crypto.SHA256, hashed[:], sigBytes)
 	if err != nil {
 		http.Error(w, "signature did not match digest"+err.Error(),
 			http.StatusUnauthorized)
