@@ -235,7 +235,6 @@ func handleInbox(w http.ResponseWriter, r *http.Request) {
 	publicKeyJSONMap, ok2 := publicKeyJSON.(map[string]interface{})
 	publicKeyPEM, ok3 := publicKeyJSONMap["publicKeyPem"]
 	publicKeyPEMStr, ok4 := publicKeyPEM.(string)
-	fmt.Println(publicKeyJSONMap, ok1, ok2, ok3, ok4)
 	if !ok1 || !ok2 || !ok3 || !ok4 {
 		http.Error(w, "no actor public key found", http.StatusBadRequest)
 		return
@@ -257,7 +256,10 @@ func handleInbox(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, errMsg, http.StatusBadRequest)
 		return
 	}
-	err = rsa.VerifyPSS(rsaPublicKey, crypto.SHA256, digestBytes, sigBytes, nil)
+	fmt.Println(rsaPublicKey)
+	fmt.Println(digestBytes)
+	fmt.Println(sigBytes)
+	err = rsa.VerifyPKCS1v15(rsaPublicKey, crypto.SHA256, digestBytes, sigBytes)
 	if err != nil {
 		http.Error(w, "signature did not match digest", http.StatusUnauthorized)
 		return
