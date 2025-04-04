@@ -182,6 +182,7 @@ func handleInbox(w http.ResponseWriter, r *http.Request) {
 		sigKey, sigVal, found := strings.Cut(sig, "=")
 		if found && strings.ToLower(sigKey) == "signature" && len(sigVal) > 1 {
 			// remove quotes
+			fmt.Println("sigval", sigVal)
 			sigBase64 = sigVal[1 : len(sigVal)-1]
 		}
 	}
@@ -256,9 +257,9 @@ func handleInbox(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, errMsg, http.StatusBadRequest)
 		return
 	}
-	fmt.Println(rsaPublicKey)
-	fmt.Println(digestBytes)
-	fmt.Println(sigBytes)
+	fmt.Println("pub key", rsaPublicKey)
+	fmt.Println("digest", digestBytes)
+	fmt.Println("signature", sigBytes)
 	err = rsa.VerifyPKCS1v15(rsaPublicKey, crypto.SHA256, digestBytes, sigBytes)
 	if err != nil {
 		http.Error(w, "signature did not match digest", http.StatusUnauthorized)
