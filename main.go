@@ -79,20 +79,23 @@ func logHandler(h http.Handler) http.Handler {
 		log.Println("Headers:", r.Header)
 		buf, _ := io.ReadAll(r.Body)
 		newBody := io.NopCloser(bytes.NewBuffer(buf))
-		r.Body = newBody
+		buf2, _ := io.ReadAll(newBody)
+		log.Println(string(buf2))
+		newBody2 := io.NopCloser(bytes.NewBuffer(buf))
+		r.Body = newBody2
 		if len(buf) > 0 {
 			log.Println("Body:", string(buf))
 		}
 		lw := NewHTTPLogWriter(w)
 		h.ServeHTTP(lw, r)
 		code := lw.StatusCode
-		fmt.Print("Response: ")
 		if code == 200 {
-			fmt.Println("200 OK")
+			log.Println("Response: 200 OK")
 		} else if code == 404 || lw.ErrMsg == "" {
-			fmt.Printf("%d %s\n", code, http.StatusText(code))
+			log.Printf("Response: %d %s\n", code, http.StatusText(code))
 		} else {
-			fmt.Printf("%d %s - %s\n", code, http.StatusText(code), lw.ErrMsg)
+			log.Printf("Response: %d %s - %s\n", code, http.StatusText(code),
+				lw.ErrMsg)
 		}
 	})
 }
@@ -199,7 +202,13 @@ func handleInbox(w http.ResponseWriter, r *http.Request) {
 	}
 
 	requestJson := new(map[string]interface{})
-	err = json.NewDecoder(r.Body).Decode(&requestJson)
+	buf, err := io.ReadAll(r.Body)
+	if err != nil {
+		log.Println("could not decode:", err.Error())
+	}
+	fmt.Println(string(buf))
+	err = json.Unmarshal(buf, requestJson)
+	//err = json.NewDecoder(r.Body).Decode(requestJson)
 	if err != nil {
 		http.Error(w, "bad json syntax: "+err.Error(), http.StatusBadRequest)
 		return
