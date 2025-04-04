@@ -234,13 +234,13 @@ func handleInbox(w http.ResponseWriter, r *http.Request) {
 	publicKeyJSON, ok1 := (*actorJson)["publicKey"]
 	publicKeyJSONMap, ok2 := publicKeyJSON.(map[string]interface{})
 	publicKeyPEM, ok3 := publicKeyJSONMap["publicKeyPem"]
-	publicKeyPEMBytes, ok4 := publicKeyPEM.([]byte)
+	publicKeyPEMStr, ok4 := publicKeyPEM.(string)
 	fmt.Println(publicKeyJSONMap, ok1, ok2, ok3, ok4)
 	if !ok1 || !ok2 || !ok3 || !ok4 {
 		http.Error(w, "no actor public key found", http.StatusBadRequest)
 		return
 	}
-	publicBlock, _ := pem.Decode(publicKeyPEMBytes)
+	publicBlock, _ := pem.Decode([]byte(publicKeyPEMStr))
 	if publicBlock == nil || publicBlock.Type != "PUBLIC KEY" {
 		http.Error(w, "failed to decode public key", http.StatusBadRequest)
 		return
