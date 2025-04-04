@@ -232,8 +232,6 @@ func handleInbox(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	keyURL, _, _ := strings.Cut(keyID, "#")
-	log.Println("key url:", keyURL)
-	fmt.Println("actor url:", actorURL)
 	if keyURL != actorURL {
 		http.Error(w, "actor does not match key in signature",
 			http.StatusBadRequest)
@@ -264,10 +262,7 @@ func handleInbox(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "no actor public key found", http.StatusBadRequest)
 		return
 	}
-	publicBlock, rest := pem.Decode([]byte(publicKeyPEMStr))
-	if rest != nil {
-		fmt.Println("rest", rest)
-	}
+	publicBlock, _ := pem.Decode([]byte(publicKeyPEMStr))
 	if publicBlock == nil || publicBlock.Type != "PUBLIC KEY" {
 		http.Error(w, "failed to decode public key", http.StatusBadRequest)
 		return
@@ -311,6 +306,7 @@ func handleInbox(w http.ResponseWriter, r *http.Request) {
 
 	// nothing will send a 200 OK
 	go AcceptRequest()
+	w.Write(nil)
 }
 
 func AcceptRequest() {
