@@ -81,7 +81,7 @@ func logHandler(h http.Handler) http.Handler {
 		newBody := io.NopCloser(bytes.NewBuffer(buf))
 		buf2, _ := io.ReadAll(newBody)
 		log.Println(string(buf2))
-		newBody2 := io.NopCloser(bytes.NewBuffer(buf))
+		newBody2 := io.NopCloser(bytes.NewBuffer(buf2))
 		r.Body = newBody2
 		if len(buf) > 0 {
 			log.Println("Body:", string(buf))
