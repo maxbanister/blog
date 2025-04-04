@@ -184,7 +184,6 @@ func handleInbox(w http.ResponseWriter, r *http.Request) {
 	var sigBase64 string
 	for _, sig := range strings.Split(sigHeaders[0], ",") {
 		sigKey, sigVal, found := strings.Cut(sig, "=")
-		fmt.Println(sigKey, sigVal, found)
 		if found && strings.ToLower(sigKey) == "signature" && len(sigVal) > 1 {
 			// remove quotes
 			sigBase64 = sigVal[1 : len(sigVal)-1]
@@ -206,7 +205,7 @@ func handleInbox(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Println("could not decode:", err.Error())
 	}
-	fmt.Println(string(buf))
+	log.Println(string(buf))
 	err = json.Unmarshal(buf, requestJson)
 	//err = json.NewDecoder(r.Body).Decode(requestJson)
 	if err != nil {
