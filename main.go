@@ -262,7 +262,8 @@ func handleInbox(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("signature", sigBytes)
 	err = rsa.VerifyPKCS1v15(rsaPublicKey, crypto.SHA256, digestBytes, sigBytes)
 	if err != nil {
-		http.Error(w, "signature did not match digest", http.StatusUnauthorized)
+		http.Error(w, "signature did not match digest"+err.Error(),
+			http.StatusUnauthorized)
 		return
 	}
 
