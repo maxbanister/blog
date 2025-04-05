@@ -355,6 +355,7 @@ func AcceptRequest(followReqBody []byte, actorAt, actorInboxURL string) error {
 	r.Header["Digest"] = []string{"SHA-256=" + digestBase64}
 
 	signingString := getSigningString(r, SigStringHeaders)
+	log.Println("signing string 2:", signingString)
 
 	log.Println("getting here")
 
