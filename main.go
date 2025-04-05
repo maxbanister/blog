@@ -289,11 +289,13 @@ func handleInbox(w http.ResponseWriter, r *http.Request) {
 	signingString := getSigningString(r, SigStringHeaders)
 
 	hashed := sha256.Sum256([]byte(signingString))
-	log.Println("signing string:", signingString)
+	log.Print("signing string:", signingString)
+	log.Println(rsaPublicKey)
+	log.Println(hashed)
 
 	err = rsa.VerifyPKCS1v15(rsaPublicKey, crypto.SHA256, hashed[:], sigBytes)
 	if err != nil {
-		http.Error(w, "signature did not match digest"+err.Error(),
+		http.Error(w, "signature did not match digest "+err.Error(),
 			http.StatusUnauthorized)
 		return
 	}
@@ -408,9 +410,7 @@ func AcceptRequest(followReqBody []byte, actorAt, actorInboxURL string) error {
 
 func getSigningString(r *http.Request, hdrList string) string {
 	var outStr strings.Builder
-	log.Println(r.Header)
 	for i, hdr := range strings.Split(hdrList, " ") {
-		log.Println(hdr)
 		switch hdr {
 		case "host":
 			outStr.WriteString(hdr + ": " + r.Host)
