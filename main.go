@@ -421,8 +421,8 @@ func getSigningString(r *http.Request, hdrList string) string {
 				r.URL.Path)
 		default:
 			// not supporting any other headers for now
-			panic("unknown header in signing string")
 		}
+		fmt.Println(i, len(hdrList))
 		if i != len(hdrList)-1 {
 			outStr.WriteByte('\n')
 		}
