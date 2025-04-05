@@ -409,6 +409,7 @@ func AcceptRequest(followReqBody []byte, actorAt, actorInboxURL string) error {
 		return err
 	}
 	if resp.StatusCode != http.StatusOK {
+		log.Println(resp)
 		body, _ := io.ReadAll(resp.Body)
 		log.Println("Resp body:", string(body))
 		return fmt.Errorf("resp status not 200")
