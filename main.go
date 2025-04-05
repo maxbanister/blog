@@ -286,7 +286,7 @@ func handleInbox(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, errMsg, http.StatusBadRequest)
 		return
 	}
-	signingString := getSigningString(req, SigStringHeaders)
+	signingString := getSigningString(r, SigStringHeaders)
 
 	hashed := sha256.Sum256([]byte(signingString))
 	log.Println("signing string:", signingString)
@@ -410,13 +410,12 @@ func getSigningString(r *http.Request, hdrList string) string {
 	var outStr strings.Builder
 	log.Println(r.Header)
 	for i, hdr := range strings.Split(hdrList, " ") {
-		h := http.CanonicalHeaderKey(hdr)
-		log.Println(h)
+		log.Println(hdr)
 		switch hdr {
 		case "host":
 			outStr.WriteString(hdr + ": " + r.Host)
 		case "date", "digest", "content-type":
-			outStr.WriteString(hdr + ": " + r.Header.Get(h))
+			outStr.WriteString(hdr + ": " + r.Header.Get(hdr))
 		case "(request-target)":
 			outStr.WriteString(hdr + ": " + strings.ToLower(r.Method) + " " +
 				r.URL.Path)
