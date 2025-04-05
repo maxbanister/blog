@@ -362,16 +362,12 @@ func AcceptRequest(followReqBody []byte, actorAt, actorInboxURL string) error {
 	signingString := getSigningString(r, SigStringHeaders)
 	log.Println("signing string 2:", signingString)
 
-	log.Println("getting here")
-
 	// read PKCIS private key
 	privKeyPEM := os.Getenv("AP_PRIVATE_KEY")
 	if privKeyPEM == "" {
 		return errors.New("no private key found in environment")
 	}
-	log.Println("private key PEM", privKeyPEM)
 
-	log.Println("getting there")
 	// convert PEM to key
 	privBlock, _ := pem.Decode([]byte(privKeyPEM))
 	if privBlock == nil || privBlock.Type != "PRIVATE KEY" {
@@ -390,7 +386,9 @@ func AcceptRequest(followReqBody []byte, actorAt, actorInboxURL string) error {
 
 	log.Println("getting over here")
 	// then, sign them with PKCIS private key
-	sigBytes, err := rsa.SignPSS(rand.Reader, privKeyRSA, crypto.SHA256, []byte(signingString), nil)
+	hashedSig := sha256.Sum256([]byte(signingString))
+	sigBytes, err := rsa.SignPSS(rand.Reader, privKeyRSA, crypto.SHA256,
+		hashedSig[:], nil)
 	if err != nil {
 		return fmt.Errorf("signing error: %w", err)
 	}
