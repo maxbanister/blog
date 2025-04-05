@@ -313,7 +313,12 @@ func handleInbox(w http.ResponseWriter, r *http.Request) {
 	parsedURL, _ := url.Parse(actorURL)
 	actorAt := actorNameStr + "@" + parsedURL.Host
 	log.Println("actor:", actorAt)
-	go AcceptRequest(followReqBody, actorAt, actorInboxStr)
+	go func() {
+		err := AcceptRequest(followReqBody, actorAt, actorInboxStr)
+		if err != nil {
+			log.Println(err)
+		}
+	}()
 
 	w.Write(nil)
 }
@@ -360,10 +365,11 @@ func AcceptRequest(followReqBody []byte, actorAt, actorInboxURL string) error {
 	log.Println("getting here")
 
 	// read PKCIS private key
-	privKeyPEM := os.Getenv("ap-private-pem")
+	privKeyPEM := os.Getenv("AP_PRIVATE_KEY")
 	if privKeyPEM == "" {
 		return errors.New("no private key found in environment")
 	}
+	log.Println("private key PEM", privKeyPEM)
 
 	log.Println("getting there")
 	// convert PEM to key
