@@ -290,8 +290,6 @@ func handleInbox(w http.ResponseWriter, r *http.Request) {
 
 	hashed := sha256.Sum256([]byte(signingString))
 	log.Print("signing string:", signingString)
-	log.Println(rsaPublicKey)
-	log.Println(hashed)
 
 	err = rsa.VerifyPKCS1v15(rsaPublicKey, crypto.SHA256, hashed[:], sigBytes)
 	if err != nil {
@@ -358,11 +356,15 @@ func AcceptRequest(followReqBody []byte, actorAt, actorInboxURL string) error {
 
 	signingString := getSigningString(r, SigStringHeaders)
 
+	log.Println("getting here")
+
 	// read PKCIS private key
 	privKeyPEM := os.Getenv("ap-private-pem")
 	if privKeyPEM == "" {
 		return errors.New("no private key found in environment")
 	}
+
+	log.Println("getting there")
 	// convert PEM to key
 	privBlock, _ := pem.Decode([]byte(privKeyPEM))
 	if privBlock == nil || privBlock.Type != "PRIVATE KEY" {
@@ -378,6 +380,8 @@ func AcceptRequest(followReqBody []byte, actorAt, actorInboxURL string) error {
 	if !ok {
 		return fmt.Errorf("invalid key type: %s", reflect.TypeOf(privKey))
 	}
+
+	log.Println("getting over here")
 	// then, sign them with PKCIS private key
 	sigBytes, err := rsa.SignPSS(rand.Reader, privKeyRSA, crypto.SHA256, []byte(signingString), nil)
 	if err != nil {
@@ -401,6 +405,7 @@ func AcceptRequest(followReqBody []byte, actorAt, actorInboxURL string) error {
 	if err != nil {
 		return err
 	}
+	log.Println("even here")
 	if resp.StatusCode != http.StatusOK {
 		log.Println(resp)
 		return fmt.Errorf("resp status not 200")
@@ -423,7 +428,6 @@ func getSigningString(r *http.Request, sigHeaders string) string {
 		default:
 			// not supporting any other headers for now
 		}
-		fmt.Println(i, len(hdrList))
 		if i != len(hdrList)-1 {
 			outStr.WriteByte('\n')
 		}
