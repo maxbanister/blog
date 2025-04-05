@@ -408,8 +408,10 @@ func AcceptRequest(followReqBody []byte, actorAt, actorInboxURL string) error {
 
 func getSigningString(r *http.Request, hdrList string) string {
 	var outStr strings.Builder
+	log.Println(r.Header)
 	for i, hdr := range strings.Split(hdrList, " ") {
 		h := http.CanonicalHeaderKey(hdr)
+		log.Println(h)
 		switch hdr {
 		case "host":
 			outStr.WriteString(hdr + ": " + r.Host)
