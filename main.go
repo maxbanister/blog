@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"crypto"
+	"crypto/rand"
 	"crypto/rsa"
 	"crypto/sha256"
 	"crypto/x509"
@@ -10,15 +11,21 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"encoding/pem"
+	"errors"
 	"fmt"
 	"io"
 	"io/fs"
 	"log"
 	"net/http"
+	"net/url"
+	"os"
 	"path/filepath"
 	"reflect"
 	"strings"
+	"time"
 )
+
+const SigStringHeaders = "host date digest content-type (request-target)"
 
 //go:embed public/*
 var staticFiles embed.FS
@@ -198,7 +205,7 @@ func handleInbox(w http.ResponseWriter, r *http.Request) {
 			}
 		case "headers":
 			// headers are always lowercase in signature
-			if sigVal != "host date digest content-type (request-target)" {
+			if sigVal != SigStringHeaders {
 				http.Error(w, "wrong header order", http.StatusBadRequest)
 			}
 		}
@@ -279,15 +286,10 @@ func handleInbox(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, errMsg, http.StatusBadRequest)
 		return
 	}
-	signingString := "host: " + r.Host + "\n" +
-		"date: " + r.Header["Date"][0] + "\n" +
-		"digest: " + r.Header["Digest"][0] + "\n" +
-		"content-type: " + r.Header["Content-Type"][0] + "\n" +
-		"(request-target): post " + r.URL.Path
+	signingString := getSigningString(req, SigStringHeaders)
 
 	hashed := sha256.Sum256([]byte(signingString))
 	log.Println("signing string:", signingString)
-	log.Println("hashed:", hashed)
 
 	err = rsa.VerifyPKCS1v15(rsaPublicKey, crypto.SHA256, hashed[:], sigBytes)
 	if err != nil {
@@ -296,19 +298,133 @@ func handleInbox(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// verify signature:
-	// get http body
-	// hash http body
-	// check that the hash matches the digest
-	// decode pem into byte slice
-	// decode the signature using the byte array
-	// check that it makes the hash
+	actorInbox, ok1 := (*actorJson)["inbox"]
+	actorInboxStr, ok2 := actorInbox.(string)
+	if !ok1 || !ok2 {
+		http.Error(w, "no actor inbox", http.StatusBadRequest)
+		return
+	}
+	actorName, ok1 := (*actorJson)["name"]
+	actorNameStr, ok2 := actorName.(string)
+	if !ok1 || !ok2 {
+		http.Error(w, "no actor name", http.StatusBadRequest)
+		return
+	}
+	parsedURL, _ := url.Parse(actorURL)
+	actorAt := actorNameStr + "@" + parsedURL.Host
+	log.Println("actor:", actorAt)
+	go AcceptRequest(followReqBody, actorAt, actorInboxStr)
 
-	// nothing will send a 200 OK
-	go AcceptRequest()
 	w.Write(nil)
 }
 
-func AcceptRequest() {
+func AcceptRequest(followReqBody []byte, actorAt, actorInboxURL string) error {
+	// {
+	// 	"@context": "https://www.w3.org/ns/activitystreams",
+	// 	"id": "https://maho.dev/@blog#accepts/follows/mictlan@mastodon.social",
+	// 	"type": "Accept",
+	// 	"actor": "https://maho.dev/@blog",
+	// 	"object": {
+	// 	  "@context": "https://www.w3.org/ns/activitystreams",
+	// 	  "id": "https://mastodon.social/64527582-3605-4d19-ac99-6715df3b0707",
+	// 	  "type": "Follow",
+	// 	  "actor": "https://mastodon.social/users/mictlan",
+	// 	  "object": "https://maho.dev/@blog"
+	// 	}
+	//  }
+	payload := fmt.Sprintf(`{
+	"@context": "https://www.w3.org/ns/activitystreams",
+	"id": "https://max-blog.koyeb.app/users/@blog#accepts/follows/%s",
+ 	"type": "Accept",
+ 	"actor": "https://max-blog.koyeb.app/users/@blog",
+	"object": %s%s`, actorAt, followReqBody, "\n}\n")
 
+	log.Println("payload:", payload)
+
+	r, err := http.NewRequest("POST", actorInboxURL, strings.NewReader(payload))
+	if err != nil {
+		return err
+	}
+	// post to actor inbox a message like above ^^^
+	// first, compose headers
+	// "host date digest content-type (request-target)"
+	r.Header["Date"] = []string{time.Now().UTC().Format(http.TimeFormat)}
+	r.Header["Content-Type"] = []string{"application/activity+json; charset=utf-8"}
+	digest := sha256.Sum256([]byte(payload))
+	digestBase64 := base64.StdEncoding.EncodeToString(digest[:])
+	r.Header["Digest"] = []string{"SHA-256=" + digestBase64}
+
+	signingString := getSigningString(r, SigStringHeaders)
+
+	// read PKCIS private key
+	privKeyPEM := os.Getenv("ap-private-pem")
+	if privKeyPEM == "" {
+		return errors.New("no private key found in environment")
+	}
+	// convert PEM to key
+	privBlock, _ := pem.Decode([]byte(privKeyPEM))
+	if privBlock == nil || privBlock.Type != "PRIVATE KEY" {
+		return errors.New("failed to decode private key from PEM block")
+	}
+	// Parse the private key from the block
+	privKey, err := x509.ParsePKCS8PrivateKey(privBlock.Bytes)
+	if err != nil {
+		return fmt.Errorf("failed to parse private key type: %w", err)
+	}
+	// Check the type of the key
+	privKeyRSA, ok := privKey.(*rsa.PrivateKey)
+	if !ok {
+		return fmt.Errorf("invalid key type: %s", reflect.TypeOf(privKey))
+	}
+	// then, sign them with PKCIS private key
+	sigBytes, err := rsa.SignPSS(rand.Reader, privKeyRSA, crypto.SHA256, []byte(signingString), nil)
+	if err != nil {
+		return fmt.Errorf("signing error: %w", err)
+	}
+	sigBase64 := base64.StdEncoding.EncodeToString(sigBytes)
+	log.Printf("Signature: %s\n", sigBase64)
+
+	r.Header["Signature"] = []string{
+		fmt.Sprintf(`keyId="%s",algorithm="%s",headers="%s",signature="%s"`,
+			"https://max-blog.koyeb.app/ap/users/@blog#main-key",
+			"rsa-sha256",
+			SigStringHeaders,
+			sigBase64,
+		),
+	}
+
+	log.Printf("headers: %+v\n", r.Header)
+
+	resp, err := (&http.Client{}).Do(r)
+	if err != nil {
+		return err
+	}
+	if resp.StatusCode != http.StatusOK {
+		log.Println(resp)
+		return fmt.Errorf("resp status not 200")
+	}
+	return nil
+}
+
+func getSigningString(r *http.Request, hdrList string) string {
+	var outStr strings.Builder
+	for i, hdr := range strings.Split(hdrList, " ") {
+		h := http.CanonicalHeaderKey(hdr)
+		switch hdr {
+		case "host":
+			outStr.WriteString(hdr + ": " + r.Host)
+		case "date", "digest", "content-type":
+			outStr.WriteString(hdr + ": " + r.Header.Get(h))
+		case "(request-target)":
+			outStr.WriteString(hdr + ": " + strings.ToLower(r.Method) + " " +
+				r.URL.Path)
+		default:
+			// not supporting any other headers for now
+			panic("unknown header in signing string")
+		}
+		if i != len(hdrList)-1 {
+			outStr.WriteByte('\n')
+		}
+	}
+	return outStr.String()
 }
