@@ -384,16 +384,14 @@ func AcceptRequest(followReqBody []byte, actorAt, actorInboxURL string) error {
 		return fmt.Errorf("invalid key type: %s", reflect.TypeOf(privKey))
 	}
 
-	log.Println("getting over here")
 	// then, sign them with PKCIS private key
 	hashedSig := sha256.Sum256([]byte(signingString))
-	sigBytes, err := rsa.SignPSS(rand.Reader, privKeyRSA, crypto.SHA256,
-		hashedSig[:], nil)
+	sigBytes, err := rsa.SignPKCS1v15(rand.Reader, privKeyRSA, crypto.SHA256,
+		hashedSig[:])
 	if err != nil {
 		return fmt.Errorf("signing error: %w", err)
 	}
 	sigBase64 := base64.StdEncoding.EncodeToString(sigBytes)
-	log.Printf("Signature: %s\n", sigBase64)
 
 	r.Header["Signature"] = []string{
 		fmt.Sprintf(`keyId="%s",algorithm="%s",headers="%s",signature="%s"`,
@@ -404,15 +402,15 @@ func AcceptRequest(followReqBody []byte, actorAt, actorInboxURL string) error {
 		),
 	}
 
-	log.Printf("headers: %+v\n", r.Header)
+	log.Println("signature:", r.Header["Signature"][0])
 
 	resp, err := (&http.Client{}).Do(r)
 	if err != nil {
 		return err
 	}
-	log.Println("even here")
 	if resp.StatusCode != http.StatusOK {
-		log.Println(resp)
+		body, _ := io.ReadAll(resp.Body)
+		log.Println("Resp body:", string(body))
 		return fmt.Errorf("resp status not 200")
 	}
 	return nil
