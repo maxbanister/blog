@@ -212,7 +212,7 @@ func handleInbox(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 		case "headers":
-			// n.b. headers are always lowercase in signature
+			// headers are always lowercase in signature
 			// check if the sorted headers list of each are equal
 			s1 := strings.Split(sigVal, " ")
 			s2 := strings.Split(SigStringHeaders, " ")
