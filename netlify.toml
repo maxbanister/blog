@@ -1,2 +1,7 @@
 [build.environment]
 	GO_VERSION="1.23"
+
+[[redirects]]
+	from="/ap/*"
+	to="/.netlify/functions/:splat"
+	status = 200
