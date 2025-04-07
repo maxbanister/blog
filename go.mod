@@ -1,3 +1,5 @@
 module github.com/maxbanister/blog
 
-go 1.22.2
+go 1.23.2
+
+require github.com/aws/aws-lambda-go v1.47.0 // indirect

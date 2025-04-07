@@ -21,6 +21,8 @@ import (
 	"os"
 	"path/filepath"
 	"reflect"
+	"slices"
+	"sort"
 	"strings"
 	"time"
 )
@@ -137,6 +139,11 @@ func acceptsJSON(vals []string) bool {
 }
 
 func handleInbox(w http.ResponseWriter, r *http.Request) {
+	reqDate, err := time.Parse(http.TimeFormat, r.Header.Get("Date"))
+	if err != nil || time.Since(reqDate) >= 2*time.Hour {
+		http.Error(w, "improper date header", http.StatusBadRequest)
+		return
+	}
 	digests, ok := r.Header["Digest"]
 	if !ok || len(digests) == 0 {
 		http.Error(w, "no digest header", http.StatusBadRequest)
@@ -173,7 +180,7 @@ func handleInbox(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	reqBodyHash := sha256.Sum256(followReqBody)
-	// I don't think this needs to be constant time...
+	// Inputs are not secret, so this doesn't have to be constant time
 	if !bytes.Equal(reqBodyHash[:], digestBytes) {
 		http.Error(w, "digest didn't match message body", http.StatusBadRequest)
 		return
@@ -198,15 +205,21 @@ func handleInbox(w http.ResponseWriter, r *http.Request) {
 		case "keyId":
 			keyID = sigVal
 		case "algorithm":
-			if strings.ToLower(sigVal) != "rsa-sha256" {
+			algo := strings.ToLower(sigVal)
+			if algo != "rsa-sha256" && algo != "hs2019" {
 				http.Error(w, "unsupported signature algorithm",
 					http.StatusBadRequest)
 				return
 			}
 		case "headers":
-			// headers are always lowercase in signature
-			if sigVal != SigStringHeaders {
-				http.Error(w, "wrong header order", http.StatusBadRequest)
+			// n.b. headers are always lowercase in signature
+			// check if the sorted headers list of each are equal
+			s1 := strings.Split(sigVal, " ")
+			s2 := strings.Split(SigStringHeaders, " ")
+			sort.Strings(s1)
+			sort.Strings(s2)
+			if slices.Equal(s1, s2) {
+				http.Error(w, "bad signature headers", http.StatusBadRequest)
 			}
 		}
 	}
@@ -221,18 +234,18 @@ func handleInbox(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	requestJson := new(map[string]interface{})
+	requestJson := make(map[string]interface{})
 	err = json.Unmarshal(followReqBody, requestJson)
 	if err != nil {
 		http.Error(w, "bad json syntax: "+err.Error(), http.StatusBadRequest)
 		return
 	}
-	// fetch user object
-	if (*requestJson)["type"] != "Follow" {
+	if requestJson["type"] != "Follow" {
 		http.Error(w, "unsupported operation", http.StatusNotImplemented)
 		return
 	}
-	actor, ok1 := (*requestJson)["actor"]
+	// fetch user object
+	actor, ok1 := requestJson["actor"]
 	actorURL, ok2 := actor.(string)
 	if !ok1 || !ok2 {
 		http.Error(w, "no actor found", http.StatusBadRequest)
@@ -255,13 +268,13 @@ func handleInbox(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	actorJson := new(map[string]interface{})
+	actorJson := make(map[string]interface{})
 	err = json.NewDecoder(resp.Body).Decode(&actorJson)
 	if err != nil {
 		http.Error(w, "bad json syntax: "+err.Error(), http.StatusBadRequest)
 		return
 	}
-	publicKeyJSON, ok1 := (*actorJson)["publicKey"]
+	publicKeyJSON, ok1 := actorJson["publicKey"]
 	publicKeyJSONMap, ok2 := publicKeyJSON.(map[string]interface{})
 	publicKeyPEM, ok3 := publicKeyJSONMap["publicKeyPem"]
 	publicKeyPEMStr, ok4 := publicKeyPEM.(string)
@@ -298,13 +311,13 @@ func handleInbox(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	actorInbox, ok1 := (*actorJson)["inbox"]
+	actorInbox, ok1 := actorJson["inbox"]
 	actorInboxStr, ok2 := actorInbox.(string)
 	if !ok1 || !ok2 {
 		http.Error(w, "no actor inbox", http.StatusBadRequest)
 		return
 	}
-	actorName, ok1 := (*actorJson)["name"]
+	actorName, ok1 := actorJson["name"]
 	actorNameStr, ok2 := actorName.(string)
 	if !ok1 || !ok2 {
 		http.Error(w, "no actor name", http.StatusBadRequest)
@@ -344,15 +357,14 @@ func AcceptRequest(followReqBody []byte, actorAt, actorInboxURL string) error {
  	"actor": "https://max-blog.koyeb.app/users/@blog",
 	"object": %s%s`, actorAt, followReqBody, "\n}\n")
 
-	log.Println("payload:", payload)
+	log.Println("Payload:", payload)
 
+	// post to actor inbox a message like above ^^^
 	r, err := http.NewRequest("POST", actorInboxURL, strings.NewReader(payload))
 	if err != nil {
 		return err
 	}
-	// post to actor inbox a message like above ^^^
 	// first, compose headers
-	// "host date digest content-type (request-target)"
 	r.Header["Date"] = []string{time.Now().UTC().Format(http.TimeFormat)}
 	r.Header["Content-Type"] = []string{"application/activity+json; charset=utf-8"}
 	digest := sha256.Sum256([]byte(payload))
@@ -367,8 +379,7 @@ func AcceptRequest(followReqBody []byte, actorAt, actorInboxURL string) error {
 	if privKeyPEM == "" {
 		return errors.New("no private key found in environment")
 	}
-
-	// convert PEM to key
+	// Convert to PEM block
 	privBlock, _ := pem.Decode([]byte(privKeyPEM))
 	if privBlock == nil || privBlock.Type != "PRIVATE KEY" {
 		return errors.New("failed to decode private key from PEM block")
@@ -384,10 +395,10 @@ func AcceptRequest(followReqBody []byte, actorAt, actorInboxURL string) error {
 		return fmt.Errorf("invalid key type: %s", reflect.TypeOf(privKey))
 	}
 
-	// then, sign them with PKCIS private key
-	hashedSig := sha256.Sum256([]byte(signingString))
+	// Sign header string with PKCIS private key
+	hashedHdrs := sha256.Sum256([]byte(signingString))
 	sigBytes, err := rsa.SignPKCS1v15(rand.Reader, privKeyRSA, crypto.SHA256,
-		hashedSig[:])
+		hashedHdrs[:])
 	if err != nil {
 		return fmt.Errorf("signing error: %w", err)
 	}
@@ -401,18 +412,14 @@ func AcceptRequest(followReqBody []byte, actorAt, actorInboxURL string) error {
 			sigBase64,
 		),
 	}
-
-	log.Println("signature:", r.Header["Signature"][0])
+	log.Println("Signature:", r.Header["Signature"][0])
 
 	resp, err := (&http.Client{}).Do(r)
 	if err != nil {
 		return err
 	}
-	if resp.StatusCode != http.StatusOK {
-		log.Println(resp)
-		body, _ := io.ReadAll(resp.Body)
-		log.Println("Resp body:", string(body))
-		return fmt.Errorf("resp status not 200")
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		return fmt.Errorf("instance did not accept message: %v", resp)
 	}
 	return nil
 }
