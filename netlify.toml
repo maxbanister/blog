@@ -1,0 +1,2 @@
+[build]
+	GO_VERSION="1.23"
