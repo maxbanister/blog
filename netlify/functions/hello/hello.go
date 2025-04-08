@@ -1,7 +1,6 @@
 package main
 
 import (
-	"errors"
 	"fmt"
 
 	"github.com/aws/aws-lambda-go/events"
@@ -10,8 +9,6 @@ import (
 
 func handler(request events.APIGatewayProxyRequest) (*events.APIGatewayProxyResponse, error) {
 	fmt.Println("Headers:", request.Headers)
-
-	return nil, errors.New("this is an error")
 
 	return &events.APIGatewayProxyResponse{
 		StatusCode: 200,
