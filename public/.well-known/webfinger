@@ -7,7 +7,7 @@
         {
             "rel": "self",
             "type": "application/activity+json",
-            "href": "https://maxscribes.netlify.app/ap/users/blog"
+            "href": "https://maxscribes.netlify.app/ap/user/blog"
         },
         {
             "rel":"http://webfinger.net/rel/profile-page",
