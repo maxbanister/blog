@@ -77,10 +77,14 @@ func getLambdaResp(err error) (*LambdaResponse, error) {
 		code = http.StatusOK
 	}
 
+	var errMsg string
+	if err != nil {
+		errMsg = err.Error()
+	}
 	fmt.Println(code, err)
 	return &events.APIGatewayProxyResponse{
 		StatusCode: code,
-		Body:       err.Error(),
+		Body:       errMsg,
 	}, nil
 }
 
@@ -354,7 +358,6 @@ func getPrivKey() (*rsa.PrivateKey, error) {
 		return nil, errors.New("no private key found in environment")
 	}
 	privKeyPEM = strings.ReplaceAll(privKeyPEM, "\\n", "\n")
-	fmt.Println("priv key:", privKeyPEM)
 
 	// Convert to PEM block
 	privBlock, _ := pem.Decode([]byte(privKeyPEM))
