@@ -276,11 +276,11 @@ func AcceptRequest(followReqBody string, actorJSON map[string]any) {
 	fmt.Println("actor:", actorAt)
 
 	payload := fmt.Sprintf(`{
-	"@context": "https://www.w3.org/ns/activitystreams",
-	"id": "https://maxscribes.netlify.app/ap/user/blog#accepts/follows/%s",
- 	"type": "Accept",
- 	"actor": "https://maxscribes.netlify.app/ap/user/blog",
-	"object": %s%s`, actorAt, followReqBody, "\n}\n")
+	"\t@context": "https://www.w3.org/ns/activitystreams",
+	"\tid": "https://maxscribes.netlify.app/ap/user/blog#accepts/follows/%s",
+ 	"\ttype": "Accept",
+ 	"\tactor": "https://maxscribes.netlify.app/ap/user/blog",
+	"\tobject": %s%s`, actorAt, followReqBody, "\n}\n")
 
 	fmt.Println("Payload:", payload)
 
@@ -292,11 +292,11 @@ func AcceptRequest(followReqBody string, actorJSON map[string]any) {
 		return
 	}
 	// first, compose headers
-	r.Header["Date"] = []string{time.Now().UTC().Format(http.TimeFormat)}
-	r.Header["Content-Type"] = []string{"application/activity+json; charset=utf-8"}
+	r.Header["date"] = []string{time.Now().UTC().Format(http.TimeFormat)}
+	r.Header["content-type"] = []string{"application/activity+json; charset=utf-8"}
 	digest := sha256.Sum256([]byte(payload))
 	digestBase64 := base64.StdEncoding.EncodeToString(digest[:])
-	r.Header["Digest"] = []string{"SHA-256=" + digestBase64}
+	r.Header["digest"] = []string{"SHA-256=" + digestBase64}
 
 	h, m, p := r.Host, r.Method, r.URL.Path
 	signingString := getSigningString(h, m, p, SigStringHeaders, r.Header)
@@ -375,7 +375,7 @@ func getSigningString(host, method, path, sigHeaders string, hdrs any) string {
 			outStr.WriteString(hdr + ": " + host)
 		case "date", "digest", "content-type":
 			// could be from a gostd http request or lambda request
-			sliceHdr, ok := hdrs.(map[string][]string)
+			sliceHdr, ok := hdrs.(http.Header)
 			fmt.Println("type cast:", sliceHdr, ok)
 			fmt.Println(reflect.TypeOf(hdrs))
 			if sliceHdr, ok = hdrs.(http.Header); ok {
