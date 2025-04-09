@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"context"
 	"crypto"
 	"crypto/rand"
 	"crypto/rsa"
@@ -12,7 +13,6 @@ import (
 	"encoding/pem"
 	"errors"
 	"fmt"
-	"log"
 	"net/http"
 	"net/url"
 	"os"
@@ -40,7 +40,7 @@ func main() {
 	lambda.Start(handleInbox)
 }
 
-func handleInbox(request LambdaRequest) (*LambdaResponse, error) {
+func handleInbox(ctx context.Context, request LambdaRequest) (*LambdaResponse, error) {
 	fmt.Println("Headers:", request.Headers)
 
 	requestJSON := make(map[string]any)
@@ -52,7 +52,7 @@ func handleInbox(request LambdaRequest) (*LambdaResponse, error) {
 
 	switch requestJSON["type"] {
 	case "Follow":
-		actorJSON, err := handleFollow(&request, requestJSON)
+		actorJSON, err := handleFollow(ctx, &request, requestJSON)
 		if err != nil {
 			return getLambdaResp(err)
 		}
@@ -66,7 +66,7 @@ func handleInbox(request LambdaRequest) (*LambdaResponse, error) {
 }
 
 func getLambdaResp(err error) (*LambdaResponse, error) {
-	log.Println(err)
+	fmt.Println(err)
 	var code int
 	if errors.Is(err, ErrUnauthorized) {
 		code = http.StatusUnauthorized
@@ -83,9 +83,8 @@ func getLambdaResp(err error) (*LambdaResponse, error) {
 	}, nil
 }
 
-func handleFollow(r *LambdaRequest, requestJSON map[string]any) (map[string]any, error) {
+func handleFollow(ctx context.Context, r *LambdaRequest, requestJSON map[string]any) (map[string]any, error) {
 	reqDate, err := time.Parse(http.TimeFormat, r.Headers["date"])
-	fmt.Println("err:", err, ", reqDate:", reqDate, ", time.Now():", time.Now())
 	if err != nil {
 		return nil, fmt.Errorf("%w: %w", ErrBadRequest, err)
 	}
@@ -138,11 +137,19 @@ func handleFollow(r *LambdaRequest, requestJSON map[string]any) (map[string]any,
 		return nil, fmt.Errorf("%w: %w", ErrUnauthorized, err)
 	}
 
+	lc, ok := lambdacontext.FromContext(ctx)
+	if !ok {
+		return nil, fmt.Errorf("could not get lambda context")
+	}
+	cc := lc.ClientContext
+	fmt.Println("client context:", cc)
+
+	fmt.Println("request context:", r.RequestContext)
 	h, m, p := r.RequestContext.DomainName, r.HTTPMethod, r.Path
 	signingString := getSigningString(h, m, p, SigStringHeaders, r.Headers)
 
 	hashed := sha256.Sum256([]byte(signingString))
-	log.Println("signing string:", signingString)
+	fmt.Println("signing string:", signingString)
 
 	err = rsa.VerifyPKCS1v15(rsaPublicKey, crypto.SHA256, hashed[:], sigBytes)
 	if err != nil {
@@ -272,7 +279,7 @@ func AcceptRequest(followReqBody string, actorJSON map[string]any) {
 	// Pre-validated actor name and inbox exist and are strings
 	parsedURL, _ := url.Parse(actorJSON["id"].(string))
 	actorAt := actorJSON["name"].(string) + "@" + parsedURL.Host
-	log.Println("actor:", actorAt)
+	fmt.Println("actor:", actorAt)
 
 	payload := fmt.Sprintf(`{
 	"@context": "https://www.w3.org/ns/activitystreams",
@@ -281,18 +288,18 @@ func AcceptRequest(followReqBody string, actorJSON map[string]any) {
  	"actor": "https://maxscribes.netlify.app/ap/user/blog",
 	"object": %s%s`, actorAt, followReqBody, "\n}\n")
 
-	log.Println("Payload:", payload)
+	fmt.Println("Payload:", payload)
 
 	// post to actor inbox a message
 	actorInbox := actorJSON["inbox"].(string)
 	r, err := http.NewRequest("POST", actorInbox, strings.NewReader(payload))
 	if err != nil {
-		log.Println("couldn't post to actor inbox:", err.Error())
+		fmt.Println("couldn't post to actor inbox:", err.Error())
 		return
 	}
 	// first, compose headers
 	r.Header["Date"] = []string{time.Now().UTC().Format(http.TimeFormat)}
-	log.Println("date sent:", r.Header["Date"])
+	fmt.Println("date sent:", r.Header["Date"])
 	r.Header["Content-Type"] = []string{"application/activity+json; charset=utf-8"}
 	digest := sha256.Sum256([]byte(payload))
 	digestBase64 := base64.StdEncoding.EncodeToString(digest[:])
@@ -300,7 +307,7 @@ func AcceptRequest(followReqBody string, actorJSON map[string]any) {
 
 	h, m, p := r.Host, r.Method, r.URL.Path
 	signingString := getSigningString(h, m, p, SigStringHeaders, r.Header)
-	log.Println("signing string 2:", signingString)
+	fmt.Println("signing string 2:", signingString)
 
 	privKeyRSA, err := getPrivKey()
 	if err != nil {
@@ -313,7 +320,7 @@ func AcceptRequest(followReqBody string, actorJSON map[string]any) {
 	sigBytes, err := rsa.SignPKCS1v15(rand.Reader, privKeyRSA, crypto.SHA256,
 		hashedHdrs[:])
 	if err != nil {
-		log.Println("signing error:", err.Error())
+		fmt.Println("signing error:", err.Error())
 		return
 	}
 	sigBase64 := base64.StdEncoding.EncodeToString(sigBytes)
@@ -326,15 +333,15 @@ func AcceptRequest(followReqBody string, actorJSON map[string]any) {
 			sigBase64,
 		),
 	}
-	log.Println("Signature:", r.Header["Signature"][0])
+	fmt.Println("Signature:", r.Header["Signature"][0])
 
 	resp, err := (&http.Client{}).Do(r)
 	if err != nil {
-		log.Println("error sending AcceptFollow:", err.Error())
+		fmt.Println("error sending AcceptFollow:", err.Error())
 		return
 	}
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		log.Printf("instance did not accept message: %v\n", resp)
+		fmt.Printf("instance did not accept message: %v\n", resp)
 		return
 	}
 }
