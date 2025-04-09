@@ -276,11 +276,11 @@ func AcceptRequest(followReqBody string, actorJSON map[string]any) {
 	fmt.Println("actor:", actorAt)
 
 	payload := fmt.Sprintf(`{
-	"\t@context": "https://www.w3.org/ns/activitystreams",
-	"\tid": "https://maxscribes.netlify.app/ap/user/blog#accepts/follows/%s",
- 	"\ttype": "Accept",
- 	"\tactor": "https://maxscribes.netlify.app/ap/user/blog",
-	"\tobject": %s%s`, actorAt, followReqBody, "\n}\n")
+	"@context": "https://www.w3.org/ns/activitystreams",
+	"id": "https://maxscribes.netlify.app/ap/user/blog#accepts/follows/%s",
+ 	"type": "Accept",
+ 	"actor": "https://maxscribes.netlify.app/ap/user/blog",
+	"object": %s%s`, actorAt, followReqBody, "\n}\n")
 
 	fmt.Println("Payload:", payload)
 
@@ -375,10 +375,7 @@ func getSigningString(host, method, path, sigHeaders string, hdrs any) string {
 			outStr.WriteString(hdr + ": " + host)
 		case "date", "digest", "content-type":
 			// could be from a gostd http request or lambda request
-			sliceHdr, ok := hdrs.(http.Header)
-			fmt.Println("type cast:", sliceHdr, ok)
-			fmt.Println(reflect.TypeOf(hdrs))
-			if sliceHdr, ok = hdrs.(http.Header); ok {
+			if sliceHdr, ok := hdrs.(http.Header); ok {
 				outStr.WriteString(hdr + ": " + strings.Join(sliceHdr[hdr], ""))
 			} else if hdrs, ok := hdrs.(map[string]string); ok {
 				outStr.WriteString(hdr + ": " + hdrs[hdr])
