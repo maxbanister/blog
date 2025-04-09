@@ -11,7 +11,7 @@
 
 [[headers]]
 	for = "/ap/user/blog"
-	[[headers.values]]
+	[headers.values]
 		Content-Type = "application/activity+json"
 
 [[headers]]
