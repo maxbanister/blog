@@ -8,3 +8,13 @@
 	from="/ap/*"
 	to="/.netlify/functions/:splat"
 	status = 200
+
+[[headers]]
+	for = "/ap/user/blog"
+	[[headers.values]]
+		Content-Type = "application/activity+json"
+
+[[headers]]
+	for = "/public/.well-known/webfinger"
+	[[headers.values]]
+		Content-Type = "application/activity+json"
