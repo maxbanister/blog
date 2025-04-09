@@ -86,6 +86,7 @@ func getLambdaResp(err error) (*LambdaResponse, error) {
 
 func handleFollow(r *LambdaRequest, requestJSON map[string]any) (map[string]any, error) {
 	reqDate, err := time.Parse(http.TimeFormat, r.Headers["Date"])
+	fmt.Println("err:", err, ", reqDate:", reqDate, ", time.Now():", time.Now())
 	if err != nil || time.Since(reqDate) >= 2*time.Hour {
 		return nil, fmt.Errorf("%w: date header too old", ErrBadRequest)
 	}
