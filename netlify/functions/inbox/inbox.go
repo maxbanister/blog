@@ -2,7 +2,6 @@ package main
 
 import (
 	"bytes"
-	"context"
 	"crypto"
 	"crypto/rand"
 	"crypto/rsa"
@@ -23,12 +22,10 @@ import (
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
-	"github.com/aws/aws-lambda-go/lambdacontext"
 )
 
 type LambdaRequest = events.APIGatewayProxyRequest
 type LambdaResponse = events.APIGatewayProxyResponse
-type LambdaCtx = lambdacontext.LambdaContext
 
 const SigStringHeaders = "host date digest content-type (request-target)"
 
@@ -40,7 +37,7 @@ func main() {
 	lambda.Start(handleInbox)
 }
 
-func handleInbox(ctx context.Context, request LambdaRequest) (*LambdaResponse, error) {
+func handleInbox(request LambdaRequest) (*LambdaResponse, error) {
 	fmt.Println("Headers:", request.Headers)
 
 	requestJSON := make(map[string]any)
@@ -52,7 +49,7 @@ func handleInbox(ctx context.Context, request LambdaRequest) (*LambdaResponse, e
 
 	switch requestJSON["type"] {
 	case "Follow":
-		actorJSON, err := handleFollow(ctx, &request, requestJSON)
+		actorJSON, err := handleFollow(&request, requestJSON)
 		if err != nil {
 			return getLambdaResp(err)
 		}
@@ -88,7 +85,7 @@ func getLambdaResp(err error) (*LambdaResponse, error) {
 	}, nil
 }
 
-func handleFollow(ctx context.Context, r *LambdaRequest, requestJSON map[string]any) (map[string]any, error) {
+func handleFollow(r *LambdaRequest, requestJSON map[string]any) (map[string]any, error) {
 	reqDate, err := time.Parse(http.TimeFormat, r.Headers["date"])
 	if err != nil {
 		return nil, fmt.Errorf("%w: %w", ErrBadRequest, err)
@@ -142,14 +139,6 @@ func handleFollow(ctx context.Context, r *LambdaRequest, requestJSON map[string]
 		return nil, fmt.Errorf("%w: %w", ErrUnauthorized, err)
 	}
 
-	lc, ok := lambdacontext.FromContext(ctx)
-	if !ok {
-		return nil, fmt.Errorf("could not get lambda context")
-	}
-	cc := lc.ClientContext
-	fmt.Println("client context:", cc)
-
-	fmt.Println("request context:", r.RequestContext)
 	h, m, p := r.Headers["host"], r.HTTPMethod, r.Path
 	signingString := getSigningString(h, m, p, SigStringHeaders, r.Headers)
 
@@ -304,7 +293,6 @@ func AcceptRequest(followReqBody string, actorJSON map[string]any) {
 	}
 	// first, compose headers
 	r.Header["Date"] = []string{time.Now().UTC().Format(http.TimeFormat)}
-	fmt.Println("date sent:", r.Header["Date"])
 	r.Header["Content-Type"] = []string{"application/activity+json; charset=utf-8"}
 	digest := sha256.Sum256([]byte(payload))
 	digestBase64 := base64.StdEncoding.EncodeToString(digest[:])
@@ -389,7 +377,8 @@ func getSigningString(host, method, path, sigHeaders string, hdrs any) string {
 			// could be from a gostd http request or lambda request
 			sliceHdr, ok := hdrs.(map[string][]string)
 			fmt.Println("type cast:", sliceHdr, ok)
-			if sliceHdr, ok = hdrs.(map[string][]string); ok {
+			fmt.Println(reflect.TypeOf(hdrs))
+			if sliceHdr, ok = hdrs.(http.Header); ok {
 				outStr.WriteString(hdr + ": " + strings.Join(sliceHdr[hdr], ""))
 			} else if hdrs, ok := hdrs.(map[string]string); ok {
 				outStr.WriteString(hdr + ": " + hdrs[hdr])
