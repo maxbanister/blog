@@ -145,7 +145,7 @@ func handleFollow(ctx context.Context, r *LambdaRequest, requestJSON map[string]
 	fmt.Println("client context:", cc)
 
 	fmt.Println("request context:", r.RequestContext)
-	h, m, p := r.RequestContext.DomainName, r.HTTPMethod, r.Path
+	h, m, p := r.Headers["host"], r.HTTPMethod, r.Path
 	signingString := getSigningString(h, m, p, SigStringHeaders, r.Headers)
 
 	hashed := sha256.Sum256([]byte(signingString))
