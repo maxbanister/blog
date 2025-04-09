@@ -1,0 +1,18 @@
+{
+    "subject": "acct:blog@maxscribes.netlify.app",
+    "aliases": [
+        "https://maxscribes.netlify.app/ap/user/blog"
+    ],
+    "links": [
+        {
+            "rel": "self",
+            "type": "application/activity+json",
+            "href": "https://max-blog.koyeb.app/ap/users/@blog"
+        },
+        {
+            "rel":"http://webfinger.net/rel/profile-page",
+            "type":"text/html",
+            "href":"https://maxscribes.netlify.app/"
+        }
+    ]
+}
