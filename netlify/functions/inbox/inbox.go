@@ -67,6 +67,7 @@ func handleInbox(request LambdaRequest) (*LambdaResponse, error) {
 }
 
 func getLambdaResp(err error) (*LambdaResponse, error) {
+	log.Println(err)
 	var code int
 	if errors.Is(err, ErrUnauthorized) {
 		code = http.StatusUnauthorized
