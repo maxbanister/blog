@@ -16,5 +16,5 @@
 
 [[headers]]
 	for = "/public/.well-known/webfinger"
-	[[headers.values]]
+	[headers.values]
 		Content-Type = "application/activity+json"
