@@ -378,22 +378,24 @@ func getPrivKey() (*rsa.PrivateKey, error) {
 	return privKeyRSA, nil
 }
 
-func getSigningString(h, m, p, sigHeaders string, hdrs interface{}) string {
+func getSigningString(host, method, path, sigHeaders string, hdrs any) string {
 	var outStr strings.Builder
 	hdrList := strings.Split(sigHeaders, " ")
 	for i, hdr := range hdrList {
 		switch hdr {
 		case "host":
-			outStr.WriteString(hdr + ": " + h)
+			outStr.WriteString(hdr + ": " + host)
 		case "date", "digest", "content-type":
 			// could be from a gostd http request or lambda request
-			if sliceHdr, ok := hdrs.(map[string][]string); ok {
+			sliceHdr, ok := hdrs.(map[string][]string)
+			fmt.Println("type cast:", sliceHdr, ok)
+			if sliceHdr, ok = hdrs.(map[string][]string); ok {
 				outStr.WriteString(hdr + ": " + strings.Join(sliceHdr[hdr], ""))
 			} else if hdrs, ok := hdrs.(map[string]string); ok {
 				outStr.WriteString(hdr + ": " + hdrs[hdr])
 			}
 		case "(request-target)":
-			outStr.WriteString(hdr + ": " + strings.ToLower(m) + " " + p)
+			outStr.WriteString(hdr + ": " + strings.ToLower(method) + " " + path)
 		default:
 			// not supporting any other headers for now
 		}
