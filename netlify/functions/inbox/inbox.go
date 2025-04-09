@@ -18,7 +18,6 @@ import (
 	"os"
 	"reflect"
 	"slices"
-	"sort"
 	"strings"
 	"time"
 
@@ -85,9 +84,12 @@ func getLambdaResp(err error) (*LambdaResponse, error) {
 }
 
 func handleFollow(r *LambdaRequest, requestJSON map[string]any) (map[string]any, error) {
-	reqDate, err := time.Parse(http.TimeFormat, r.Headers["Date"])
+	reqDate, err := time.Parse(http.TimeFormat, r.Headers["date"])
 	fmt.Println("err:", err, ", reqDate:", reqDate, ", time.Now():", time.Now())
-	if err != nil || time.Since(reqDate) >= 2*time.Hour {
+	if err != nil {
+		return nil, fmt.Errorf("%w: %w", ErrBadRequest, err)
+	}
+	if time.Since(reqDate) >= 2*time.Hour {
 		return nil, fmt.Errorf("%w: date header too old", ErrBadRequest)
 	}
 
@@ -152,7 +154,7 @@ func handleFollow(r *LambdaRequest, requestJSON map[string]any) (map[string]any,
 }
 
 func checkDigest(r *LambdaRequest) error {
-	digest := r.Headers["Digest"]
+	digest := r.Headers["digest"]
 	if digest == "" {
 		return errors.New("no digest header")
 	}
@@ -177,7 +179,7 @@ func checkDigest(r *LambdaRequest) error {
 }
 
 func getSigHeaderParts(r *LambdaRequest) ([]byte, string, error) {
-	signatureHeader := r.Headers["Signature"]
+	signatureHeader := r.Headers["signature"]
 	if signatureHeader == "" {
 		return nil, "", errors.New("no signature header")
 	}
@@ -201,13 +203,12 @@ func getSigHeaderParts(r *LambdaRequest) ([]byte, string, error) {
 			}
 		case "headers":
 			// headers are always lowercase in signature
-			// check if the sorted headers list of each are equal
-			s1 := strings.Split(sigVal, " ")
-			s2 := strings.Split(SigStringHeaders, " ")
-			sort.Strings(s1)
-			sort.Strings(s2)
-			if slices.Equal(s1, s2) {
-				return nil, "", errors.New("bad signature headers")
+			// check if the headers values of each are equal
+			sigStrHdrs := strings.Split(SigStringHeaders, " ")
+			for _, hdrStr := range strings.Split(sigVal, " ") {
+				if !slices.Contains(sigStrHdrs, hdrStr) {
+					return nil, "", errors.New("bad signature headers")
+				}
 			}
 		}
 	}
