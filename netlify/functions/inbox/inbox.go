@@ -66,7 +66,6 @@ func handleInbox(ctx context.Context, request LambdaRequest) (*LambdaResponse, e
 }
 
 func getLambdaResp(err error) (*LambdaResponse, error) {
-	fmt.Println(err)
 	var code int
 	if errors.Is(err, ErrUnauthorized) {
 		code = http.StatusUnauthorized
@@ -77,6 +76,8 @@ func getLambdaResp(err error) (*LambdaResponse, error) {
 	} else {
 		code = http.StatusOK
 	}
+
+	fmt.Println(code, err)
 	return &events.APIGatewayProxyResponse{
 		StatusCode: code,
 		Body:       err.Error(),
@@ -352,6 +353,9 @@ func getPrivKey() (*rsa.PrivateKey, error) {
 	if privKeyPEM == "" {
 		return nil, errors.New("no private key found in environment")
 	}
+	privKeyPEM = strings.ReplaceAll(privKeyPEM, "\\n", "\n")
+	fmt.Println("priv key:", privKeyPEM)
+
 	// Convert to PEM block
 	privBlock, _ := pem.Decode([]byte(privKeyPEM))
 	if privBlock == nil || privBlock.Type != "PRIVATE KEY" {
