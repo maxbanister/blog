@@ -334,6 +334,7 @@ func AcceptRequest(followReqBody string, actor *Actor) {
 		fmt.Println("error sending AcceptFollow:", err.Error())
 		return
 	}
+	fmt.Println(resp.StatusCode, resp.Body)
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
 		fmt.Printf("instance did not accept message: %v\n", resp)
 		return
