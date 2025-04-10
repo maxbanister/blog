@@ -313,8 +313,10 @@ func AcceptRequest(followReqBody string, actor *Actor) {
 
 	// Sign header string with PKCIS private key
 	hashedHdrs := sha256.Sum256([]byte(signingString))
+	fmt.Println("getting here 2", hashedHdrs)
 	sigBytes, err := rsa.SignPKCS1v15(rand.Reader, privKeyRSA, crypto.SHA256,
 		hashedHdrs[:])
+	fmt.Println("getting here 3", sigBytes, err)
 	if err != nil {
 		fmt.Println("signing error:", err.Error())
 		return
