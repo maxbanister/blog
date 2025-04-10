@@ -27,6 +27,15 @@ import (
 type LambdaRequest = events.APIGatewayProxyRequest
 type LambdaResponse = events.APIGatewayProxyResponse
 
+type Actor struct {
+	Id        string `json:"id"`
+	Name      string `json:"name"`
+	Inbox     string `json:"inbox"`
+	PublicKey struct {
+		PublicKeyPEM string `json:"publicKeyPem"`
+	} `json:"publicKey"`
+}
+
 const SigStringHeaders = "host date digest content-type (request-target)"
 
 var ErrUnauthorized = errors.New(http.StatusText(http.StatusUnauthorized))
@@ -50,12 +59,12 @@ func handleInbox(request LambdaRequest) (*LambdaResponse, error) {
 
 	switch requestJSON["type"] {
 	case "Follow":
-		actorJSON, err := handleFollow(&request, requestJSON)
+		actorObj, err := handleFollow(&request, requestJSON)
 		if err != nil {
 			return getLambdaResp(err)
 		}
 		// fire and forget
-		go AcceptRequest(request.Body, actorJSON)
+		go AcceptRequest(request.Body, actorObj)
 		return getLambdaResp(nil)
 	default:
 		return getLambdaResp(fmt.Errorf(
@@ -86,7 +95,7 @@ func getLambdaResp(err error) (*LambdaResponse, error) {
 	}, nil
 }
 
-func handleFollow(r *LambdaRequest, requestJSON map[string]any) (map[string]any, error) {
+func handleFollow(r *LambdaRequest, requestJSON map[string]any) (*Actor, error) {
 	reqDate, err := time.Parse(http.TimeFormat, r.Headers["date"])
 	if err != nil {
 		return nil, fmt.Errorf("%w: %w", ErrBadRequest, err)
@@ -106,8 +115,8 @@ func handleFollow(r *LambdaRequest, requestJSON map[string]any) (map[string]any,
 	}
 
 	// fetch actor object
-	actor, ok1 := requestJSON["actor"]
-	actorURL, ok2 := actor.(string)
+	actorProperty, ok1 := requestJSON["actor"]
+	actorURL, ok2 := actorProperty.(string)
 	if !ok1 || !ok2 {
 		return nil, fmt.Errorf("%w: no actor found", ErrBadRequest)
 	}
@@ -117,25 +126,11 @@ func handleFollow(r *LambdaRequest, requestJSON map[string]any) (map[string]any,
 		return nil, fmt.Errorf("%w: actor does not match key in signature",
 			ErrBadRequest)
 	}
-	req, err := http.NewRequest("GET", actorURL, nil)
-	req.Header.Set("Accept", `application/ld+json; profile="https://www.w3.org/ns/activitystreams`)
+	actor, err := fetchActor(actorURL)
 	if err != nil {
 		return nil, fmt.Errorf("%w: %w", ErrBadRequest, err)
 	}
-	resp, err := (&http.Client{}).Do(req)
-	if err != nil {
-		return nil, fmt.Errorf("%w: %w", ErrBadRequest, err)
-	}
-	actorJSON := make(map[string]any)
-	err = json.NewDecoder(resp.Body).Decode(&actorJSON)
-	if err != nil {
-		return nil, fmt.Errorf("%w: bad json syntax: %s", ErrBadRequest,
-			err.Error())
-	}
-	if err = validateActor(actorJSON); err != nil {
-		return nil, fmt.Errorf("%w: %w", ErrBadRequest, err)
-	}
-	rsaPublicKey, err := getActorPubKey(actorJSON)
+	rsaPublicKey, err := getActorPubKey(actor)
 	if err != nil {
 		return nil, fmt.Errorf("%w: %w", ErrUnauthorized, err)
 	}
@@ -152,7 +147,37 @@ func handleFollow(r *LambdaRequest, requestJSON map[string]any) (map[string]any,
 			ErrUnauthorized, err.Error())
 	}
 
-	return actorJSON, nil
+	return actor, nil
+}
+
+func fetchActor(actorURL string) (*Actor, error) {
+	req, err := http.NewRequest("GET", actorURL, nil)
+	req.Header.Set("Accept",
+		`application/ld+json; profile="https://www.w3.org/ns/activitystreams`)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %w", ErrBadRequest, err)
+	}
+	resp, err := (&http.Client{}).Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %w", ErrBadRequest, err)
+	}
+
+	var actor Actor
+	err = json.NewDecoder(resp.Body).Decode(&actor)
+	if err != nil {
+		return nil, fmt.Errorf("bad json syntax: %s", err.Error())
+	}
+	if actor.PublicKey.PublicKeyPEM == "" {
+		return nil, errors.New("no actor public key found")
+	}
+	if actor.Inbox == "" {
+		return nil, errors.New("no actor inbox found")
+	}
+	if actor.Name == "" {
+		return nil, errors.New("no actor name found")
+	}
+
+	return &actor, nil
 }
 
 func checkDigest(r *LambdaRequest) error {
@@ -225,33 +250,8 @@ func getSigHeaderParts(r *LambdaRequest) ([]byte, string, error) {
 	return sigBytes, keyID, nil
 }
 
-func validateActor(actorJSON map[string]any) error {
-	publicKeyJSON, ok1 := actorJSON["publicKey"]
-	publicKeyJSONMap, ok2 := publicKeyJSON.(map[string]any)
-	publicKeyPEM, ok3 := publicKeyJSONMap["publicKeyPem"]
-	_, ok4 := publicKeyPEM.(string)
-	if !ok1 || !ok2 || !ok3 || !ok4 {
-		return errors.New("no actor public key found")
-	}
-
-	actorInbox, ok1 := actorJSON["inbox"]
-	_, ok2 = actorInbox.(string)
-	if !ok1 || !ok2 {
-		return errors.New("no actor inbox")
-	}
-
-	actorName, ok1 := actorJSON["name"]
-	_, ok2 = actorName.(string)
-	if !ok1 || !ok2 {
-		return errors.New("no actor name")
-	}
-
-	return nil
-}
-
-func getActorPubKey(actorJson map[string]any) (*rsa.PublicKey, error) {
-	publicKeyJSON := actorJson["publicKey"].(map[string]any)
-	publicKeyPEM := publicKeyJSON["publicKeyPem"].(string)
+func getActorPubKey(actor *Actor) (*rsa.PublicKey, error) {
+	publicKeyPEM := actor.PublicKey.PublicKeyPEM
 
 	publicBlock, _ := pem.Decode([]byte(publicKeyPEM))
 	if publicBlock == nil || publicBlock.Type != "PUBLIC KEY" {
@@ -270,11 +270,11 @@ func getActorPubKey(actorJson map[string]any) (*rsa.PublicKey, error) {
 	return rsaPublicKey, nil
 }
 
-func AcceptRequest(followReqBody string, actorJSON map[string]any) {
-	// Pre-validated actor name and inbox exist and are strings
-	parsedURL, _ := url.Parse(actorJSON["id"].(string))
-	actorAt := actorJSON["name"].(string) + "@" + parsedURL.Host
-	fmt.Println("actor:", actorAt)
+func AcceptRequest(followReqBody string, actor *Actor) {
+	// Pre-validated actor name and inbox
+	parsedURL, _ := url.Parse(actor.Id)
+	actorAt := actor.Name + "@" + parsedURL.Host
+	fmt.Println("Actor:", actorAt)
 
 	payload := fmt.Sprintf(`{
 	"@context": "https://www.w3.org/ns/activitystreams",
@@ -286,7 +286,7 @@ func AcceptRequest(followReqBody string, actorJSON map[string]any) {
 	fmt.Println("Payload:", payload)
 
 	// post to actor inbox a message
-	actorInbox := actorJSON["inbox"].(string)
+	actorInbox := actor.Inbox
 	r, err := http.NewRequest("POST", actorInbox, strings.NewReader(payload))
 	if err != nil {
 		fmt.Println("couldn't post to actor inbox:", err.Error())

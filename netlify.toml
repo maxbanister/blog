@@ -3,7 +3,7 @@
 	edge-functions = "/netlify/edge-functions"
 
 [build.environment]
-	GO_VERSION="1.23"
+	GO_VERSION = "1.23"
 
 [functions]
 	directory = "/netlify/functions"
