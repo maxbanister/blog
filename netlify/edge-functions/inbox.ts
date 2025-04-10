@@ -6,10 +6,10 @@ import type { Config, Context } from "@netlify/edge-functions";
 export default async (req: Request, context: Context) => {
 	const body = await req.json();
 
-	console.log(body);
-
 	// If this causes an exception, just let it fail and bypass the edge function
 	if (body.type == "Delete" && body.object.toLowerCase().includes("users")) {
+		console.log(body);
+
 		return new Response(
 			"501 Not Implemented: unsupported operation",
 			{

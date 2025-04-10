@@ -6,7 +6,11 @@
 	GO_VERSION="1.23"
 
 [functions]
-  directory = "/netlify/functions"
+	directory = "/netlify/functions"
+
+[[edge_functions]]
+	path = "/inbox"
+	function = "inbox"
 
 [[redirects]]
 	from="/ap/*"
