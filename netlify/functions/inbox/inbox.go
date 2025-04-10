@@ -39,6 +39,7 @@ func main() {
 
 func handleInbox(request LambdaRequest) (*LambdaResponse, error) {
 	fmt.Println("Headers:", request.Headers)
+	fmt.Println("Body:", request.Body)
 
 	requestJSON := make(map[string]any)
 	err := json.Unmarshal([]byte(request.Body), &requestJSON)
