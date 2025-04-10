@@ -309,6 +309,8 @@ func AcceptRequest(followReqBody string, actor *Actor) {
 		return
 	}
 
+	fmt.Println("getting here")
+
 	// Sign header string with PKCIS private key
 	hashedHdrs := sha256.Sum256([]byte(signingString))
 	sigBytes, err := rsa.SignPKCS1v15(rand.Reader, privKeyRSA, crypto.SHA256,
@@ -318,6 +320,8 @@ func AcceptRequest(followReqBody string, actor *Actor) {
 		return
 	}
 	sigBase64 := base64.StdEncoding.EncodeToString(sigBytes)
+
+	fmt.Println("getting there")
 
 	r.Header["Signature"] = []string{
 		fmt.Sprintf(`keyId="%s",algorithm="%s",headers="%s",signature="%s"`,
