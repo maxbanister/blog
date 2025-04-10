@@ -1,6 +1,6 @@
 [build]
 	publish = "/public"
-	edge-functions = "/netlify/edge-functions
+	edge-functions = "/netlify/edge-functions"
 
 [build.environment]
 	GO_VERSION="1.23"
