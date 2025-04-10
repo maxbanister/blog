@@ -9,7 +9,7 @@
 	directory = "/netlify/functions"
 
 [[edge_functions]]
-	path = "/inbox"
+	path = "/ap/inbox"
 	function = "inbox"
 
 [[redirects]]
