@@ -348,13 +348,24 @@ func getSigningString(host, method, path, sigHeaders string, hdrs any) string {
 }
 
 func GetHostSite(ctx context.Context) string {
-	var hostBytes []byte
+	var jsonData []byte
+	var err error
 	lc, ok := lambdacontext.FromContext(ctx)
 	if !ok {
 		fmt.Println("could not get lambda context")
 	} else {
 		ccc := lc.ClientContext.Custom
-		hostBytes, _ = base64.StdEncoding.DecodeString(ccc["netlify"])
+		jsonData, err = base64.StdEncoding.DecodeString(ccc["netlify"])
+		if err != nil {
+			fmt.Println("could not decode netlify base64:", err)
+			return ""
+		}
 	}
-	return string(hostBytes)
+	var netlifyData map[string]string
+	err = json.Unmarshal(jsonData, &netlifyData)
+	if err != nil {
+		fmt.Println("could not decode netlify json:", err)
+		return ""
+	}
+	return netlifyData["site_url"]
 }
