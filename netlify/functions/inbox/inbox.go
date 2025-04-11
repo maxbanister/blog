@@ -36,7 +36,7 @@ func handleInbox(request LambdaRequest) (*LambdaResponse, error) {
 			return getLambdaResp(err)
 		}
 
-		ctx, _ := context.WithTimeout(context.Background(), 50*time.Millisecond)
+		ctx, _ := context.WithTimeout(context.Background(), 500*time.Millisecond)
 
 		url := "https://maxscribes.netlify.app/ap/reply-service"
 		req, _ := http.NewRequestWithContext(ctx, "POST", url, strings.NewReader("hello"))
