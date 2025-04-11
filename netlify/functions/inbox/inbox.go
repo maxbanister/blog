@@ -1,12 +1,13 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
-	"os"
 	"strings"
+	"time"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
@@ -35,7 +36,15 @@ func handleInbox(request LambdaRequest) (*LambdaResponse, error) {
 			return getLambdaResp(err)
 		}
 
-		url := "https://maxscribes.netlify.app/.netlify/functions/async-workloads-router?events=say-hello"
+		ctx, _ := context.WithTimeout(context.Background(), 50*time.Millisecond)
+
+		url := "https://maxscribes.netlify.app/ap/reply-service"
+		req, _ := http.NewRequestWithContext(ctx, "POST", url, strings.NewReader("hello"))
+		fmt.Println("Req:", req)
+		resp, err := (&http.Client{}).Do(req)
+		fmt.Println("Resp:", resp, "Err:", err)
+
+		/*url := "https://maxscribes.netlify.app/.netlify/functions/async-workloads-router?events=say-hello"
 		req, err := http.NewRequest("POST", url, strings.NewReader(
 			fmt.Sprintf(`{
 				eventName: "%s",
@@ -49,7 +58,7 @@ func handleInbox(request LambdaRequest) (*LambdaResponse, error) {
 		} else {
 			resp, err := (&http.Client{}).Do(req)
 			fmt.Println("Resp:", resp, "Err:", err)
-		}
+		}*/
 
 		// fire and forget
 		go AcceptRequest(request.Body, actorObj)

@@ -16,6 +16,7 @@ func main() {
 func handle(request LambdaRequest) (*LambdaResponse, error) {
 
 	fmt.Println("before sleep")
+	fmt.Println(request.Body)
 	time.Sleep(1 * time.Second)
 
 	fmt.Println("after sleep")
