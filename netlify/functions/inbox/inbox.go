@@ -40,7 +40,7 @@ func handleInbox(request LambdaRequest) (*LambdaResponse, error) {
 
 		url := "https://maxscribes.netlify.app/ap/reply-service"
 		req, _ := http.NewRequestWithContext(ctx, "POST", url, strings.NewReader("hello"))
-		req.Header.Add("content-type", "application/text+html")
+		req.Header.Add("content-type", "text/html; charset=utf-8")
 		fmt.Println("Req:", req.Body)
 		resp, err := (&http.Client{}).Do(req)
 		fmt.Println("Resp:", resp, "Err:", err)
