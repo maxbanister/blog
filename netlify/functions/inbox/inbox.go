@@ -55,7 +55,7 @@ func handleInbox(ctx context.Context, request LambdaRequest) (*LambdaResponse, e
 
 		// fire and forget
 		go func() {
-			url := "https://" + HOST_SITE + "/ap/reply-service"
+			url := HOST_SITE + "/ap/reply-service"
 			req, err := http.NewRequest("POST", url, bytes.NewReader(reqBody))
 			if err != nil {
 				fmt.Println("could not form request:", err)
