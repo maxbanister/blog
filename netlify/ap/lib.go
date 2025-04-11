@@ -30,6 +30,11 @@ var ErrBadRequest = errors.New(http.StatusText(http.StatusBadRequest))
 type LambdaRequest = events.APIGatewayProxyRequest
 type LambdaResponse = events.APIGatewayProxyResponse
 
+type ReplyServiceRequest struct {
+	ReplyObj string
+	Actor    []byte
+}
+
 type Actor struct {
 	Id        string `json:"id"`
 	Name      string `json:"name"`

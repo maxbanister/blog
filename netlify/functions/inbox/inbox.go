@@ -1,16 +1,18 @@
 package main
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
-	"strings"
+	"os"
 	"time"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
+	"github.com/aws/aws-lambda-go/lambdacontext"
 	. "github.com/maxbanister/blog/ap"
 )
 
@@ -18,7 +20,14 @@ func main() {
 	lambda.Start(handleInbox)
 }
 
-func handleInbox(request LambdaRequest) (*LambdaResponse, error) {
+func handleInbox(ctx context.Context, request LambdaRequest) (*LambdaResponse, error) {
+	lc, ok := lambdacontext.FromContext(ctx)
+	if !ok {
+		fmt.Println("could not get lambda context")
+	} else {
+		fmt.Println("lc custom:", lc.ClientContext.Custom)
+	}
+
 	fmt.Println("Headers:", request.Headers)
 	fmt.Println("Body:", request.Body)
 
@@ -36,33 +45,44 @@ func handleInbox(request LambdaRequest) (*LambdaResponse, error) {
 			return getLambdaResp(err)
 		}
 
-		ctx, _ := context.WithTimeout(context.Background(), 500*time.Millisecond)
-
-		url := "https://maxscribes.netlify.app/ap/reply-service"
-		req, _ := http.NewRequestWithContext(ctx, "POST", url, strings.NewReader("hello"))
-		req.Header.Add("content-type", "text/html; charset=utf-8")
-		fmt.Println("Req:", req.Body)
-		resp, err := (&http.Client{}).Do(req)
-		fmt.Println("Resp:", resp, "Err:", err)
-
-		/*url := "https://maxscribes.netlify.app/.netlify/functions/async-workloads-router?events=say-hello"
-		req, err := http.NewRequest("POST", url, strings.NewReader(
-			fmt.Sprintf(`{
-				eventName: "%s",
-				data: "%s"
-			}`, "say-hello", ""),
-		))
-		req.Header.Set("Authorization", os.Getenv("AWL_API_KEY_P10"))
-		fmt.Println("Req:", req)
+		actorBytes, err := json.Marshal(&actorObj)
 		if err != nil {
-			fmt.Println("Err:", err)
-		} else {
-			resp, err := (&http.Client{}).Do(req)
-			fmt.Println("Resp:", resp, "Err:", err)
-		}*/
+			return getLambdaResp(fmt.Errorf(
+				"%w: could not encode actor string: %w", ErrBadRequest, err))
+		}
+		replyReq := ReplyServiceRequest{
+			ReplyObj: request.Body,
+			Actor:    actorBytes,
+		}
+		reqBody, err := json.Marshal(replyReq)
+		if err != nil {
+			return getLambdaResp(fmt.Errorf(
+				"%w: could not encode reply request: %w", ErrBadRequest, err))
+		}
 
 		// fire and forget
-		go AcceptRequest(request.Body, actorObj)
+		go func() {
+			url := "https://maxscribes.netlify.app/ap/reply-service"
+			req, err := http.NewRequest("POST", url, bytes.NewReader(reqBody))
+			if err != nil {
+				fmt.Println("could not form request:", err)
+				return
+			}
+			req.Header.Set("Content-Type", "application/json; charset=utf-8")
+			req.Header.Set("Authorization", os.Getenv("SELF_API_KEY"))
+
+			fmt.Println("Req:", req.Body)
+			resp, err := http.DefaultClient.Do(req)
+			if err != nil {
+				fmt.Println("could not send post to reply service:", err)
+				return
+			}
+			fmt.Println("Resp:", resp, "Err:", err)
+		}()
+
+		// give the reply service a chance to read the request
+		time.Sleep(100 * time.Millisecond)
+
 		return getLambdaResp(nil)
 	default:
 		return getLambdaResp(fmt.Errorf(

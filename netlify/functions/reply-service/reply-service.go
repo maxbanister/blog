@@ -1,8 +1,9 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
-	"time"
+	"os"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
@@ -14,15 +15,28 @@ func main() {
 }
 
 func handle(request LambdaRequest) (*LambdaResponse, error) {
+	if request.Headers["authorization"] != os.Getenv("SELF_API_KEY") {
+		fmt.Println("Authorization header did not match key")
+		return &events.APIGatewayProxyResponse{StatusCode: 400}, nil
+	}
 
-	fmt.Println("before sleep")
-	fmt.Println(request.Body)
-	time.Sleep(1 * time.Second)
+	var replyReq ReplyServiceRequest
+	err := json.Unmarshal([]byte(request.Body), &replyReq)
+	if err != nil {
+		fmt.Println("could not unmarshal json:", err)
+		return &events.APIGatewayProxyResponse{StatusCode: 400}, nil
+	}
 
-	fmt.Println("after sleep")
+	followObj := replyReq.ReplyObj
 
-	return &events.APIGatewayProxyResponse{
-		StatusCode: 202,
-		Body:       "Hello, World!",
-	}, nil
+	var actor Actor
+	err = json.Unmarshal(replyReq.Actor, &actor)
+	if err != nil {
+		fmt.Println("could not unmarshal actor:", err)
+		return &events.APIGatewayProxyResponse{StatusCode: 400}, nil
+	}
+
+	AcceptRequest(followObj, &actor)
+
+	return &events.APIGatewayProxyResponse{StatusCode: 200}, nil
 }
