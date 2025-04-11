@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -14,7 +15,7 @@ func main() {
 	lambda.Start(handle)
 }
 
-func handle(request LambdaRequest) (*LambdaResponse, error) {
+func handle(ctx context.Context, request LambdaRequest) (*LambdaResponse, error) {
 	if request.Headers["authorization"] != os.Getenv("SELF_API_KEY") {
 		fmt.Println("Authorization header did not match key")
 		return &events.APIGatewayProxyResponse{StatusCode: 400}, nil
@@ -36,7 +37,8 @@ func handle(request LambdaRequest) (*LambdaResponse, error) {
 		return &events.APIGatewayProxyResponse{StatusCode: 400}, nil
 	}
 
-	AcceptRequest(followObj, &actor)
+	hostSite := GetHostSite(ctx)
+	AcceptRequest(hostSite, followObj, &actor)
 
 	return &events.APIGatewayProxyResponse{StatusCode: 200}, nil
 }

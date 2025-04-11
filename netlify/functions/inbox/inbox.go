@@ -12,7 +12,6 @@ import (
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
-	"github.com/aws/aws-lambda-go/lambdacontext"
 	. "github.com/maxbanister/blog/ap"
 )
 
@@ -21,13 +20,7 @@ func main() {
 }
 
 func handleInbox(ctx context.Context, request LambdaRequest) (*LambdaResponse, error) {
-	lc, ok := lambdacontext.FromContext(ctx)
-	if !ok {
-		fmt.Println("could not get lambda context")
-	} else {
-		fmt.Println("lc custom:", lc.ClientContext.Custom)
-	}
-
+	HOST_SITE := GetHostSite(ctx)
 	fmt.Println("Headers:", request.Headers)
 	fmt.Println("Body:", request.Body)
 
@@ -62,7 +55,7 @@ func handleInbox(ctx context.Context, request LambdaRequest) (*LambdaResponse, e
 
 		// fire and forget
 		go func() {
-			url := "https://maxscribes.netlify.app/ap/reply-service"
+			url := "https://" + HOST_SITE + "/ap/reply-service"
 			req, err := http.NewRequest("POST", url, bytes.NewReader(reqBody))
 			if err != nil {
 				fmt.Println("could not form request:", err)

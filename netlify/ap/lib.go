@@ -2,6 +2,7 @@ package ap
 
 import (
 	"bytes"
+	"context"
 	"crypto"
 	"crypto/rand"
 	"crypto/rsa"
@@ -21,6 +22,7 @@ import (
 	"time"
 
 	"github.com/aws/aws-lambda-go/events"
+	"github.com/aws/aws-lambda-go/lambdacontext"
 )
 
 var ErrUnauthorized = errors.New(http.StatusText(http.StatusUnauthorized))
@@ -221,7 +223,7 @@ func getActorPubKey(actor *Actor) (*rsa.PublicKey, error) {
 	return rsaPublicKey, nil
 }
 
-func AcceptRequest(followReqBody string, actor *Actor) {
+func AcceptRequest(hostSite, followReqBody string, actor *Actor) {
 	// Pre-validated actor name and inbox
 	parsedURL, _ := url.Parse(actor.Id)
 	actorAt := actor.Name + "@" + parsedURL.Host
@@ -229,10 +231,10 @@ func AcceptRequest(followReqBody string, actor *Actor) {
 
 	payload := fmt.Sprintf(`{
 	"@context": "https://www.w3.org/ns/activitystreams",
-	"id": "https://maxscribes.netlify.app/ap/user/blog#accepts/follows/%s",
+	"id": "https://%s/ap/user/blog#accepts/follows/%s",
  	"type": "Accept",
- 	"actor": "https://maxscribes.netlify.app/ap/user/blog",
-	"object": %s%s`, actorAt, followReqBody, "\n}\n")
+ 	"actor": "https://%s/ap/user/blog",
+	"object": %s%s`, hostSite, actorAt, hostSite, followReqBody, "\n}\n")
 
 	fmt.Println("Payload:", payload)
 
@@ -260,21 +262,15 @@ func AcceptRequest(followReqBody string, actor *Actor) {
 		return
 	}
 
-	fmt.Println("getting here")
-
 	// Sign header string with PKCIS private key
 	hashedHdrs := sha256.Sum256([]byte(signingString))
-	fmt.Println("getting here 2", hashedHdrs)
 	sigBytes, err := rsa.SignPKCS1v15(rand.Reader, privKeyRSA, crypto.SHA256,
 		hashedHdrs[:])
-	fmt.Println("getting here 3", sigBytes, err)
 	if err != nil {
 		fmt.Println("signing error:", err.Error())
 		return
 	}
 	sigBase64 := base64.StdEncoding.EncodeToString(sigBytes)
-
-	fmt.Println("getting there")
 
 	r.Header["Signature"] = []string{
 		fmt.Sprintf(`keyId="%s",algorithm="%s",headers="%s",signature="%s"`,
@@ -349,4 +345,16 @@ func getSigningString(host, method, path, sigHeaders string, hdrs any) string {
 		}
 	}
 	return outStr.String()
+}
+
+func GetHostSite(ctx context.Context) string {
+	var hostBytes []byte
+	lc, ok := lambdacontext.FromContext(ctx)
+	if !ok {
+		fmt.Println("could not get lambda context")
+	} else {
+		ccc := lc.ClientContext.Custom
+		hostBytes, _ = base64.StdEncoding.DecodeString(ccc["netlify"])
+	}
+	return string(hostBytes)
 }
