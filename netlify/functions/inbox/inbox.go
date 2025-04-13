@@ -6,12 +6,16 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log"
 	"net/http"
 	"os"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
 	. "github.com/maxbanister/blog/ap"
+
+	firebase "firebase.google.com/go"
+	"google.golang.org/api/option"
 )
 
 func main() {
@@ -78,6 +82,38 @@ func handleInbox(ctx context.Context, request LambdaRequest) (*LambdaResponse, e
 	}
 }
 
+func HandleFollow(r *LambdaRequest, requestJSON map[string]any) (*Actor, error) {
+	actor, err := RecvActivity(r, requestJSON)
+	if err != nil {
+		return nil, err
+	}
+
+	// Use a service account
+	ctx := context.Background()
+	fmt.Println(os.Getenv("GOOGL_SVC_ACCT"))
+	sa := option.WithCredentialsJSON([]byte(os.Getenv("GOOGL_SVC_ACCT")))
+	app, err := firebase.NewApp(ctx, nil, sa)
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	client, err := app.Firestore(ctx)
+	if err != nil {
+		log.Fatalln(err)
+	}
+	defer client.Close()
+
+	// write to json database
+
+	return actor, nil
+}
+
+func HandleUnfollow(r *LambdaRequest, requestJSON map[string]any) (*Actor, error) {
+	return RecvActivity(r, requestJSON)
+
+	// write to json database
+}
+
 func getLambdaResp(err error) (*LambdaResponse, error) {
 	var code int
 	if errors.Is(err, ErrUnauthorized) {
@@ -99,10 +135,4 @@ func getLambdaResp(err error) (*LambdaResponse, error) {
 		StatusCode: code,
 		Body:       errMsg,
 	}, nil
-}
-
-func HandleFollow(r *LambdaRequest, requestJSON map[string]any) (*Actor, error) {
-	return RecvActivity(r, requestJSON)
-
-	// write to json database
 }
