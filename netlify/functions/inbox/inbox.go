@@ -90,7 +90,7 @@ func HandleFollow(r *LambdaRequest, requestJSON map[string]any) (*Actor, error) 
 
 	// Use a service account
 	ctx := context.Background()
-	data, err := os.ReadFile("firebase-svc.json")
+	data, err := os.ReadFile("./firebase-svc.json")
 	if err != nil {
 		fmt.Println(err)
 	} else {
