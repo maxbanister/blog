@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"net/http"
 	"os"
-	"time"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
@@ -43,11 +42,11 @@ func handleInbox(ctx context.Context, request LambdaRequest) (*LambdaResponse, e
 			return getLambdaResp(fmt.Errorf(
 				"%w: could not encode actor string: %w", ErrBadRequest, err))
 		}
-		replyReq := ReplyServiceRequest{
-			ReplyObj: request.Body,
-			Actor:    actorBytes,
+		followReq := FollowServiceRequest{
+			FollowObj: request.Body,
+			Actor:     actorBytes,
 		}
-		reqBody, err := json.Marshal(replyReq)
+		reqBody, err := json.Marshal(followReq)
 		if err != nil {
 			return getLambdaResp(fmt.Errorf(
 				"%w: could not encode reply request: %w", ErrBadRequest, err))
@@ -55,7 +54,7 @@ func handleInbox(ctx context.Context, request LambdaRequest) (*LambdaResponse, e
 
 		// fire and forget
 		go func() {
-			url := HOST_SITE + "/ap/reply-service"
+			url := HOST_SITE + "/ap/follow-service"
 			req, err := http.NewRequest("POST", url, bytes.NewReader(reqBody))
 			if err != nil {
 				fmt.Println("could not form request:", err)
@@ -64,17 +63,13 @@ func handleInbox(ctx context.Context, request LambdaRequest) (*LambdaResponse, e
 			req.Header.Set("Content-Type", "application/json; charset=utf-8")
 			req.Header.Set("Authorization", os.Getenv("SELF_API_KEY"))
 
-			fmt.Println("Req:", req.Body)
 			resp, err := http.DefaultClient.Do(req)
 			if err != nil {
-				fmt.Println("could not send post to reply service:", err)
+				fmt.Println("could not send post to follow service:", err)
 				return
 			}
 			fmt.Println("Resp:", resp, "Err:", err)
 		}()
-
-		// give the reply service a chance to read the request
-		time.Sleep(100 * time.Millisecond)
 
 		return getLambdaResp(nil)
 	default:
@@ -104,4 +99,10 @@ func getLambdaResp(err error) (*LambdaResponse, error) {
 		StatusCode: code,
 		Body:       errMsg,
 	}, nil
+}
+
+func HandleFollow(r *LambdaRequest, requestJSON map[string]any) (*Actor, error) {
+	return RecvActivity(r, requestJSON)
+
+	// write to json database
 }
