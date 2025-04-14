@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"context"
+	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -90,13 +91,14 @@ func HandleFollow(r *LambdaRequest, requestJSON map[string]any) (*Actor, error) 
 
 	// Use a service account
 	ctx := context.Background()
-	data, err := os.ReadFile("./firebase-svc.json")
+	data := os.Getenv("GOOGLE_CREDENTIALS")
+	fmt.Println(data)
+	cred, err := base64.StdEncoding.DecodeString(data)
 	if err != nil {
-		fmt.Println(err)
-	} else {
-		fmt.Println(data)
+		return nil, fmt.Errorf("could not decode google credentials: %w", err)
 	}
-	sa := option.WithCredentialsFile("./firebase-svc.json")
+
+	sa := option.WithCredentialsJSON(cred)
 	app, err := firebase.NewApp(ctx, nil, sa)
 	if err != nil {
 		log.Fatalln(err)
