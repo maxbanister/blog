@@ -97,15 +97,16 @@ func HandleFollow(r *LambdaRequest, requestJSON map[string]any) (*Actor, error) 
 	fmt.Println(data)
 	decoded, err := base64.StdEncoding.DecodeString(data)
 	if err != nil {
-		return nil, fmt.Errorf("could not decode google credentials: %w", err)
+		return nil, fmt.Errorf("could not decode base64 google creds: %w", err)
 	}
-	credReader, err := gzip.NewReader(bytes.NewReader(decoded))
+	reader, err := gzip.NewReader(bytes.NewReader(decoded))
 	if err != nil {
-		return nil, fmt.Errorf("could not decode google credentials: %w", err)
+		return nil, fmt.Errorf("invalid gzip header: %w", err)
 	}
-	cred, err := io.ReadAll(credReader)
+	defer reader.Close()
+	cred, err := io.ReadAll(reader)
 	if err != nil {
-		return nil, fmt.Errorf("could not decode google credentials: %w", err)
+		return nil, fmt.Errorf("could not gunzip google credentials: %w", err)
 	}
 
 	sa := option.WithCredentialsJSON(cred)
