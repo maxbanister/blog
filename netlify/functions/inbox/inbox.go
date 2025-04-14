@@ -108,9 +108,10 @@ func HandleFollow(r *LambdaRequest, requestJSON map[string]any) (*Actor, error) 
 	if err != nil {
 		return nil, fmt.Errorf("could not marshal service account: %w", err)
 	}
+	fmt.Println(marshalledSA)
 
 	ctx := context.Background()
-	fmt.Println(serviceAccountJSON)
+	//fmt.Println(serviceAccountJSON)
 	sa := option.WithCredentialsJSON(marshalledSA)
 	app, err := firebase.NewApp(ctx, nil, sa)
 	if err != nil {
