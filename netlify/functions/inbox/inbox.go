@@ -2,16 +2,14 @@ package main
 
 import (
 	"bytes"
-	"compress/gzip"
 	"context"
-	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
 	"log"
 	"net/http"
 	"os"
+	"strings"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
@@ -92,24 +90,28 @@ func HandleFollow(r *LambdaRequest, requestJSON map[string]any) (*Actor, error) 
 	}
 
 	// Use a service account
-	ctx := context.Background()
-	data := os.Getenv("GOOGLE_CREDENTIALS")
-	fmt.Println(data)
-	decoded, err := base64.StdEncoding.DecodeString(data)
-	if err != nil {
-		return nil, fmt.Errorf("could not decode base64 google creds: %w", err)
+	serviceAccountJSON := map[string]string{
+		"type":                        "service_account",
+		"project_id":                  "max-banister-blog",
+		"auth_uri":                    "https://accounts.google.com/o/oauth2/auth",
+		"token_uri":                   "https://oauth2.googleapis.com/token",
+		"auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
 	}
-	reader, err := gzip.NewReader(bytes.NewReader(decoded))
+	client_email := os.Getenv("GOOGLE_CLIENT_EMAIL")
+	_, emailDomain, _ := strings.Cut(client_email, "@")
+	serviceAccountJSON["private_key_id"] = os.Getenv("GOOGLE_PRIV_KEY_ID")
+	serviceAccountJSON["private_key"] = os.Getenv("GOOGLE_PRIV_KEY")
+	serviceAccountJSON["client_email"] = client_email
+	serviceAccountJSON["client_id"] = os.Getenv("GOOGLE_CLIENT_ID")
+	serviceAccountJSON["client_x509_cert_url"] = "https://www.googleapis.com/robot/v1/metadata/x509/firebase-adminsdk-fbsvc%40" + emailDomain
+	marshalledSA, err := json.Marshal(serviceAccountJSON)
 	if err != nil {
-		return nil, fmt.Errorf("invalid gzip header: %w", err)
-	}
-	defer reader.Close()
-	cred, err := io.ReadAll(reader)
-	if err != nil {
-		return nil, fmt.Errorf("could not gunzip google credentials: %w", err)
+		return nil, fmt.Errorf("could not marshal service account: %w", err)
 	}
 
-	sa := option.WithCredentialsJSON(cred)
+	ctx := context.Background()
+	fmt.Println(serviceAccountJSON)
+	sa := option.WithCredentialsJSON(marshalledSA)
 	app, err := firebase.NewApp(ctx, nil, sa)
 	if err != nil {
 		log.Fatalln(err)
