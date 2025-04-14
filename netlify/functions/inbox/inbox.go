@@ -16,6 +16,7 @@ import (
 	. "github.com/maxbanister/blog/ap"
 
 	firebase "firebase.google.com/go"
+	"google.golang.org/api/iterator"
 	"google.golang.org/api/option"
 )
 
@@ -109,8 +110,6 @@ func HandleFollow(r *LambdaRequest, requestJSON map[string]any) (*Actor, error) 
 	if err != nil {
 		return nil, fmt.Errorf("could not marshal service account: %w", err)
 	}
-	fmt.Println()
-	fmt.Println(string(marshalledSA))
 
 	ctx := context.Background()
 	//fmt.Println(serviceAccountJSON)
@@ -127,6 +126,26 @@ func HandleFollow(r *LambdaRequest, requestJSON map[string]any) (*Actor, error) 
 	defer client.Close()
 
 	// write to json database
+	_, _, err = client.Collection("followers").Add(ctx, map[string]interface{}{
+		"first": "Ada",
+		"last":  "Lovelace",
+		"born":  1815,
+	})
+	if err != nil {
+		log.Fatalf("Failed adding alovelace: %v", err)
+	}
+
+	iter := client.Collection("followers").Documents(ctx)
+	for {
+		doc, err := iter.Next()
+		if err == iterator.Done {
+			break
+		}
+		if err != nil {
+			log.Fatalf("Failed to iterate: %v", err)
+		}
+		fmt.Println(doc.Data())
+	}
 
 	return actor, nil
 }
