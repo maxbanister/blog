@@ -98,9 +98,10 @@ func HandleFollow(r *LambdaRequest, requestJSON map[string]any) (*Actor, error) 
 		"auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
 	}
 	client_email := os.Getenv("GOOGLE_CLIENT_EMAIL")
+	priv_key := strings.ReplaceAll(os.Getenv("GOOGLE_PRIV_KEY"), "\\n", "\n")
 	_, emailDomain, _ := strings.Cut(client_email, "@")
 	serviceAccountJSON["private_key_id"] = os.Getenv("GOOGLE_PRIV_KEY_ID")
-	serviceAccountJSON["private_key"] = os.Getenv("GOOGLE_PRIV_KEY")
+	serviceAccountJSON["private_key"] = priv_key
 	serviceAccountJSON["client_email"] = client_email
 	serviceAccountJSON["client_id"] = os.Getenv("GOOGLE_CLIENT_ID")
 	serviceAccountJSON["client_x509_cert_url"] = "https://www.googleapis.com/robot/v1/metadata/x509/firebase-adminsdk-fbsvc%40" + emailDomain
@@ -108,6 +109,7 @@ func HandleFollow(r *LambdaRequest, requestJSON map[string]any) (*Actor, error) 
 	if err != nil {
 		return nil, fmt.Errorf("could not marshal service account: %w", err)
 	}
+	fmt.Println()
 	fmt.Println(string(marshalledSA))
 
 	ctx := context.Background()
