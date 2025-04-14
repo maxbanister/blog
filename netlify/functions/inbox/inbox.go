@@ -2,11 +2,13 @@ package main
 
 import (
 	"bytes"
+	"compress/gzip"
 	"context"
 	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"os"
@@ -93,7 +95,15 @@ func HandleFollow(r *LambdaRequest, requestJSON map[string]any) (*Actor, error) 
 	ctx := context.Background()
 	data := os.Getenv("GOOGLE_CREDENTIALS")
 	fmt.Println(data)
-	cred, err := base64.StdEncoding.DecodeString(data)
+	decoded, err := base64.StdEncoding.DecodeString(data)
+	if err != nil {
+		return nil, fmt.Errorf("could not decode google credentials: %w", err)
+	}
+	credReader, err := gzip.NewReader(bytes.NewReader(decoded))
+	if err != nil {
+		return nil, fmt.Errorf("could not decode google credentials: %w", err)
+	}
+	cred, err := io.ReadAll(credReader)
 	if err != nil {
 		return nil, fmt.Errorf("could not decode google credentials: %w", err)
 	}
