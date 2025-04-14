@@ -1,8 +1,6 @@
 package ap
 
 import (
-	"bytes"
-	"compress/gzip"
 	"crypto"
 	"crypto/rand"
 	"crypto/rsa"
@@ -82,25 +80,8 @@ func SendActivity(payload string, actor *Actor) {
 
 func getPrivKey() (*rsa.PrivateKey, error) {
 	// read PKCIS private key
-	privKeyBase64 := os.Getenv("AP_PRIVATE_KEY")
-	fmt.Println(privKeyBase64)
-	decoded, err := base64.StdEncoding.DecodeString(privKeyBase64)
-	if err != nil {
-		return nil, fmt.Errorf("could not decode base64 priv key: %w", err)
-	}
-	gzipReader, err := gzip.NewReader(bytes.NewReader(decoded))
-	if err != nil {
-		return nil, fmt.Errorf("gzip header invalid: %w", err)
-	}
-	defer gzipReader.Close()
-	privKeyPEM, err := io.ReadAll(gzipReader)
-	if err != nil {
-		fmt.Println("could not decode gzipped data: %w", err)
-	}
-	if len(privKeyPEM) == 0 {
-		return nil, errors.New("private key empty")
-	}
-	privKeyPEM = bytes.ReplaceAll(privKeyPEM, []byte("\\n"), []byte{'\n'})
+	privKeyPEM := os.Getenv("AP_PRIVATE_KEY")
+	privKeyPEM = strings.ReplaceAll(privKeyPEM, "\\n", "\n")
 
 	// Convert to PEM block
 	privBlock, _ := pem.Decode([]byte(privKeyPEM))
