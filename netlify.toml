@@ -6,7 +6,7 @@
 	GO_VERSION = "1.23"
 
 [functions]
-	directory = "/netlify/functions"
+	directory = "netlify/functions"
 	included_files = ["./firebase-svc.json"]
 
 [[edge_functions]]
