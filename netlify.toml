@@ -18,6 +18,11 @@
 	function = "post2activity"
 
 [[redirects]]
+	from="/ap/outbox"
+	to="/ap/outbox.json"
+	status = 200
+
+[[redirects]]
 	from="/ap/*"
 	to="/.netlify/functions/:splat"
 	status = 200
