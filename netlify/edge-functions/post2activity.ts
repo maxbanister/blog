@@ -12,6 +12,8 @@ export default async (req: Request, context: Context) => {
 		// continue request chain by returning undefined
 		return;
 
+	console.log("getting here", req.headers.get("Accept"));
+
 	// find the item corresponding to this url within the outbox
 	for (const post of outbox.orderedItems) {
 		if (post.object.id == req.url) {

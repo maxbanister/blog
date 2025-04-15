@@ -159,8 +159,8 @@ func fetchActor(actorData any) (*Actor, error) {
 		readBody = resp.Body
 
 	case map[string]any:
-		// it should be rare that the actor is embedded in the request, so we
-		// will simply convert the map back to JSON and redecode as a struct
+		// it is rare that the actor is embedded in the request, so we can
+		// afford to convert the map back to JSON and redecode as a struct
 		jsonBytes, _ := json.Marshal(actorVal)
 		readBody = bytes.NewReader(jsonBytes)
 

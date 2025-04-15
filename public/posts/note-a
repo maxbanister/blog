@@ -1,0 +1,35 @@
+{
+    "@context": "https://www.w3.org/ns/activitystreams",
+    "id": "https://max-blog.koyeb.app/posts/note-a",
+    "type": "Note",
+    "content": "The Gendered Lens of AI: Unpacking Bias in Language  ... html content",
+    "url": "https://max-blog.koyeb.app/posts/note-a",
+    "attributedTo": "https://max-blog.koyeb.app/ap/users/@blog",
+    "to": [
+        "https://www.w3.org/ns/activitystreams#Public"
+    ],
+    "cc": [],
+    "published": "2024-02-18T21:06:38-08:00",
+    "tag": [
+        {
+            "Type": "Mention",
+            "Href": "https://hachyderm.io/users/mapache",
+            "Name": "@mapache@hachyderm.io"
+        },
+        {
+            "Type": "Hashtag",
+            "Href": "https://max-blog.koyeb.app/tags/ai",
+            "Name": "#ai"
+        }
+    ],
+    "replies": {
+        "id": "https://max-blog.koyeb.app/replies/1dff22b5faf3fbebc5aaf2bb5b5dbe2c",
+        "type": "Collection",
+        "first": {
+            "type": "CollectionPage",
+            "next": "https://max-blog.koyeb.app/replies/1dff22b5faf3fbebc5aaf2bb5b5dbe2c?page=true",
+            "partOf": "https://max-blog.koyeb.app/replies/1dff22b5faf3fbebc5aaf2bb5b5dbe2c",
+            "items": []
+        }
+    }
+}
