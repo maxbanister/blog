@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
@@ -150,6 +151,9 @@ func CallFollowService(request *LambdaRequest, hostSite string, actorObj *Actor)
 		}
 		fmt.Println("Resp:", resp, "Err:", err)
 	}()
+
+	// give follow service time to read request body
+	time.Sleep(50 * time.Millisecond)
 
 	fmt.Println("after goroutine")
 
