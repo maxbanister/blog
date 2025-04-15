@@ -9,6 +9,7 @@ import (
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
 	. "github.com/maxbanister/blog/ap"
+	. "github.com/maxbanister/blog/util"
 )
 
 func main() {
