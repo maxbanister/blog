@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"net/url"
 	"strings"
 
 	"github.com/aws/aws-lambda-go/events"
@@ -83,4 +84,10 @@ func GetHostSite(ctx context.Context) string {
 		return ""
 	}
 	return netlifyData["site_url"]
+}
+
+func GetActorAt(actor *Actor) string {
+	// Actor name and inbox should be pre-validated
+	parsedURL, _ := url.Parse(actor.Id)
+	return actor.Name + "@" + parsedURL.Host
 }

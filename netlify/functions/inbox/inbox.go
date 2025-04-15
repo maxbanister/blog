@@ -6,18 +6,13 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"log"
 	"net/http"
 	"os"
-	"strings"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
 	. "github.com/maxbanister/blog/ap"
-
-	firebase "firebase.google.com/go"
-	"google.golang.org/api/iterator"
-	"google.golang.org/api/option"
+	"github.com/maxbanister/blog/kv"
 )
 
 func main() {
@@ -43,41 +38,29 @@ func handleInbox(ctx context.Context, request LambdaRequest) (*LambdaResponse, e
 			return getLambdaResp(err)
 		}
 
-		actorBytes, err := json.Marshal(&actorObj)
-		if err != nil {
-			return getLambdaResp(fmt.Errorf(
-				"%w: could not encode actor string: %w", ErrBadRequest, err))
+		if err := CallFollowService(&request, HOST_SITE, actorObj); err != nil {
+			return getLambdaResp(err)
 		}
-		followReq := FollowServiceRequest{
-			FollowObj: request.Body,
-			Actor:     actorBytes,
-		}
-		reqBody, err := json.Marshal(followReq)
-		if err != nil {
-			return getLambdaResp(fmt.Errorf(
-				"%w: could not encode reply request: %w", ErrBadRequest, err))
-		}
-
-		// fire and forget
-		go func() {
-			url := HOST_SITE + "/ap/follow-service"
-			req, err := http.NewRequest("POST", url, bytes.NewReader(reqBody))
-			if err != nil {
-				fmt.Println("could not form request:", err)
-				return
-			}
-			req.Header.Set("Content-Type", "application/json; charset=utf-8")
-			req.Header.Set("Authorization", os.Getenv("SELF_API_KEY"))
-
-			resp, err := http.DefaultClient.Do(req)
-			if err != nil {
-				fmt.Println("could not send post to follow service:", err)
-				return
-			}
-			fmt.Println("Resp:", resp, "Err:", err)
-		}()
 
 		return getLambdaResp(nil)
+
+	case "Undo":
+		var err error
+		object, ok := requestJSON["object"].(map[string]any)
+		if !ok || object["type"] != "Follow" {
+			goto unsupported
+		}
+
+		err = HandleUnfollow(&request, requestJSON)
+		if err != nil {
+			return getLambdaResp(err)
+		}
+
+		return getLambdaResp(nil)
+
+	unsupported:
+		fallthrough
+
 	default:
 		return getLambdaResp(fmt.Errorf(
 			"%w: unsupported operation", ErrNotImplemented))
@@ -90,70 +73,83 @@ func HandleFollow(r *LambdaRequest, requestJSON map[string]any) (*Actor, error) 
 		return nil, err
 	}
 
-	// Use a service account
-	serviceAccountJSON := map[string]string{
-		"type":                        "service_account",
-		"project_id":                  "max-banister-blog",
-		"auth_uri":                    "https://accounts.google.com/o/oauth2/auth",
-		"token_uri":                   "https://oauth2.googleapis.com/token",
-		"auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
-	}
-	client_email := os.Getenv("GOOGLE_CLIENT_EMAIL")
-	priv_key := strings.ReplaceAll(os.Getenv("GOOGLE_PRIV_KEY"), "\\n", "\n")
-	_, emailDomain, _ := strings.Cut(client_email, "@")
-	serviceAccountJSON["private_key_id"] = os.Getenv("GOOGLE_PRIV_KEY_ID")
-	serviceAccountJSON["private_key"] = priv_key
-	serviceAccountJSON["client_email"] = client_email
-	serviceAccountJSON["client_id"] = os.Getenv("GOOGLE_CLIENT_ID")
-	serviceAccountJSON["client_x509_cert_url"] = "https://www.googleapis.com/robot/v1/metadata/x509/firebase-adminsdk-fbsvc%40" + emailDomain
-	marshalledSA, err := json.Marshal(serviceAccountJSON)
-	if err != nil {
-		return nil, fmt.Errorf("could not marshal service account: %w", err)
-	}
-
 	ctx := context.Background()
-	//fmt.Println(serviceAccountJSON)
-	sa := option.WithCredentialsJSON(marshalledSA)
-	app, err := firebase.NewApp(ctx, nil, sa)
+	client, err := kv.GetFirestoreClient()
 	if err != nil {
-		log.Fatalln(err)
-	}
-
-	client, err := app.Firestore(ctx)
-	if err != nil {
-		log.Fatalln(err)
+		return nil, fmt.Errorf("could not start firestore client: %w", err)
 	}
 	defer client.Close()
 
 	// write to json database
-	_, _, err = client.Collection("followers").Add(ctx, map[string]interface{}{
-		"first": "Ada",
-		"last":  "Lovelace",
-		"born":  1815,
-	})
+	actorAt := GetActorAt(actor)
+	_, err = client.Collection("followers").Doc(actorAt).Set(ctx, actor)
 	if err != nil {
-		log.Fatalf("Failed adding alovelace: %v", err)
-	}
-
-	iter := client.Collection("followers").Documents(ctx)
-	for {
-		doc, err := iter.Next()
-		if err == iterator.Done {
-			break
-		}
-		if err != nil {
-			log.Fatalf("Failed to iterate: %v", err)
-		}
-		fmt.Println(doc.Data())
+		return nil, fmt.Errorf("failed adding follower: %v", err)
 	}
 
 	return actor, nil
 }
 
-func HandleUnfollow(r *LambdaRequest, requestJSON map[string]any) (*Actor, error) {
-	return RecvActivity(r, requestJSON)
+func HandleUnfollow(r *LambdaRequest, requestJSON map[string]any) error {
+	actor, err := RecvActivity(r, requestJSON)
+	if err != nil {
+		return err
+	}
+
+	ctx := context.Background()
+	client, err := kv.GetFirestoreClient()
+	if err != nil {
+		return fmt.Errorf("could not start firestore client: %w", err)
+	}
+	defer client.Close()
 
 	// write to json database
+	actorAt := GetActorAt(actor)
+	_, err = client.Collection("followers").Doc(actorAt).Delete(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to remove follower: %v", err)
+	}
+
+	return nil
+}
+
+// Invokes the serverless function to send an AcceptFollow to the actor's inbox
+func CallFollowService(request *LambdaRequest, hostSite string, actorObj *Actor) error {
+	actorBytes, err := json.Marshal(actorObj)
+	if err != nil {
+		return fmt.Errorf("%w: could not encode actor string: %w",
+			ErrBadRequest, err)
+	}
+	followReq := FollowServiceRequest{
+		FollowObj: request.Body,
+		Actor:     actorBytes,
+	}
+	reqBody, err := json.Marshal(followReq)
+	if err != nil {
+		return fmt.Errorf("%w: could not encode reply request: %w",
+			ErrBadRequest, err)
+	}
+
+	// fire and forget
+	go func() {
+		url := hostSite + "/ap/follow-service"
+		req, err := http.NewRequest("POST", url, bytes.NewReader(reqBody))
+		if err != nil {
+			fmt.Println("could not form request:", err)
+			return
+		}
+		req.Header.Set("Content-Type", "application/json; charset=utf-8")
+		req.Header.Set("Authorization", os.Getenv("SELF_API_KEY"))
+
+		resp, err := http.DefaultClient.Do(req)
+		if err != nil {
+			fmt.Println("could not send post to follow service:", err)
+			return
+		}
+		fmt.Println("Resp:", resp, "Err:", err)
+	}()
+
+	return nil
 }
 
 func getLambdaResp(err error) (*LambdaResponse, error) {

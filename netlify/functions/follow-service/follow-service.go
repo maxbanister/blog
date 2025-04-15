@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"net/url"
 	"os"
 
 	"github.com/aws/aws-lambda-go/events"
@@ -45,9 +44,7 @@ func handle(ctx context.Context, request LambdaRequest) (*LambdaResponse, error)
 }
 
 func AcceptRequest(hostSite, followReqBody string, actor *Actor) {
-	// Pre-validated actor name and inbox
-	parsedURL, _ := url.Parse(actor.Id)
-	actorAt := actor.Name + "@" + parsedURL.Host
+	actorAt := GetActorAt(actor)
 	fmt.Println("Actor:", actorAt)
 
 	payload := fmt.Sprintf(`{
