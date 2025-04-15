@@ -1,5 +1,5 @@
 import type { Config, Context } from "@netlify/edge-functions";
-import outbox from "../../public/ap/outbox.json";
+import outbox from "../../public/ap/outbox" assert { type: 'json' };
 
 // This edge function takes a request for a post's URL with an Accept type of
 // activity+json and returns the item from the outbox that matches it.
@@ -13,7 +13,7 @@ export default async (req: Request, context: Context) => {
 		return;
 
 	// find the item corresponding to this url within the outbox
-	for (const post of outbox.ordereredItems) {
+	for (const post of outbox.orderedItems) {
 		if (post.object.id == req.url) {
 			return new Response(JSON.stringify(post), {
 				headers: {"Content-Type": "application/activity+json"}
