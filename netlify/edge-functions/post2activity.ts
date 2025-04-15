@@ -12,7 +12,8 @@ export default async (req: Request, context: Context) => {
 		// continue request chain by returning undefined
 		return;
 
-	console.log("getting here", req.headers.get("Accept"));
+		console.log("getting here", req.headers.get("Accept"));
+		console.log(req.url);
 
 	// find the item corresponding to this url within the outbox
 	for (const post of outbox.orderedItems) {
@@ -25,6 +26,6 @@ export default async (req: Request, context: Context) => {
 };
 
 export const config: Config = {
-	path: "/posts",
+	path: "/posts/*",
 	onError: "bypass"
 };

@@ -14,7 +14,7 @@
 	function = "inbox"
 
 [[edge_functions]]
-	path = "/posts"
+	path = "/posts/*"
 	function = "post2activity"
 
 [[redirects]]
