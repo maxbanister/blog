@@ -1,5 +1,5 @@
 import type { Config, Context } from "@netlify/edge-functions";
-import outbox from "../../public/ap/outbox.json" with { type: 'json' };
+import outbox from "../../public/ap/outbox" with { type: 'json' };
 
 // This edge function takes a request for a post's URL with an Accept type of
 // activity+json and returns the item from the outbox that matches it.
