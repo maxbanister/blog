@@ -130,6 +130,8 @@ func CallFollowService(request *LambdaRequest, hostSite string, actorObj *Actor)
 			ErrBadRequest, err)
 	}
 
+	fmt.Println("spawning goroutine")
+
 	// fire and forget
 	go func() {
 		url := hostSite + "/ap/follow-service"
@@ -148,6 +150,8 @@ func CallFollowService(request *LambdaRequest, hostSite string, actorObj *Actor)
 		}
 		fmt.Println("Resp:", resp, "Err:", err)
 	}()
+
+	fmt.Println("after goroutine")
 
 	return nil
 }
