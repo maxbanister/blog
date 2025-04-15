@@ -12,10 +12,11 @@ type FollowServiceRequest struct {
 }
 
 type Actor struct {
-	Id        string `json:"id"`
-	Name      string `json:"name"`
-	Inbox     string `json:"inbox"`
-	PublicKey struct {
+	Id                string `json:"id"`
+	Name              string `json:"name"`
+	PreferredUsername string `json:"preferredUsername"`
+	Inbox             string `json:"inbox"`
+	PublicKey         struct {
 		PublicKeyPEM string `json:"publicKeyPem"`
 	} `json:"publicKey"`
 }
@@ -51,5 +52,8 @@ func getSigningString(host, method, path, sigHeaders string, hdrs any) string {
 func GetActorAt(actor *Actor) string {
 	// Actor name and inbox should be pre-validated
 	parsedURL, _ := url.Parse(actor.Id)
+	if actor.PreferredUsername != "" {
+		return actor.PreferredUsername + "@" + parsedURL.Host
+	}
 	return actor.Name + "@" + parsedURL.Host
 }

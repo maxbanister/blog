@@ -11,6 +11,7 @@ import (
 	"encoding/pem"
 	"errors"
 	"fmt"
+	"io"
 	"net/http"
 	"reflect"
 	"slices"
@@ -40,18 +41,18 @@ func RecvActivity(r *LambdaRequest, requestJSON map[string]any) (*Actor, error) 
 	}
 
 	// fetch actor object
-	actorProperty, ok1 := requestJSON["actor"]
-	actorURL, ok2 := actorProperty.(string)
-	if !ok1 || !ok2 {
+	actorProperty, exists := requestJSON["actor"]
+	if !exists {
 		return nil, fmt.Errorf("%w: no actor found", ErrBadRequest)
 	}
-
-	keyURL, _, _ := strings.Cut(keyID, "#")
-	if keyURL != actorURL {
-		return nil, fmt.Errorf("%w: actor does not match key in signature",
-			ErrBadRequest)
+	if actorURL, isURL := actorProperty.(string); isURL {
+		keyURL, _, _ := strings.Cut(keyID, "#")
+		if keyURL != actorURL {
+			return nil, fmt.Errorf("%w: actor does not match key in signature",
+				ErrBadRequest)
+		}
 	}
-	actor, err := fetchActor(actorURL)
+	actor, err := fetchActor(requestJSON["actor"])
 	if err != nil {
 		return nil, fmt.Errorf("%w: %w", ErrBadRequest, err)
 	}
@@ -140,20 +141,35 @@ func getActorPubKey(actor *Actor) (*rsa.PublicKey, error) {
 	return rsaPublicKey, nil
 }
 
-func fetchActor(actorURL string) (*Actor, error) {
-	req, err := http.NewRequest("GET", actorURL, nil)
-	req.Header.Set("Accept",
-		`application/ld+json; profile="https://www.w3.org/ns/activitystreams`)
-	if err != nil {
-		return nil, fmt.Errorf("%w: %w", ErrBadRequest, err)
-	}
-	resp, err := (&http.Client{}).Do(req)
-	if err != nil {
-		return nil, fmt.Errorf("%w: %w", ErrBadRequest, err)
+func fetchActor(actorData any) (*Actor, error) {
+	var readBody io.Reader
+
+	switch actorVal := actorData.(type) {
+	case string:
+		req, err := http.NewRequest("GET", actorVal, nil)
+		req.Header.Set("Accept",
+			`application/ld+json; profile="https://www.w3.org/ns/activitystreams`)
+		if err != nil {
+			return nil, fmt.Errorf("%w: %w", ErrBadRequest, err)
+		}
+		resp, err := (&http.Client{}).Do(req)
+		if err != nil {
+			return nil, fmt.Errorf("%w: %w", ErrBadRequest, err)
+		}
+		readBody = resp.Body
+
+	case map[string]any:
+		// it should be rare that the actor is embedded in the request, so we
+		// will simply convert the map back to JSON and redecode as a struct
+		jsonBytes, _ := json.Marshal(actorVal)
+		readBody = bytes.NewReader(jsonBytes)
+
+	default:
+		return nil, fmt.Errorf("%w: unknown actor type", ErrBadRequest)
 	}
 
 	var actor Actor
-	err = json.NewDecoder(resp.Body).Decode(&actor)
+	err := json.NewDecoder(readBody).Decode(&actor)
 	if err != nil {
 		return nil, fmt.Errorf("bad json syntax: %s", err.Error())
 	}
@@ -163,7 +179,7 @@ func fetchActor(actorURL string) (*Actor, error) {
 	if actor.Inbox == "" {
 		return nil, errors.New("no actor inbox found")
 	}
-	if actor.Name == "" {
+	if actor.Name == "" && actor.PreferredUsername == "" {
 		return nil, errors.New("no actor name found")
 	}
 

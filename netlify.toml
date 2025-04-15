@@ -13,6 +13,10 @@
 	path = "/ap/inbox"
 	function = "inbox"
 
+[[edge_functions]]
+	path = "/posts"
+	function = "post2activity"
+
 [[redirects]]
 	from="/ap/*"
 	to="/.netlify/functions/:splat"
