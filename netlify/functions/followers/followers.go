@@ -60,16 +60,14 @@ func handleFollowers(request LambdaRequest) (*LambdaResponse, error) {
 	"totalItems": `)
 	payloadStr.WriteString(strconv.Itoa(len(followers)))
 	payloadStr.WriteString(`,
-	orderedItems: [`)
-	followersJSON, _ := json.Marshal(followers)
+	"orderedItems": `)
+	followersJSON, _ := json.MarshalIndent(followers, "", "		")
 	payloadStr.Write(followersJSON)
-	payloadStr.WriteString("]\n}")
+	payloadStr.WriteString("\n}")
 
 	return &events.APIGatewayProxyResponse{
 		StatusCode: 200,
-		Headers: map[string]string{
-			"Content-Type": "application/activity+json; charset=utf-8",
-		},
-		Body: payloadStr.String(),
+		Headers:    map[string]string{"Content-Type": "application/activity+json"},
+		Body:       payloadStr.String(),
 	}, nil
 }
