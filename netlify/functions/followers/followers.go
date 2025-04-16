@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -16,7 +17,7 @@ import (
 
 func main() {
 	lambda.Start(handleFollowers)
-}user/blog
+}
 
 func handleFollowers(request LambdaRequest) (*LambdaResponse, error) {
 	ctx := context.Background()
