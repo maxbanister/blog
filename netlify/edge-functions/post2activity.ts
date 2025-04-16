@@ -7,13 +7,14 @@ import outbox from "../../public/ap/outbox.json" with { type: "json" };
 export default async (req: Request, context: Context) => {
 	// check if wants activity+json
 	let acceptHeader = req.headers.get("Accept") || "";
-	let wantsActivityJSON = acceptHeader.includes('application/activity+json');
-	if (!wantsActivityJSON)
+	let wantsActivityJSON = acceptHeader.toLowerCase().includes("json");
+	if (!wantsActivityJSON) {
 		// continue request chain by returning undefined
 		return;
+	}
 
-		console.log("getting here", req.headers.get("Accept"));
-		console.log(req.url);
+	console.log("Accept:", req.headers.get("Accept"));
+	console.log("URL:", req.url);
 
 	// find the item corresponding to this url within the outbox
 	for (const post of outbox.orderedItems) {
