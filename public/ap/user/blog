@@ -4,6 +4,7 @@
     "type": "Person",
     "inbox": "https://maxscribes.netlify.app/ap/inbox",
     "outbox": "https://maxscribes.netlify.app/ap/outbox",
+    "followers": "https://maxscribes.netlify.app/ap/followers",
     "preferredUsername": "blog",
     "name": "Max Banister - Blog",
     "summary": "I sometimes post things.",
