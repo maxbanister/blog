@@ -61,7 +61,7 @@ func handleFollowers(request LambdaRequest) (*LambdaResponse, error) {
 	payloadStr.WriteString(strconv.Itoa(len(followers)))
 	payloadStr.WriteString(`,
 	"orderedItems": `)
-	followersJSON, _ := json.MarshalIndent(followers, "", "		")
+	followersJSON, _ := json.MarshalIndent(followers, "	", "	")
 	payloadStr.Write(followersJSON)
 	payloadStr.WriteString("\n}")
 
