@@ -16,7 +16,7 @@ import (
 
 func main() {
 	lambda.Start(handleFollowers)
-}
+}user/blog
 
 func handleFollowers(request LambdaRequest) (*LambdaResponse, error) {
 	ctx := context.Background()
@@ -46,25 +46,29 @@ func handleFollowers(request LambdaRequest) (*LambdaResponse, error) {
 				Body:       err.Error(),
 			}, nil
 		}
-		fmt.Println(doc.Data()["Id"])
 		followers = append(followers, doc.Data()["Id"].(string))
 	}
 
+	fmt.Printf("%v\n", followers)
+
 	payloadStr := strings.Builder{}
 	payloadStr.WriteString(`{
-		"@context": "https://www.w3.org/ns/activitystreams",
-		"id": "https://maxscribes.netilfy.app/ap/followers",
-		"type": "OrderedCollection",
-		"totalItems": `)
+	"@context": "https://www.w3.org/ns/activitystreams",
+	"id": "https://maxscribes.netilfy.app/ap/followers",
+	"type": "OrderedCollection",
+	"totalItems": `)
 	payloadStr.WriteString(strconv.Itoa(len(followers)))
 	payloadStr.WriteString(`,
-		orderedItems: [`)
-	payloadStr.WriteString(strings.Join(followers, ","))
-	payloadStr.WriteString(`]
-		}`)
+	orderedItems: [`)
+	followersJSON, _ := json.Marshal(followers)
+	payloadStr.WriteString(followersJSON)
+	payloadStr.WriteString("]\n}")
 
 	return &events.APIGatewayProxyResponse{
 		StatusCode: 200,
-		Body:       payloadStr.String(),
+		Headers: map[string]string{
+			"Content-Type": "application/activity+json; charset=utf-8",
+		},
+		Body: payloadStr.String(),
 	}, nil
 }
