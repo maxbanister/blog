@@ -62,7 +62,7 @@ func handleFollowers(request LambdaRequest) (*LambdaResponse, error) {
 	payloadStr.WriteString(`,
 	orderedItems: [`)
 	followersJSON, _ := json.Marshal(followers)
-	payloadStr.WriteString(followersJSON)
+	payloadStr.Write(followersJSON)
 	payloadStr.WriteString("]\n}")
 
 	return &events.APIGatewayProxyResponse{
