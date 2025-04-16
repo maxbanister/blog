@@ -10,6 +10,7 @@
     "summary": "I sometimes post things.",
     "url": "https://maxscribes.netlify.app/",
     "discoverable": true,
+    "indexable": true,
     "memorial": false,
     "icon": {
       "type": "Image",
