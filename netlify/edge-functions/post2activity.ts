@@ -17,10 +17,10 @@ export default async (req: Request, context: Context) => {
 	console.log("URL:", req.url);
 
 	// find the item corresponding to this url within the outbox
-	for (const post of outbox.orderedItems) {
-		if (post.object.id == req.url) {
-			console.log(JSON.stringify(post));
-			return new Response(JSON.stringify(post), {
+	for (const item of outbox.orderedItems) {
+		if (item.object.id == req.url) {
+			console.log(JSON.stringify(item.object));
+			return new Response(JSON.stringify(item.object), {
 				headers: {"Content-Type": "application/activity+json"}
 			});
 		}
