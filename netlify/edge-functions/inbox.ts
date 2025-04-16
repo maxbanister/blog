@@ -4,13 +4,11 @@ import type { Config, Context } from "@netlify/edge-functions";
 //  isn't supported, so that we don't incur the cost of a full function call.
 
 export default async (req: Request, context: Context) => {
-	const textBody = await req.text();
-	console.log(textBody);
-	const body = JSON.parse(textBody);
+	const body = await req.json();
 
 	// If this causes an exception, just let it fail and bypass the edge function
 	if (body.type == "Delete" && body.object.toLowerCase().includes("users")) {
-		//console.log(body);
+		console.log(body);
 
 		return new Response(
 			"501 Not Implemented: unsupported operation",
@@ -22,7 +20,7 @@ export default async (req: Request, context: Context) => {
 	}
 
 	// It is necessary to replace the body which was just read out
-	return context.next(new Request(req, { body: textBody }));
+	return context.next(new Request(req, { body: JSON.stringify(body) }));
 };
 
 export const config: Config = {
