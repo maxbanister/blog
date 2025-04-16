@@ -36,3 +36,8 @@
 	for = "/.well-known/webfinger"
 	[headers.values]
 		Content-Type = "application/activity+json"
+
+[[headers]]
+	for = "/posts/*"
+	[headers.values]
+		Content-Type = "text/html; charset=utf-8"

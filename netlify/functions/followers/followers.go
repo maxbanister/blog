@@ -20,8 +20,6 @@ func main() {
 }
 
 func handleFollowers(request LambdaRequest) (*LambdaResponse, error) {
-	fmt.Println(request.Headers["host"])
-
 	ctx := context.Background()
 	client, err := kv.GetFirestoreClient()
 	if err != nil {
