@@ -4,6 +4,7 @@ import type { Config, Context } from "@netlify/edge-functions";
 //  isn't supported, so that we don't incur the cost of a full function call.
 
 export default async (req: Request, context: Context) => {
+	console.log(await req.text());
 	const body = await req.json();
 
 	// If this causes an exception, just let it fail and bypass the edge function
