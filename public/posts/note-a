@@ -1,10 +1,10 @@
 {
     "@context": "https://www.w3.org/ns/activitystreams",
-    "id": "https://max-blog.koyeb.app/posts/note-a",
+    "id": "https://maxscribes.netlify.app/posts/note-a",
     "type": "Note",
     "content": "The Gendered Lens of AI: Unpacking Bias in Language  ... html content",
-    "url": "https://max-blog.koyeb.app/posts/note-a",
-    "attributedTo": "https://max-blog.koyeb.app/ap/users/@blog",
+    "url": "https://maxscribes.netlify.app/posts/note-a",
+    "attributedTo": "https://maxscribes.netlify.app/ap/user/blog",
     "to": [
         "https://www.w3.org/ns/activitystreams#Public"
     ],
@@ -18,17 +18,17 @@
         },
         {
             "Type": "Hashtag",
-            "Href": "https://max-blog.koyeb.app/tags/ai",
+            "Href": "https://maxscribes.netlify.app/tags/ai",
             "Name": "#ai"
         }
     ],
     "replies": {
-        "id": "https://max-blog.koyeb.app/replies/1dff22b5faf3fbebc5aaf2bb5b5dbe2c",
+        "id": "https://maxscribes.netlify.app/replies/1dff22b5faf3fbebc5aaf2bb5b5dbe2c",
         "type": "Collection",
         "first": {
             "type": "CollectionPage",
-            "next": "https://max-blog.koyeb.app/replies/1dff22b5faf3fbebc5aaf2bb5b5dbe2c?page=true",
-            "partOf": "https://max-blog.koyeb.app/replies/1dff22b5faf3fbebc5aaf2bb5b5dbe2c",
+            "next": "https://maxscribes.netlify.app/replies/1dff22b5faf3fbebc5aaf2bb5b5dbe2c?page=true",
+            "partOf": "https://maxscribes.netlify.app/replies/1dff22b5faf3fbebc5aaf2bb5b5dbe2c",
             "items": []
         }
     }
