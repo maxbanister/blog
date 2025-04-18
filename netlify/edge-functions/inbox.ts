@@ -5,7 +5,7 @@ import type { Config, Context } from "@netlify/edge-functions";
 
 export default async (req: Request, context: Context) => {
 	const text = await req.text();
-	console.log(req.headers['Content-Length']);
+	console.log(req.headers['content-length']);
 	console.log(text);
 	const body = JSON.parse(text);
 
