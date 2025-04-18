@@ -206,9 +206,11 @@ func HandleReply(r *LambdaRequest, reqJSON map[string]any, host string) error {
 		// For replies-to-replies, the parent reply will already exist.
 		repliesId := strings.ToLower(inReplyToURI.JoinPath("replies").String())
 		return tx.Set(repliesCollection.Doc(inReplyTo), map[string]any{
-			"Id":            inReplyTo,
-			"Replies.Id":    repliesId,
-			"Replies.Items": firestore.ArrayUnion(replyObj.Id),
+			"Id": inReplyTo,
+			"Replies": map[string]any{ // will clobber other fields in struct
+				"Id":    repliesId,
+				"Items": firestore.ArrayUnion(replyObj.Id),
+			},
 		}, firestore.MergeAll)
 	}
 	if err = client.RunTransaction(ctx, txFunc); err != nil {
@@ -254,7 +256,7 @@ func CallFollowService(r *LambdaRequest, host string, actor *ap.Actor) error {
 		fmt.Println("Resp:", resp, "Err:", err)
 	}()
 
-	// give follow service time to read request body
+	// give the follow service time to read request body
 	time.Sleep(50 * time.Millisecond)
 
 	return nil

@@ -164,8 +164,8 @@ func fetchActor(actorData any) (*Actor, error) {
 		readBody = resp.Body
 
 	case map[string]any:
-		// it is rare that the actor is embedded in the request, so we can
-		// afford to convert the map back to JSON and redecode as a struct
+		// it is rare that the actor is embedded in the request, so we can shirk
+		// performance and convert the map back to JSON and redecode as a struct
 		jsonBytes, _ := json.Marshal(actorVal)
 		readBody = bytes.NewReader(jsonBytes)
 
@@ -196,6 +196,7 @@ func fetchActor(actorData any) (*Actor, error) {
 
 func checkDigest(r *LambdaRequest) error {
 	digest := r.Headers["digest"]
+	fmt.Println(digest)
 	if digest == "" {
 		return errors.New("no digest header")
 	}
@@ -211,7 +212,9 @@ func checkDigest(r *LambdaRequest) error {
 		return fmt.Errorf("couldn't decode base64 digest: %w", err)
 	}
 	reqBodyHash := sha256.Sum256([]byte(r.Body))
-	// Inputs are not secret, so this doesn't have to be constant time
+	fmt.Println(reqBodyHash)
+	fmt.Println(digestBytes)
+	// inputs are not secret, so this doesn't have to be constant time
 	if !bytes.Equal(reqBodyHash[:], digestBytes) {
 		return errors.New("digest didn't match message body")
 	}
