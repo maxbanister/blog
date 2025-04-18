@@ -4,7 +4,10 @@ import type { Config, Context } from "@netlify/edge-functions";
 //  isn't supported, so that we don't incur the cost of a full function call.
 
 export default async (req: Request, context: Context) => {
-	const body = await req.json();
+	const text = await req.text();
+	console.log(req.headers['Content-Length']);
+	console.log(text);
+	const body = JSON.parse(text);
 
 	// If this causes an exception, just let it fail and bypass the edge function
 	if (body.type == "Delete" && body.object.toLowerCase().includes("users")) {
