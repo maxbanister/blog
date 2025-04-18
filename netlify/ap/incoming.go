@@ -212,8 +212,7 @@ func checkDigest(r *LambdaRequest) error {
 		return fmt.Errorf("couldn't decode base64 digest: %w", err)
 	}
 	reqBodyHash := sha256.Sum256([]byte(r.Body))
-	fmt.Println(reqBodyHash)
-	fmt.Println(digestBytes)
+	fmt.Println(base64.StdEncoding.EncodeToString(reqBodyHash[:]))
 	// inputs are not secret, so this doesn't have to be constant time
 	if !bytes.Equal(reqBodyHash[:], digestBytes) {
 		return errors.New("digest didn't match message body")
