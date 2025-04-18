@@ -10,7 +10,7 @@
 	included_files = ["./firebase-svc.json"]
 
 [[edge_functions]]
-	path = "/ap/inbox"
+	path = "/ap/inboxasdfasdf"
 	function = "inbox"
 
 [[edge_functions]]
