@@ -16,9 +16,29 @@ type Actor struct {
 	Name              string `json:"name"`
 	PreferredUsername string `json:"preferredUsername"`
 	Inbox             string `json:"inbox"`
-	PublicKey         struct {
+	PublicKey         *struct {
 		PublicKeyPEM string `json:"publicKeyPem"`
 	} `json:"publicKey"`
+	Icon interface{} `json:"icon"`
+}
+
+type InnerReplies struct {
+	Id    string   `json:"id"`
+	Items []string `json:"items"`
+}
+
+type Reply struct {
+	Id           string       `json:"id"`
+	Type         string       `json:"type" firestore:",omitempty"`
+	InReplyTo    string       `json:"inReplyTo" firestore:",omitempty"`
+	Published    string       `json:"published" firestore:",omitempty"`
+	URL          string       `json:"url" firestore:",omitempty"`
+	AttributedTo string       `json:"attributedTo" firestore:",omitempty"`
+	To           []string     `json:"to" firestore:",omitempty"`
+	Cc           []string     `json:"cc" firestore:",omitempty"`
+	Content      string       `json:"content" firestore:",omitempty"`
+	Replies      InnerReplies `json:"replies"`
+	Actor        *Actor       `json:"actor" firestore:",omitempty"`
 }
 
 const SigStringHeaders = "host date digest content-type (request-target)"

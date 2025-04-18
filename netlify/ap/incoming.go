@@ -60,6 +60,8 @@ func RecvActivity(r *LambdaRequest, requestJSON map[string]any) (*Actor, error) 
 	if err != nil {
 		return nil, fmt.Errorf("%w: %w", ErrUnauthorized, err)
 	}
+	// erase the public key so we don't accidentally bloat our stored objects
+	actor.PublicKey = nil
 
 	h, m, p := r.Headers["host"], r.HTTPMethod, r.Path
 	signingString := getSigningString(h, m, p, SigStringHeaders, r.Headers)
@@ -122,7 +124,10 @@ func getSigHeaderParts(r *LambdaRequest) ([]byte, string, error) {
 }
 
 func getActorPubKey(actor *Actor) (*rsa.PublicKey, error) {
-	publicKeyPEM := actor.PublicKey.PublicKeyPEM
+	var publicKeyPEM string
+	if actor.PublicKey != nil {
+		publicKeyPEM = actor.PublicKey.PublicKeyPEM
+	}
 
 	publicBlock, _ := pem.Decode([]byte(publicKeyPEM))
 	if publicBlock == nil || publicBlock.Type != "PUBLIC KEY" {
@@ -181,6 +186,9 @@ func fetchActor(actorData any) (*Actor, error) {
 	}
 	if actor.Name == "" && actor.PreferredUsername == "" {
 		return nil, errors.New("no actor name found")
+	}
+	if actorIcon, ok := actor.Icon.(map[string]any); ok {
+		actor.Icon = actorIcon["url"]
 	}
 
 	return &actor, nil

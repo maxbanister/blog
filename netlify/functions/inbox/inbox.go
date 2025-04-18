@@ -7,9 +7,12 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"net/url"
 	"os"
+	"strings"
 	"time"
 
+	"cloud.google.com/go/firestore"
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/maxbanister/blog/ap"
@@ -48,11 +51,17 @@ func handleInbox(ctx context.Context, request LambdaRequest) (*LambdaResponse, e
 
 		return getLambdaResp(nil)
 
+	case "Create":
+		err = HandleReply(&request, requestJSON, HOST_SITE)
+		if err != nil {
+			return getLambdaResp(err)
+		}
+
 	case "Undo":
 		var err error
 		object, ok := requestJSON["object"].(map[string]any)
 		if !ok || object["type"] != "Follow" {
-			goto unsupported
+			break
 		}
 
 		err = HandleUnfollow(&request, requestJSON)
@@ -61,14 +70,10 @@ func handleInbox(ctx context.Context, request LambdaRequest) (*LambdaResponse, e
 		}
 
 		return getLambdaResp(nil)
-
-	unsupported:
-		fallthrough
-
-	default:
-		return getLambdaResp(fmt.Errorf(
-			"%w: unsupported operation", ErrNotImplemented))
 	}
+
+	return getLambdaResp(fmt.Errorf(
+		"%w: unsupported operation", ErrNotImplemented))
 }
 
 func HandleFollow(r *LambdaRequest, reqJSON map[string]any) (*ap.Actor, error) {
@@ -112,6 +117,102 @@ func HandleUnfollow(r *LambdaRequest, requestJSON map[string]any) error {
 	_, err = client.Collection("followers").Doc(actorAt).Delete(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to remove follower: %v", err)
+	}
+
+	return nil
+}
+
+func HandleReply(r *LambdaRequest, reqJSON map[string]any, host string) error {
+	actor, err := ap.RecvActivity(r, reqJSON)
+	if err != nil {
+		return err
+	}
+	var c struct {
+		Object ap.Reply `json:"object"`
+	}
+	err = json.Unmarshal([]byte(r.Body), &c)
+	if err != nil {
+		return err
+	}
+	replyObj := c.Object
+
+	// validate reply properties
+	inReplyTo := replyObj.InReplyTo
+	if inReplyTo == "" {
+		return fmt.Errorf("%w: inReplyTo not provided", ErrBadRequest)
+	}
+	fmt.Println(inReplyTo)
+	_, err = time.Parse(time.RFC3339, replyObj.Published)
+	if err != nil {
+		return fmt.Errorf("%w: bad published timestamp: %w", ErrBadRequest, err)
+	}
+	_, err = url.ParseRequestURI(replyObj.URL)
+	if err != nil {
+		return fmt.Errorf("%w: malformed backlink URL: %w", ErrBadRequest, err)
+	}
+	if replyObj.AttributedTo != actor.Id {
+		return fmt.Errorf("%w: actor and attributedTo mismatch", ErrBadRequest)
+	}
+
+	inReplyToURI, err := url.ParseRequestURI(inReplyTo)
+	if err != nil {
+		return fmt.Errorf("%w: malformed inReplyTo URI: %w", ErrBadRequest, err)
+	}
+	// normalize inReplyTo URI to avoid creating similarly-named document dupes
+	inReplyTo = strings.ToLower(inReplyToURI.String())
+	if replyObj.Id == "" || replyObj.Content == "" {
+		return fmt.Errorf("%w: missing reply details", ErrBadRequest)
+	}
+
+	replyObj.Actor = actor
+
+	// check if inReplyTo's object exists in the replies collection
+	ctx := context.Background()
+	client, err := kv.GetFirestoreClient()
+	if err != nil {
+		return fmt.Errorf("could not start firestore client: %w", err)
+	}
+	defer client.Close()
+
+	doc, err := client.Collection("replies").Doc(inReplyTo).Get(ctx)
+	if err != nil {
+		return fmt.Errorf("error looking up replies: %w", err)
+	}
+	if _, found := doc.Data()[inReplyTo]; !found {
+		// this post isn't in replies collection yet - confirm post exists
+		if inReplyToURI.Host != host {
+			return fmt.Errorf("%w: referenced post nonexistent", ErrBadRequest)
+		}
+		resp, err := http.Head(inReplyTo)
+		if err != nil || resp.StatusCode < 200 || resp.StatusCode >= 300 {
+			return fmt.Errorf("%w: referenced post nonexistent", ErrBadRequest)
+		}
+		fmt.Println("Post", inReplyTo, "found")
+	}
+
+	// We need to write two documents: the reply being added, and the original
+	// post (which may not exist yet) to link it to the newly created reply.
+
+	repliesCollection := client.Collection("replies")
+	txFunc := func(ctx context.Context, tx *firestore.Transaction) error {
+		// this will fail if the reply ID already exists
+		newReplyDoc := repliesCollection.Doc(replyObj.Id)
+		if err := tx.Create(newReplyDoc, replyObj); err != nil {
+			return err
+		}
+
+		// If it's the first comment to a top-level post, we will create a new
+		// reply document for it. Otherwise, we will just merge the reply sets.
+		// For replies-to-replies, the parent reply will already exist.
+		repliesId := strings.ToLower(inReplyToURI.JoinPath("replies").String())
+		return tx.Set(repliesCollection.Doc(inReplyTo), map[string]any{
+			"Id":            inReplyTo,
+			"Replies.Id":    repliesId,
+			"Replies.Items": firestore.ArrayUnion(replyObj.Id),
+		}, firestore.MergeAll)
+	}
+	if err = client.RunTransaction(ctx, txFunc); err != nil {
+		return err
 	}
 
 	return nil
@@ -167,6 +268,8 @@ func getLambdaResp(err error) (*LambdaResponse, error) {
 		code = http.StatusBadRequest
 	} else if errors.Is(err, ErrNotImplemented) {
 		code = http.StatusNotImplemented
+	} else if err != nil {
+		code = http.StatusInternalServerError
 	} else {
 		code = http.StatusOK
 	}
