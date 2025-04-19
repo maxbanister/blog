@@ -58,14 +58,14 @@ func handle(ctx context.Context, request LambdaRequest) (*LambdaResponse, error)
 	replyID, _ := replyDoc.DataAt("Replies.Id")
 	replyItems, _ := replyDoc.DataAt("Replies.Items")
 	replyItemsArr, _ := replyItems.([]any)
-	replyItemsBytes, _ := json.MarshalIndent(replyItems, "", "		")
+	replyItemsBytes, _ := json.MarshalIndent(replyItems, "	", "	")
 	body := fmt.Sprintf(`{
 	"@context": "https://www.w3.org/ns/activitystreams",
 	"id": "%s",
 	"type": "OrderedCollection",
 	"totalItems": %d,
 	"items": %s
-	}`, replyID, len(replyItemsArr), string(replyItemsBytes))
+}`, replyID, len(replyItemsArr), string(replyItemsBytes))
 
 	// STOP - if accept is of type application/ld+json, return only shallow replies with
 	// external references to Id's
