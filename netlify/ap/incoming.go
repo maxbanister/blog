@@ -162,7 +162,7 @@ func fetchActor(actorData any) (*Actor, error) {
 			return nil, fmt.Errorf("%w: %w", ErrBadRequest, err)
 		}
 		Abody, _ := io.ReadAll(resp.Body)
-		fmt.Println(Abody)
+		fmt.Println(string(Abody))
 		readBody = io.NopCloser(bytes.NewBuffer(Abody))
 
 	case map[string]any:
