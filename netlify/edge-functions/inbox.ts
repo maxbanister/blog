@@ -23,7 +23,7 @@ export default async (req: Request, context: Context) => {
 	}
 
 	// It is necessary to replace the body which was just read out
-	return context.next(new Request(req, { body: JSON.stringify(body) }));
+	return context.next(new Request(req, { body: text }));
 };
 
 export const config: Config = {
