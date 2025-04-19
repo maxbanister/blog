@@ -41,7 +41,7 @@ func GetHostSite(ctx context.Context) string {
 		fmt.Println("could not decode netlify json:", err)
 		return ""
 	}
-	return netlifyData["site_url"]
+	return strings.TrimPrefix(netlifyData["site_url"], "https://")
 }
 
 func Sluggify(uri url.URL) string {
