@@ -7,8 +7,10 @@ import (
 	"net/url"
 	"strings"
 
+	"cloud.google.com/go/firestore"
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
+	"github.com/maxbanister/blog/ap"
 	"github.com/maxbanister/blog/kv"
 	. "github.com/maxbanister/blog/util"
 	"google.golang.org/grpc/codes"
@@ -20,67 +22,94 @@ func main() {
 }
 
 func handle(ctx context.Context, request LambdaRequest) (*LambdaResponse, error) {
-	HOST_SITE := GetHostSite(ctx)
-	// get GET request with query parameter (?) of the url to get the replies of
-
-	// extract the url from the query parameters
+	host := GetHostSite(ctx)
+	// extract the referred to post from the query parameters
 	postID := request.QueryStringParameters["id"]
 	fmt.Println("Got request for", postID)
 
-	postURI, err := url.Parse("https://" + HOST_SITE + "/posts/" + postID)
-	if err != nil {
-		return &events.APIGatewayProxyResponse{
-			StatusCode: 400,
-			Body:       fmt.Sprintf("post ID is invalid URI: %s", err.Error()),
-		}, nil
+	// if accept is of type application/ld+json or /activity+json, return only
+	// shallow replies with external reference IDs to reply objects
+	wantsAP := false
+	a := request.Headers["accept"]
+	if strings.Contains(a, "activity+json") || strings.Contains(a, "ld+json") {
+		wantsAP = true
 	}
 
-	// normalize url using sluggify
-	slugPostID := Sluggify(*postURI)
-
-	// fetch top-level replies object from firestore
 	client, err := kv.GetFirestoreClient()
 	if err != nil {
 		return nil, fmt.Errorf("could not start firestore client: %w", err)
 	}
 	defer client.Close()
 
-	replyDoc, err := client.Collection("replies").Doc(slugPostID).Get(ctx)
+	r, err := GetReplyTree(client, "https://"+host+"/posts/"+postID, wantsAP)
 	if err != nil {
-		if status.Code(err) != codes.NotFound {
-			return nil, fmt.Errorf("error looking up replies: %w", err)
+		if wantsAP && status.Code(err) == codes.NotFound {
+			return &events.APIGatewayProxyResponse{
+				StatusCode: 404,
+				Body:       "no replies yet",
+			}, nil
+		}
+		return nil, err
+	}
+
+	if !wantsAP {
+		body, err := json.Marshal(r)
+		if err != nil {
+			return nil, fmt.Errorf("couldn't marshal reply tree json: %w", err)
 		}
 		return &events.APIGatewayProxyResponse{
-			StatusCode: 404,
-			Body:       "no replies yet",
+			StatusCode: 200,
+			Body:       string(body),
 		}, nil
 	}
-	replyID, _ := replyDoc.DataAt("Replies.Id")
-	replyItems, _ := replyDoc.DataAt("Replies.Items")
-	replyItemsArr, _ := replyItems.([]any)
-	replyItemsBytes, _ := json.MarshalIndent(replyItems, "	", "	")
+
+	// Simple one-deep tree for ActivityPub compliance
+	replyItems, _ := json.MarshalIndent(r.Replies.Items, "	", "	")
 	body := fmt.Sprintf(`{
 	"@context": "https://www.w3.org/ns/activitystreams",
 	"id": "%s",
 	"type": "OrderedCollection",
 	"totalItems": %d,
 	"items": %s
-}`, replyID, len(replyItemsArr), string(replyItemsBytes))
+}`, r.Id, len(r.Replies.Items), string(replyItems))
 
-	// STOP - if accept is of type application/ld+json, return only shallow replies with
-	// external references to Id's
-	a := request.Headers["accept"]
-	if strings.Contains(a, "activity+json") || strings.Contains(a, "ld+json") {
-		return &events.APIGatewayProxyResponse{StatusCode: 200, Body: body}, nil
+	return &events.APIGatewayProxyResponse{StatusCode: 200, Body: body}, nil
+}
+
+func GetReplyTree(client *firestore.Client, replyURI string, shallow bool) (*ap.Reply, error) {
+	replyID, err := url.Parse(replyURI)
+	if err != nil {
+		return nil, fmt.Errorf("could not parse as URI: %w", err)
+	}
+	slugPostID := Sluggify(*replyID)
+
+	ctx := context.Background()
+	replyDoc, err := client.Collection("replies").Doc(slugPostID).Get(ctx)
+	if err != nil {
+		return nil, err
 	}
 
-	// recurse over Replies.Items
+	var r ap.Reply
+	err = replyDoc.DataTo(&r)
+	if err != nil {
+		return nil, fmt.Errorf("couldn't populate struct with doc: %w", err)
+	}
+	if shallow {
+		return &r, nil
+	}
 
-	// for each item, do another lookup in firestore for that sluggified URL
+	for i, item := range r.Replies.Items {
+		itemStr, ok := item.(string)
+		if !ok {
+			fmt.Println("warning: linked reply item is not string:", item)
+			continue
+		}
+		subTree, err := GetReplyTree(client, itemStr, false)
+		if err != nil {
+			return nil, err
+		}
+		r.Replies.Items[i] = subTree
+	}
 
-	// build up full replies tree using the Reply object
-
-	// serialize and send to the requester
-
-	return nil, nil
+	return &r, nil
 }

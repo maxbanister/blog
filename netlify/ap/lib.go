@@ -23,8 +23,8 @@ type Actor struct {
 }
 
 type InnerReplies struct {
-	Id    string   `json:"id"`
-	Items []string `json:"items"`
+	Id    string `json:"id"`
+	Items []any  `json:"items"`
 }
 
 type Reply struct {
