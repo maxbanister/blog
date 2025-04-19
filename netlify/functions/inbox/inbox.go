@@ -18,6 +18,8 @@ import (
 	"github.com/maxbanister/blog/ap"
 	"github.com/maxbanister/blog/kv"
 	. "github.com/maxbanister/blog/util"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 func main() {
@@ -166,7 +168,6 @@ func HandleReply(r *LambdaRequest, reqJSON map[string]any, host string) error {
 
 	replyObj.Actor = actor
 
-	// check if inReplyTo's object exists in the replies collection
 	ctx := context.Background()
 	client, err := kv.GetFirestoreClient()
 	if err != nil {
@@ -174,21 +175,21 @@ func HandleReply(r *LambdaRequest, reqJSON map[string]any, host string) error {
 	}
 	defer client.Close()
 
-	doc, err := client.Collection("replies").Doc(inReplyTo).Get(ctx)
-	if err != nil {
+	// check if inReplyTo's object exists in the replies collection
+	_, err = client.Collection("replies").Doc(inReplyTo).Get(ctx)
+	if err != nil && status.Code(err) != codes.NotFound {
 		return fmt.Errorf("error looking up replies: %w", err)
 	}
-	if _, found := doc.Data()[inReplyTo]; !found {
-		// this post isn't in replies collection yet - confirm post exists
-		if inReplyToURI.Host != host {
-			return fmt.Errorf("%w: referenced post nonexistent", ErrBadRequest)
-		}
-		resp, err := http.Head(inReplyTo)
-		if err != nil || resp.StatusCode < 200 || resp.StatusCode >= 300 {
-			return fmt.Errorf("%w: referenced post nonexistent", ErrBadRequest)
-		}
-		fmt.Println("Post", inReplyTo, "found")
+
+	// this post isn't in replies collection yet - confirm post exists
+	if inReplyToURI.Host != host {
+		return fmt.Errorf("%w: referenced post nonexistent", ErrBadRequest)
 	}
+	resp, err := http.Head(inReplyTo)
+	if err != nil || resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		return fmt.Errorf("%w: referenced post nonexistent", ErrBadRequest)
+	}
+	fmt.Println("Post", inReplyTo, "found")
 
 	// We need to write two documents: the reply being added, and the original
 	// post (which may not exist yet) to link it to the newly created reply.
