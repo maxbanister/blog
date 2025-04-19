@@ -30,7 +30,7 @@ func handle(ctx context.Context, request LambdaRequest) (*LambdaResponse, error)
 	// if accept is of type application/ld+json or /activity+json, return only
 	// shallow replies with external reference IDs to reply objects
 	wantsAP := false
-	a := request.Headers["accept"]
+	a := strings.ToLower(request.Headers["accept"])
 	if strings.Contains(a, "activity+json") || strings.Contains(a, "ld+json") {
 		wantsAP = true
 	}

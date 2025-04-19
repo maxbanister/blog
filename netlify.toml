@@ -29,7 +29,7 @@
 [[redirects]]
 	from="/posts/:title/replies"
 	to="/.netlify/functions/reply-service?id=:title"
-	status = 200
+	status = 301
 
 [[headers]]
 	for = "/ap/user/blog"
