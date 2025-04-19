@@ -190,6 +190,8 @@ func fetchActor(actorData any) (*Actor, error) {
 	if actorIcon, ok := actor.Icon.(map[string]any); ok {
 		actor.Icon = actorIcon["url"]
 	}
+	fmt.Println(actor.Icon)
+	fmt.Println(actor)
 
 	return &actor, nil
 }

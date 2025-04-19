@@ -58,6 +58,8 @@ func handleInbox(ctx context.Context, request LambdaRequest) (*LambdaResponse, e
 			return getLambdaResp(err)
 		}
 
+		return getLambdaResp(nil)
+
 	case "Undo":
 		var err error
 		object, ok := requestJSON["object"].(map[string]any)
@@ -185,8 +187,6 @@ func HandleReply(r *LambdaRequest, reqJSON map[string]any, host string) error {
 	}
 
 	// this post isn't in replies collection yet - confirm post exists
-	fmt.Println(inReplyToURI.Host)
-	fmt.Print(host)
 	if inReplyToURI.Host != host {
 		return fmt.Errorf("%w: reply not from this domain", ErrBadRequest)
 	}
