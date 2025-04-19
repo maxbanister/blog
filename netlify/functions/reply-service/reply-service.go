@@ -25,6 +25,7 @@ func handle(ctx context.Context, request LambdaRequest) (*LambdaResponse, error)
 
 	// extract the url from the query parameters
 	postID := request.QueryStringParameters["id"]
+	fmt.Println("Got request for", postID)
 
 	postURI, err := url.Parse("https://" + HOST_SITE + "/posts/" + postID)
 	if err != nil {
@@ -56,25 +57,20 @@ func handle(ctx context.Context, request LambdaRequest) (*LambdaResponse, error)
 	}
 	replyID, _ := replyDoc.DataAt("Replies.Id")
 	replyItems, _ := replyDoc.DataAt("Replies.Items")
-	replyItemsArr, _ := replyItems.([]string)
-	replyItemsBytes, _ := json.MarshalIndent(replyItems, "", "	")
+	replyItemsArr, _ := replyItems.([]any)
+	replyItemsBytes, _ := json.MarshalIndent(replyItems, "", "		")
+	body := fmt.Sprintf(`{
+	"@context": "https://www.w3.org/ns/activitystreams",
+	"id": "%s",
+	"type": "OrderedCollection",
+	"totalItems": %d,
+	"items": %s
+	}`, replyID, len(replyItemsArr), string(replyItemsBytes))
 
 	// STOP - if accept is of type application/ld+json, return only shallow replies with
 	// external references to Id's
 	a := request.Headers["accept"]
 	if strings.Contains(a, "activity+json") || strings.Contains(a, "ld+json") {
-		// @context
-		// id
-		// type: OrderedCollection
-		// items: []string
-		body := fmt.Sprintf(`{
-		"@context": "https://www.w3.org/ns/activitystreams",
-		"id": "%s",
-		"type": "OrderedCollection",
-		"totalItems": %d,
-		"items": %s
-		}`, replyID, len(replyItemsArr), string(replyItemsBytes))
-
 		return &events.APIGatewayProxyResponse{StatusCode: 200, Body: body}, nil
 	}
 
