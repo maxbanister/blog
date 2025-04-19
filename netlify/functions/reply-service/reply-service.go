@@ -53,7 +53,7 @@ func handle(ctx context.Context, request LambdaRequest) (*LambdaResponse, error)
 	}
 
 	if !wantsAP {
-		body, err := json.Marshal(r)
+		body, err := json.Marshal(r.Replies)
 		if err != nil {
 			return nil, fmt.Errorf("couldn't marshal reply tree json: %w", err)
 		}
@@ -74,7 +74,7 @@ func handle(ctx context.Context, request LambdaRequest) (*LambdaResponse, error)
 	"type": "OrderedCollection",
 	"totalItems": %d,
 	"items": %s
-}`, r.Id, len(r.Replies.Items), string(replyItems))
+}`, r.Replies.Id, len(r.Replies.Items), string(replyItems))
 
 	return &events.APIGatewayProxyResponse{
 		StatusCode: 200,
