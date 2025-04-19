@@ -59,7 +59,10 @@ func handle(ctx context.Context, request LambdaRequest) (*LambdaResponse, error)
 		}
 		return &events.APIGatewayProxyResponse{
 			StatusCode: 200,
-			Body:       string(body),
+			Headers: map[string]string{
+				"Content-Type": "application/json; charset=utf-8",
+			},
+			Body: string(body),
 		}, nil
 	}
 
@@ -73,7 +76,13 @@ func handle(ctx context.Context, request LambdaRequest) (*LambdaResponse, error)
 	"items": %s
 }`, r.Id, len(r.Replies.Items), string(replyItems))
 
-	return &events.APIGatewayProxyResponse{StatusCode: 200, Body: body}, nil
+	return &events.APIGatewayProxyResponse{
+		StatusCode: 200,
+		Headers: map[string]string{
+			"Content-Type": "application/activity+json",
+		},
+		Body: body,
+	}, nil
 }
 
 func GetReplyTree(client *firestore.Client, replyURI string, shallow bool) (*ap.Reply, error) {
