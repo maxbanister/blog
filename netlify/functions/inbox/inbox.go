@@ -182,17 +182,18 @@ func HandleReply(r *LambdaRequest, reqJSON map[string]any, host string) error {
 
 	// check if inReplyTo's object exists in the replies collection
 	_, err = client.Collection("replies").Doc(inReplyToSlug).Get(ctx)
-	if err != nil && status.Code(err) != codes.NotFound {
-		return fmt.Errorf("error looking up replies: %w", err)
-	}
-
-	// this post isn't in replies collection yet - confirm post exists
-	if inReplyToURI.Host != host {
-		return fmt.Errorf("%w: reply not from this domain", ErrBadRequest)
-	}
-	resp, err := http.Head(inReplyTo)
-	if err != nil || resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		return fmt.Errorf("%w: referenced post nonexistent", ErrBadRequest)
+	if err != nil {
+		if status.Code(err) != codes.NotFound {
+			return fmt.Errorf("error looking up replies: %w", err)
+		}
+		// this post isn't in the replies collection yet - confirm post exists
+		if inReplyToURI.Host != host {
+			return fmt.Errorf("%w: reply not for this domain", ErrBadRequest)
+		}
+		resp, err := http.Head(inReplyTo)
+		if err != nil || resp.StatusCode < 200 || resp.StatusCode >= 300 {
+			return fmt.Errorf("%w: referenced post nonexistent", ErrBadRequest)
+		}
 	}
 	fmt.Println("Post", inReplyTo, "found")
 

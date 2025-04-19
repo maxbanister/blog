@@ -161,9 +161,7 @@ func fetchActor(actorData any) (*Actor, error) {
 		if err != nil {
 			return nil, fmt.Errorf("%w: %w", ErrBadRequest, err)
 		}
-		Abody, _ := io.ReadAll(resp.Body)
-		fmt.Println(string(Abody))
-		readBody = io.NopCloser(bytes.NewBuffer(Abody))
+		readBody = resp.Body
 
 	case map[string]any:
 		// it is rare that the actor is embedded in the request, so we can shirk
@@ -192,8 +190,6 @@ func fetchActor(actorData any) (*Actor, error) {
 	if actorIcon, ok := actor.Icon.(map[string]any); ok {
 		actor.Icon = actorIcon["url"]
 	}
-	fmt.Println(actor.Icon)
-	fmt.Println(actor)
 
 	return &actor, nil
 }
