@@ -63,3 +63,28 @@ func Sluggify(uri url.URL) string {
 	}
 	return strings.Trim(res.String(), "-")
 }
+
+func GetLambdaResp(err error) (*LambdaResponse, error) {
+	var code int
+	if errors.Is(err, ErrUnauthorized) {
+		code = http.StatusUnauthorized
+	} else if errors.Is(err, ErrBadRequest) {
+		code = http.StatusBadRequest
+	} else if errors.Is(err, ErrNotImplemented) {
+		code = http.StatusNotImplemented
+	} else if err != nil {
+		code = http.StatusInternalServerError
+	} else {
+		code = http.StatusOK
+	}
+
+	var errMsg string
+	if err != nil {
+		errMsg = err.Error()
+	}
+	fmt.Println(code, err)
+	return &events.APIGatewayProxyResponse{
+		StatusCode: code,
+		Body:       errMsg,
+	}, nil
+}

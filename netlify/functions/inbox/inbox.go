@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -12,7 +11,6 @@ import (
 	"time"
 
 	"cloud.google.com/go/firestore"
-	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/maxbanister/blog/ap"
 	"github.com/maxbanister/blog/kv"
@@ -33,7 +31,7 @@ func handleInbox(ctx context.Context, request LambdaRequest) (*LambdaResponse, e
 	requestJSON := make(map[string]any)
 	err := json.Unmarshal([]byte(request.Body), &requestJSON)
 	if err != nil {
-		return getLambdaResp(fmt.Errorf(
+		return GetLambdaResp(fmt.Errorf(
 			"%w: bad json syntax: %s", ErrBadRequest, err.Error()))
 	}
 
@@ -43,22 +41,22 @@ func handleInbox(ctx context.Context, request LambdaRequest) (*LambdaResponse, e
 	case "Follow":
 		actorObj, err := HandleFollow(&request, requestJSON)
 		if err != nil {
-			return getLambdaResp(err)
+			return GetLambdaResp(err)
 		}
 
 		if err := CallFollowService(&request, HOST_SITE, actorObj); err != nil {
-			return getLambdaResp(err)
+			return GetLambdaResp(err)
 		}
 
-		return getLambdaResp(nil)
+		return GetLambdaResp(nil)
 
 	case "Create":
 		err = HandleReply(&request, requestJSON, HOST_SITE)
 		if err != nil {
-			return getLambdaResp(err)
+			return GetLambdaResp(err)
 		}
 
-		return getLambdaResp(nil)
+		return GetLambdaResp(nil)
 
 	case "Undo":
 		var err error
@@ -69,13 +67,13 @@ func handleInbox(ctx context.Context, request LambdaRequest) (*LambdaResponse, e
 
 		err = HandleUnfollow(&request, requestJSON)
 		if err != nil {
-			return getLambdaResp(err)
+			return GetLambdaResp(err)
 		}
 
-		return getLambdaResp(nil)
+		return GetLambdaResp(nil)
 	}
 
-	return getLambdaResp(fmt.Errorf(
+	return GetLambdaResp(fmt.Errorf(
 		"%w: unsupported operation", ErrNotImplemented))
 }
 
@@ -144,7 +142,6 @@ func HandleReply(r *LambdaRequest, reqJSON map[string]any, host string) error {
 	if inReplyTo == "" {
 		return fmt.Errorf("%w: inReplyTo not provided", ErrBadRequest)
 	}
-	fmt.Println(inReplyTo)
 	_, err = time.Parse(time.RFC3339, replyObj.Published)
 	if err != nil {
 		return fmt.Errorf("%w: bad published timestamp: %w", ErrBadRequest, err)
@@ -180,7 +177,7 @@ func HandleReply(r *LambdaRequest, reqJSON map[string]any, host string) error {
 	}
 	defer client.Close()
 
-	fmt.Println("Checking for:", inReplyToSlug)
+	fmt.Println("Checking for", inReplyTo)
 	// check if inReplyTo's object exists in the replies collection
 	_, err = client.Collection("replies").Doc(inReplyToSlug).Get(ctx)
 	if err != nil {
@@ -267,29 +264,4 @@ func CallFollowService(r *LambdaRequest, host string, actor *ap.Actor) error {
 	time.Sleep(50 * time.Millisecond)
 
 	return nil
-}
-
-func getLambdaResp(err error) (*LambdaResponse, error) {
-	var code int
-	if errors.Is(err, ErrUnauthorized) {
-		code = http.StatusUnauthorized
-	} else if errors.Is(err, ErrBadRequest) {
-		code = http.StatusBadRequest
-	} else if errors.Is(err, ErrNotImplemented) {
-		code = http.StatusNotImplemented
-	} else if err != nil {
-		code = http.StatusInternalServerError
-	} else {
-		code = http.StatusOK
-	}
-
-	var errMsg string
-	if err != nil {
-		errMsg = err.Error()
-	}
-	fmt.Println(code, err)
-	return &events.APIGatewayProxyResponse{
-		StatusCode: code,
-		Body:       errMsg,
-	}, nil
 }
