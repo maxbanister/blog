@@ -180,6 +180,7 @@ func HandleReply(r *LambdaRequest, reqJSON map[string]any, host string) error {
 	}
 	defer client.Close()
 
+	fmt.Println("Checking for:", inReplyToSlug)
 	// check if inReplyTo's object exists in the replies collection
 	_, err = client.Collection("replies").Doc(inReplyToSlug).Get(ctx)
 	if err != nil {
