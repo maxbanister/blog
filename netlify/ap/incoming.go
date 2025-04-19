@@ -161,7 +161,9 @@ func fetchActor(actorData any) (*Actor, error) {
 		if err != nil {
 			return nil, fmt.Errorf("%w: %w", ErrBadRequest, err)
 		}
-		readBody = resp.Body
+		Abody, _ := io.ReadAll(resp.Body)
+		fmt.Println(Abody)
+		readBody = io.NopCloser(bytes.NewBuffer(Abody))
 
 	case map[string]any:
 		// it is rare that the actor is embedded in the request, so we can shirk
@@ -198,7 +200,6 @@ func fetchActor(actorData any) (*Actor, error) {
 
 func checkDigest(r *LambdaRequest) error {
 	digest := r.Headers["digest"]
-	fmt.Println(digest)
 	if digest == "" {
 		return errors.New("no digest header")
 	}
@@ -214,7 +215,6 @@ func checkDigest(r *LambdaRequest) error {
 		return fmt.Errorf("couldn't decode base64 digest: %w", err)
 	}
 	reqBodyHash := sha256.Sum256([]byte(r.Body))
-	fmt.Println(base64.StdEncoding.EncodeToString(reqBodyHash[:]))
 	// inputs are not secret, so this doesn't have to be constant time
 	if !bytes.Equal(reqBodyHash[:], digestBytes) {
 		return errors.New("digest didn't match message body")
