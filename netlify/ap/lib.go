@@ -29,16 +29,16 @@ type InnerReplies struct {
 
 type Reply struct {
 	Id           string       `json:"id"`
-	Type         string       `json:"type" firestore:",omitempty"`
-	InReplyTo    string       `json:"inReplyTo" firestore:",omitempty"`
-	Published    string       `json:"published" firestore:",omitempty"`
-	URL          string       `json:"url" firestore:",omitempty"`
-	AttributedTo string       `json:"attributedTo" firestore:",omitempty"`
-	To           []string     `json:"to" firestore:",omitempty"`
-	Cc           []string     `json:"cc" firestore:",omitempty"`
-	Content      string       `json:"content" firestore:",omitempty"`
+	Type         string       `json:"type,omitempty" firestore:",omitempty"`
+	InReplyTo    string       `json:"inReplyTo,omitempty" firestore:",omitempty"`
+	Published    string       `json:"published,omitempty" firestore:",omitempty"`
+	URL          string       `json:"url,omitempty" firestore:",omitempty"`
+	AttributedTo string       `json:"attributedTo,omitempty" firestore:",omitempty"`
+	To           []string     `json:"to,omitempty" firestore:",omitempty"`
+	Cc           []string     `json:"cc,omitempty" firestore:",omitempty"`
+	Content      string       `json:"content,omitempty" firestore:",omitempty"`
 	Replies      InnerReplies `json:"replies"`
-	Actor        *Actor       `json:"actor" firestore:",omitempty"`
+	Actor        *Actor       `json:"actor,omitempty" firestore:",omitempty"`
 }
 
 const SigStringHeaders = "host date digest content-type (request-target)"
