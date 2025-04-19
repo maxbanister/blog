@@ -9,7 +9,6 @@ import (
 	"net/http"
 	"net/url"
 	"os"
-	"strings"
 	"time"
 
 	"cloud.google.com/go/firestore"
@@ -160,11 +159,15 @@ func HandleReply(r *LambdaRequest, reqJSON map[string]any, host string) error {
 	if err != nil {
 		return fmt.Errorf("%w: malformed inReplyTo URI: %w", ErrBadRequest, err)
 	}
-	// normalize inReplyTo URI to avoid creating similarly-named document dupes
-	inReplyTo = strings.ToLower(inReplyToURI.String())
+	inReplyToSlug := Sluggify(*inReplyToURI)
 	if replyObj.Id == "" || replyObj.Content == "" {
 		return fmt.Errorf("%w: missing reply details", ErrBadRequest)
 	}
+	replyObjId, err := url.ParseRequestURI(replyObj.Id)
+	if err != nil {
+		return fmt.Errorf("%w: malformed object id: %w", ErrBadRequest, err)
+	}
+	replyIdSlug := Sluggify(*replyObjId)
 
 	replyObj.Actor = actor
 
@@ -176,7 +179,7 @@ func HandleReply(r *LambdaRequest, reqJSON map[string]any, host string) error {
 	defer client.Close()
 
 	// check if inReplyTo's object exists in the replies collection
-	_, err = client.Collection("replies").Doc(inReplyTo).Get(ctx)
+	_, err = client.Collection("replies").Doc(inReplyToSlug).Get(ctx)
 	if err != nil && status.Code(err) != codes.NotFound {
 		return fmt.Errorf("error looking up replies: %w", err)
 	}
@@ -197,7 +200,7 @@ func HandleReply(r *LambdaRequest, reqJSON map[string]any, host string) error {
 	repliesCollection := client.Collection("replies")
 	txFunc := func(ctx context.Context, tx *firestore.Transaction) error {
 		// this will fail if the reply ID already exists
-		newReplyDoc := repliesCollection.Doc(replyObj.Id)
+		newReplyDoc := repliesCollection.Doc(replyIdSlug)
 		if err := tx.Create(newReplyDoc, replyObj); err != nil {
 			return err
 		}
@@ -205,11 +208,10 @@ func HandleReply(r *LambdaRequest, reqJSON map[string]any, host string) error {
 		// If it's the first comment to a top-level post, we will create a new
 		// reply document for it. Otherwise, we will just merge the reply sets.
 		// For replies-to-replies, the parent reply will already exist.
-		repliesId := strings.ToLower(inReplyToURI.JoinPath("replies").String())
-		return tx.Set(repliesCollection.Doc(inReplyTo), map[string]any{
+		return tx.Set(repliesCollection.Doc(inReplyToSlug), map[string]any{
 			"Id": inReplyTo,
 			"Replies": map[string]any{ // will clobber other fields in struct
-				"Id":    repliesId,
+				"Id":    inReplyToURI.JoinPath("replies").String(),
 				"Items": firestore.ArrayUnion(replyObj.Id),
 			},
 		}, firestore.MergeAll)

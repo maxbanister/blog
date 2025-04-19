@@ -7,6 +7,8 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"net/url"
+	"strings"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambdacontext"
@@ -40,4 +42,24 @@ func GetHostSite(ctx context.Context) string {
 		return ""
 	}
 	return netlifyData["site_url"]
+}
+
+func Sluggify(uri url.URL) string {
+	uri.Fragment = ""
+	uri.Scheme = ""
+	uriStr := strings.ToLower(uri.String()[2:])
+	var res strings.Builder
+	lastDash := false
+	for _, c := range uriStr {
+		if strings.ContainsRune("/@-.:", c) {
+			if !lastDash {
+				res.WriteRune('-')
+				lastDash = true
+			}
+		} else {
+			res.WriteRune(c)
+			lastDash = false
+		}
+	}
+	return strings.Trim(res.String(), "-")
 }
