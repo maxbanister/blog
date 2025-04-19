@@ -185,6 +185,8 @@ func HandleReply(r *LambdaRequest, reqJSON map[string]any, host string) error {
 	}
 
 	// this post isn't in replies collection yet - confirm post exists
+	fmt.Println(inReplyToURI.Host)
+	fmt.Print(host)
 	if inReplyToURI.Host != host {
 		return fmt.Errorf("%w: reply not from this domain", ErrBadRequest)
 	}
