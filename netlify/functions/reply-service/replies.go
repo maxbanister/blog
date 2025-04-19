@@ -19,13 +19,14 @@ func main() {
 	lambda.Start(handle)
 }
 
-func handle(request LambdaRequest) (*LambdaResponse, error) {
+func handle(ctx context.Context, request LambdaRequest) (*LambdaResponse, error) {
+	HOST_SITE := GetHostSite(ctx)
 	// get GET request with query parameter (?) of the url to get the replies of
 
 	// extract the url from the query parameters
 	postID := request.QueryStringParameters["id"]
 
-	postURI, err := url.Parse(postID)
+	postURI, err := url.Parse("https://" + HOST_SITE + "/posts/" + postID)
 	if err != nil {
 		return &events.APIGatewayProxyResponse{
 			StatusCode: 400,
@@ -37,7 +38,6 @@ func handle(request LambdaRequest) (*LambdaResponse, error) {
 	slugPostID := Sluggify(*postURI)
 
 	// fetch top-level replies object from firestore
-	ctx := context.Background()
 	client, err := kv.GetFirestoreClient()
 	if err != nil {
 		return nil, fmt.Errorf("could not start firestore client: %w", err)

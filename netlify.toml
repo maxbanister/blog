@@ -7,7 +7,6 @@
 
 [functions]
 	directory = "netlify/functions"
-	included_files = ["./firebase-svc.json"]
 
 [[edge_functions]]
 	path = "/ap/inbox"
@@ -26,6 +25,11 @@
 	from="/ap/*"
 	to="/.netlify/functions/:splat"
 	status = 200
+
+[[redirects]]
+	from="/posts/:title/replies"
+	to="/.netlify/functions/reply-service?id=:title"
+	status = 301
 
 [[headers]]
 	for = "/ap/user/blog"
