@@ -39,28 +39,7 @@
 					"Name": "#ai"
 				}
 				],
-				"replies": {
-					"id": "https://maxscribes.netlify.app/posts/note-a/replies",
-					"type": "Collection",
-					"totalItems": 2,
-					"items": [
-						{
-							"id": "https://mastodon.social/users/maxbanister/statuses/114368696446505086",
-							"type": "Note",
-							"inReplyTo": "https://maxscribes.netlify.app/posts/note-a",
-							"published": "2025-04-20T05:43:34Z",
-							"url": "https://mastodon.social/@maxbanister/114368696446505086",
-							"attributedTo": "https://mastodon.social/users/maxbanister",
-							"to": [
-								"https://www.w3.org/ns/activitystreams#Public"
-							],
-							"cc": [
-								"https://mastodon.social/users/maxbanister/followers"
-							],
-							"content": "<p>another reply thread</p>"
-						}
-					]
-				}
+				"replies": "https://maxscribes.netlify.app/posts/note-a/replies"
 			}
 		}
 	]
