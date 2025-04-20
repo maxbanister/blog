@@ -39,16 +39,7 @@
 					"Name": "#ai"
 				}
 				],
-				"replies": {
-					"id": "https://maxscribes.netlify.app/replies/1dff22b5faf3fbebc5aaf2bb5b5dbe2c",
-					"type": "Collection",
-					"first": {
-						"type": "CollectionPage",
-						"next": "https://maxscribes.netlify.app/replies/1dff22b5faf3fbebc5aaf2bb5b5dbe2c?page=true",
-						"partOf": "https://maxscribes.netlify.app/replies/1dff22b5faf3fbebc5aaf2bb5b5dbe2c",
-						"items": []
-					}
-				}
+				"replies": "https://maxscribes.netlify.app/posts/note-a/replies"
 			}
 		}
 	]
