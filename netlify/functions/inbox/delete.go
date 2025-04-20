@@ -71,13 +71,9 @@ func HandleDelete(r *LambdaRequest, reqJSON map[string]any) error {
 	for {
 		_, err := repliesCol.Doc(slugDeleteID).Delete(ctx)
 		if err != nil {
-			return fmt.Errorf("failed to remove leaf reply: %v", err)
+			return fmt.Errorf("failed to remove leaf reply: %w", err)
 		}
 		fmt.Println("Successful delete of leaf node", slugDeleteID)
-		if deleteObj.InReplyTo == "" {
-			fmt.Println("Reached top-level node, stopping")
-			return nil
-		}
 		replyURI, err = url.Parse(deleteObj.InReplyTo)
 		if err != nil {
 			return err
@@ -101,6 +97,7 @@ func HandleDelete(r *LambdaRequest, reqJSON map[string]any) error {
 			}
 			return err
 		}
+		deleteObj = ap.Reply{}
 		err = doc.DataTo(&deleteObj)
 		if err != nil {
 			return fmt.Errorf("could not convert document to struct: %w", err)
