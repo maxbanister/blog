@@ -40,8 +40,9 @@
 				}
 				],
 				"replies": {
+					"id": "https://maxscribes.netlify.app/posts/note-a/replies",
 					"type": "Collection",
-					"totalItems": 1,
+					"totalItems": 2,
 					"items": [
 						{
 							"id": "https://mastodon.social/users/maxbanister/statuses/114368696446505086",
