@@ -14,15 +14,15 @@ import (
 )
 
 func HandleDelete(r *LambdaRequest, reqJSON map[string]any) error {
-	replyID, _ := reqJSON["id"].(string)
-	if replyID == "" {
+	deleteID, _ := reqJSON["id"].(string)
+	if deleteID == "" {
 		return fmt.Errorf("%w: no ID string in request", ErrBadRequest)
 	}
-	replyURI, err := url.Parse(replyID)
+	replyURI, err := url.Parse(deleteID)
 	if err != nil {
 		return fmt.Errorf("%w: couldn't parse ID as URI: %w", ErrBadRequest, err)
 	}
-	slugReplyID := Sluggify(*replyURI)
+	slugDeleteID := Sluggify(*replyURI)
 
 	// lookup object id in replies
 	ctx := context.Background()
@@ -32,24 +32,24 @@ func HandleDelete(r *LambdaRequest, reqJSON map[string]any) error {
 	}
 	defer client.Close()
 
-	fmt.Println("Deleting", slugReplyID)
+	fmt.Println("Attempting to delete", slugDeleteID)
 	repliesCol := client.Collection("replies")
-	doc, err := repliesCol.Doc(slugReplyID).Get(ctx)
+	doc, err := repliesCol.Doc(slugDeleteID).Get(ctx)
 	if err != nil {
 		if status.Code(err) != codes.NotFound {
 			return fmt.Errorf("error looking up replies: %w", err)
 		}
 		return fmt.Errorf("reply document nonexistent: %w", err)
 	}
-	var replyObj ap.Reply
-	err = doc.DataTo(&replyObj)
+	var deleteObj ap.Reply
+	err = doc.DataTo(&deleteObj)
 	if err != nil {
 		return fmt.Errorf("could not convert document to struct: %w", err)
 	}
 
 	// if this item is in the middle of a reply chain, just make it a tombstone
-	if len(replyObj.Replies.Items) > 0 {
-		_, err = repliesCol.Doc(slugReplyID).Update(ctx, []firestore.Update{
+	if len(deleteObj.Replies.Items) > 0 {
+		_, err = repliesCol.Doc(slugDeleteID).Update(ctx, []firestore.Update{
 			{Path: "Type", Value: "Tombstone"},
 			{Path: "URL", Value: ""},
 			{Path: "AttributedTo", Value: ""},
@@ -61,7 +61,7 @@ func HandleDelete(r *LambdaRequest, reqJSON map[string]any) error {
 		if err != nil {
 			return fmt.Errorf("failed to remove leaf reply: %v", err)
 		}
-		fmt.Println("Successfully entombed reply node", slugReplyID)
+		fmt.Println("Successfully entombed reply node", slugDeleteID)
 		return nil
 	}
 
@@ -69,28 +69,39 @@ func HandleDelete(r *LambdaRequest, reqJSON map[string]any) error {
 	// Traverse up the chain using InReplyTo to find tombstones, and remove them
 	// until coming across one that has more than zero replyItems
 	for {
-		_, err = repliesCol.Doc(slugReplyID).Delete(ctx)
+		_, err := repliesCol.Doc(slugDeleteID).Delete(ctx)
 		if err != nil {
 			return fmt.Errorf("failed to remove leaf reply: %v", err)
 		}
-		fmt.Println("Successful delete of leaf node", slugReplyID)
-		replyURI, err = url.Parse(replyObj.InReplyTo)
+		fmt.Println("Successful delete of leaf node", slugDeleteID)
+		replyURI, err = url.Parse(deleteObj.InReplyTo)
 		if err != nil {
 			return err
 		}
-		slugReplyID = Sluggify(*replyURI)
-		doc, err = repliesCol.Doc(slugReplyID).Get(ctx)
+		slugDeleteID = Sluggify(*replyURI)
+		_, err = repliesCol.Doc(slugDeleteID).Update(ctx, []firestore.Update{
+			{Path: "Replies.Items", Value: firestore.ArrayRemove(deleteObj.Id)},
+		})
 		if err != nil {
 			if status.Code(err) != codes.NotFound {
-				return fmt.Errorf("error looking up replies: %w", err)
+				return fmt.Errorf("error accessing replies doc: %w", err)
 			}
-			return fmt.Errorf("InReplyTo reference broken: %s", slugReplyID)
+			return fmt.Errorf("InReplyTo reference broken: %s", slugDeleteID)
 		}
-		err = doc.DataTo(&replyObj)
+		fmt.Println("Successfuly delinked ID from", slugDeleteID)
+
+		doc, err := repliesCol.Doc(slugDeleteID).Get(ctx)
+		if err != nil {
+			if status.Code(err) != codes.NotFound {
+				return fmt.Errorf("error accessing replies doc: %w", err)
+			}
+			return err
+		}
+		err = doc.DataTo(&deleteObj)
 		if err != nil {
 			return fmt.Errorf("could not convert document to struct: %w", err)
 		}
-		if replyObj.Type != "Tombstone" || len(replyObj.Replies.Items) > 0 {
+		if deleteObj.Type != "Tombstone" || len(deleteObj.Replies.Items) > 0 {
 			break
 		}
 	}
