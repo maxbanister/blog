@@ -47,6 +47,8 @@ func HandleProfileUpdate(r *LambdaRequest, reqJSON map[string]any) error {
 		} else {
 			return fmt.Errorf("could not update followers: %w", err)
 		}
+	} else {
+		fmt.Println("Sucessfully updated actor in followers")
 	}
 
 	// query for all actor's with this ID in replies, update those
