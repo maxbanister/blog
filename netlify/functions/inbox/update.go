@@ -111,6 +111,7 @@ func HandleReplyEdit(r *LambdaRequest, reqJSON map[string]any) error {
 		fmt.Println("%w: unable to parse object id URI", ErrBadRequest)
 	}
 	slugReplyID := Sluggify(*replyURI)
+	fmt.Println("Attempting edit of", slugReplyID)
 
 	// fetch note object from firestore
 	client, err := kv.GetFirestoreClient()
@@ -152,6 +153,8 @@ func HandleReplyEdit(r *LambdaRequest, reqJSON map[string]any) error {
 		}
 		if len(storedReply.Replies.Items) > 0 {
 			if !strings.HasPrefix(editedContent, storedReply.Content) {
+				fmt.Println("Old:", storedReply.Content)
+				fmt.Println("New:", editedContent)
 				return fmt.Errorf(
 					"%w: updates to replied-to notes are append-only",
 					ErrBadRequest)
