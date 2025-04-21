@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/url"
+	"regexp"
 	"strings"
 
 	"cloud.google.com/go/firestore"
@@ -95,6 +96,8 @@ func HandleProfileUpdate(r *LambdaRequest, reqJSON map[string]any) error {
 	return nil
 }
 
+var re = regexp.MustCompile(`(</\w+>)*$`)
+
 func HandleReplyEdit(r *LambdaRequest, reqJSON map[string]any) error {
 	_, err := ap.RecvActivity(r, reqJSON)
 	if err != nil {
@@ -152,9 +155,11 @@ func HandleReplyEdit(r *LambdaRequest, reqJSON map[string]any) error {
 			return fmt.Errorf("%w: must provide update content", ErrBadRequest)
 		}
 		if len(storedReply.Replies.Items) > 0 {
-			if !strings.HasPrefix(editedContent, storedReply.Content) {
-				fmt.Println("Old:", storedReply.Content)
-				fmt.Println("New:", editedContent)
+			old := re.ReplaceAllLiteralString(storedReply.Content, "")
+			new := re.ReplaceAllLiteralString(editedContent, "")
+			fmt.Println("Old:", old)
+			fmt.Println("New:", new)
+			if !strings.HasPrefix(new, old) {
 				return fmt.Errorf(
 					"%w: updates to replied-to notes are append-only",
 					ErrBadRequest)
