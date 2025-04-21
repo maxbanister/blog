@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"cloud.google.com/go/firestore"
@@ -25,7 +26,15 @@ func HandleProfileUpdate(r *LambdaRequest, reqJSON map[string]any) error {
 
 	// We can't use the fetched actor, since it's been observed that it updates
 	// after the update activity is sent. So, we copy this info from the object
-	objectID, _ := object["id"].(string)
+
+	var a struct {
+		Object ap.Actor `json:"object"`
+	}
+	err = json.Unmarshal([]byte(r.Body), &a)
+	if err != nil {
+		return fmt.Errorf("%w: could not decode object: %w", ErrBadRequest, err)
+	}
+	/*objectID, _ := object["id"].(string)
 	objectName, _ := object["name"].(string)
 	objectPreferredUsername := object["preferredUsername"].(string)
 	objectInbox, _ := object["inbox"].(string)
@@ -39,7 +48,8 @@ func HandleProfileUpdate(r *LambdaRequest, reqJSON map[string]any) error {
 	}
 	if actorIcon, ok := object["icon"].(map[string]any); ok {
 		actor.Icon = actorIcon["url"]
-	}
+	}*/
+	actor := a.Object
 	fmt.Println("debug actor", actor)
 	actorAt := ap.GetActorAt(&actor)
 	fmt.Println("Got profile update for", actorAt)
@@ -85,15 +95,8 @@ func HandleProfileUpdate(r *LambdaRequest, reqJSON map[string]any) error {
 			return fmt.Errorf("document iterator error: %w", err)
 		}
 		fmt.Println("Updating reply document ref", doc.Ref.ID)
-		_, err = bulkWriter.Update(doc.Ref, []firestore.Update{{
-			Path: "Actor",
-			Value: ap.Actor{
-				Id:                actor.Id,
-				Name:              actor.Name,
-				PreferredUsername: actor.PreferredUsername,
-				Inbox:             actor.Inbox,
-				Icon:              actor.Icon,
-			}},
+		_, err = bulkWriter.Update(doc.Ref, []firestore.Update{
+			{Path: "Actor", Value: &actor},
 		})
 		if err != nil {
 			return fmt.Errorf("could not update replies: %w", err)
