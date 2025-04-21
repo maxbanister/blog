@@ -22,6 +22,7 @@ func HandleProfileUpdate(r *LambdaRequest, reqJSON map[string]any) error {
 	if err != nil {
 		return err
 	}
+	fmt.Println("debug actor", actor)
 	actorAt := ap.GetActorAt(actor)
 	fmt.Println("Got profile update for", actorAt)
 
