@@ -18,12 +18,30 @@ func HandleProfileUpdate(r *LambdaRequest, reqJSON map[string]any) error {
 	if reqJSON["actor"] != object["id"] {
 		return fmt.Errorf("%w: actor must be equal to object id", ErrBadRequest)
 	}
-	actor, err := ap.RecvActivity(r, reqJSON)
+	_, err := ap.RecvActivity(r, reqJSON)
 	if err != nil {
 		return err
 	}
+
+	// We can't use the fetched actor, since it's been observed that it updates
+	// after the update activity is sent. So, we copy this info from the object
+	objectID, _ := object["id"].(string)
+	objectName, _ := object["name"].(string)
+	objectPreferredUsername := object["preferredUsername"].(string)
+	objectInbox, _ := object["inbox"].(string)
+	objectIcon, _ := object["icon"].(string)
+	actor := ap.Actor{
+		Id:                objectID,
+		Name:              objectName,
+		PreferredUsername: objectPreferredUsername,
+		Inbox:             objectInbox,
+		Icon:              objectIcon,
+	}
+	if actorIcon, ok := object["icon"].(map[string]any); ok {
+		actor.Icon = actorIcon["url"]
+	}
 	fmt.Println("debug actor", actor)
-	actorAt := ap.GetActorAt(actor)
+	actorAt := ap.GetActorAt(&actor)
 	fmt.Println("Got profile update for", actorAt)
 
 	// check if follower exists, if so update there
