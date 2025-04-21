@@ -26,6 +26,7 @@ func HandleProfileUpdate(r *LambdaRequest, reqJSON map[string]any) error {
 
 	// We can't use the fetched actor, since it's been observed that it updates
 	// after the update activity is sent. So, we copy this info from the object
+
 	var a struct {
 		Object ap.Actor `json:"object"`
 	}
@@ -34,6 +35,9 @@ func HandleProfileUpdate(r *LambdaRequest, reqJSON map[string]any) error {
 		return fmt.Errorf("%w: could not decode object: %w", ErrBadRequest, err)
 	}
 	a.Object.PublicKey = nil
+	if actorIcon, ok := object["icon"].(map[string]any); ok {
+		a.Object.Icon = actorIcon["url"]
+	}
 	actor := a.Object
 	actorAt := ap.GetActorAt(&actor)
 	fmt.Println("Got profile update for", actorAt)
