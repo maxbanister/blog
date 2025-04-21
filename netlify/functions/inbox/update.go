@@ -32,17 +32,15 @@ func HandleProfileUpdate(r *LambdaRequest, reqJSON map[string]any) error {
 	}
 	defer client.Close()
 
-	updates := []firestore.Update{
+	followersCol := client.Collection("followers")
+	ctx := context.Background()
+	// can't update with a struct using the firestore SDK
+	_, err = followersCol.Doc(actorAt).Update(ctx, []firestore.Update{
 		{Path: "Name", Value: actor.Name},
 		{Path: "PreferredUsername", Value: actor.PreferredUsername},
 		{Path: "Inbox", Value: actor.Inbox},
 		{Path: "Icon", Value: actor.Icon},
-	}
-
-	followersCol := client.Collection("followers")
-	ctx := context.Background()
-	// can't update with a struct using the firestore SDK
-	_, err = followersCol.Doc(actorAt).Update(ctx, updates)
+	})
 	if err != nil {
 		if status.Code(err) == codes.NotFound {
 			fmt.Println("actor not in followers")
@@ -66,7 +64,16 @@ func HandleProfileUpdate(r *LambdaRequest, reqJSON map[string]any) error {
 			return fmt.Errorf("document iterator error: %w", err)
 		}
 		fmt.Println("Updating reply document ref", doc.Ref.ID)
-		_, err = bulkWriter.Update(doc.Ref, updates)
+		_, err = bulkWriter.Update(doc.Ref, []firestore.Update{{
+			Path: "Actor",
+			Value: ap.Actor{
+				Id:                actor.Id,
+				Name:              actor.Name,
+				PreferredUsername: actor.PreferredUsername,
+				Inbox:             actor.Inbox,
+				Icon:              actor.Icon,
+			}},
+		})
 		if err != nil {
 			return fmt.Errorf("could not update replies: %w", err)
 		}
