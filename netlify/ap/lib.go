@@ -32,6 +32,7 @@ type Reply struct {
 	Type         string       `json:"type,omitempty" firestore:",omitempty"`
 	InReplyTo    string       `json:"inReplyTo,omitempty" firestore:",omitempty"`
 	Published    string       `json:"published,omitempty" firestore:",omitempty"`
+	Updated      string       `json:"updated,omitempty" firestore:",omitempty"`
 	URL          string       `json:"url,omitempty" firestore:",omitempty"`
 	AttributedTo string       `json:"attributedTo,omitempty" firestore:",omitempty"`
 	To           []string     `json:"to,omitempty" firestore:",omitempty"`

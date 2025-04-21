@@ -34,41 +34,35 @@ func handleInbox(ctx context.Context, request LambdaRequest) (*LambdaResponse, e
 			return GetLambdaResp(err)
 		}
 
-		if err := CallFollowService(&request, HOST_SITE, actorObj); err != nil {
-			return GetLambdaResp(err)
-		}
-
-		return GetLambdaResp(nil)
+		return GetLambdaResp(CallFollowService(&request, HOST_SITE, actorObj))
 
 	case "Create":
-		err = HandleReply(&request, requestJSON, HOST_SITE)
-		if err != nil {
-			return GetLambdaResp(err)
-		}
-
-		return GetLambdaResp(nil)
+		return GetLambdaResp(HandleReply(&request, requestJSON, HOST_SITE))
 
 	case "Undo":
-		var err error
 		object, ok := requestJSON["object"].(map[string]any)
 		if !ok || object["type"] != "Follow" {
 			break
 		}
 
-		err = HandleUnfollow(&request, requestJSON)
-		if err != nil {
-			return GetLambdaResp(err)
-		}
-
-		return GetLambdaResp(nil)
+		return GetLambdaResp(HandleUnfollow(&request, requestJSON))
 
 	case "Delete":
-		err = HandleDelete(&request, requestJSON)
-		if err != nil {
-			return GetLambdaResp(err)
+		return GetLambdaResp(HandleDelete(&request, requestJSON))
+
+	case "Update":
+		object, _ := requestJSON["object"].(map[string]any)
+		var err error
+
+		if object["type"] == "Person" {
+			err = HandleProfileUpdate(&request, requestJSON)
+		} else if object["type"] == "Note" {
+			err = HandleReplyEdit(&request, requestJSON)
+		} else {
+			break
 		}
 
-		return GetLambdaResp(nil)
+		return GetLambdaResp(err)
 	}
 
 	return GetLambdaResp(fmt.Errorf(
