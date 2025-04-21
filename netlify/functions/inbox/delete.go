@@ -39,7 +39,8 @@ func HandleDelete(r *LambdaRequest, reqJSON map[string]any) error {
 		if status.Code(err) != codes.NotFound {
 			return fmt.Errorf("error looking up replies: %w", err)
 		}
-		return fmt.Errorf("reply document nonexistent: %w", err)
+		// Mastodon sometimes resends deletes; a 2XX response code makes it stop
+		return fmt.Errorf("%w: reply document nonexistent", ErrAlreadyDone)
 	}
 	var deleteObj ap.Reply
 	err = doc.DataTo(&deleteObj)

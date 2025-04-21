@@ -4,6 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"net/url"
+	"strings"
 
 	"cloud.google.com/go/firestore"
 	"github.com/maxbanister/blog/ap"
@@ -26,7 +28,6 @@ func HandleProfileUpdate(r *LambdaRequest, reqJSON map[string]any) error {
 
 	// We can't use the fetched actor, since it's been observed that it updates
 	// after the update activity is sent. So, we copy this info from the object
-
 	var a struct {
 		Object ap.Actor `json:"object"`
 	}
@@ -99,5 +100,76 @@ func HandleReplyEdit(r *LambdaRequest, reqJSON map[string]any) error {
 	if err != nil {
 		return err
 	}
-	return nil
+
+	editedObj, _ := reqJSON["object"].(map[string]any)
+	id, _ := editedObj["id"].(string)
+	if id == "" {
+		fmt.Println("%w: malformed update object", ErrBadRequest)
+	}
+	replyURI, err := url.ParseRequestURI(id)
+	if err != nil {
+		fmt.Println("%w: unable to parse object id URI", ErrBadRequest)
+	}
+	slugReplyID := Sluggify(*replyURI)
+
+	// fetch note object from firestore
+	client, err := kv.GetFirestoreClient()
+	if err != nil {
+		return fmt.Errorf("could not start firestore client: %w", err)
+	}
+	defer client.Close()
+
+	docRef := client.Collection("replies").Doc(slugReplyID)
+	ctx := context.Background()
+
+	txFunc := func(ctx context.Context, tx *firestore.Transaction) error {
+		// get stored object
+		doc, err := tx.Get(docRef)
+		if err != nil {
+			if status.Code(err) != codes.NotFound {
+				return fmt.Errorf("error accessing replies doc: %w", err)
+			}
+			return fmt.Errorf("%w: could not find reply ID", ErrBadRequest)
+		}
+		var storedReply ap.Reply
+		err = doc.DataTo(&storedReply)
+		if err != nil {
+			return fmt.Errorf("couldn't unmarshal stored reply object: %w", err)
+		}
+
+		// validate edit object
+		editDate, ok := editedObj["updated"].(string)
+		if !ok {
+			return fmt.Errorf("%w: no \"updated\" time provided", ErrBadRequest)
+		}
+		if editDate < storedReply.Updated {
+			return fmt.Errorf("%w: provided object predates existing object",
+				ErrBadRequest)
+		}
+		editedContent, _ := editedObj["content"].(string)
+		if editedContent == "" {
+			return fmt.Errorf("%w: must provide update content", ErrBadRequest)
+		}
+		if len(storedReply.Replies.Items) > 0 {
+			if !strings.HasPrefix(editedContent, storedReply.Content) {
+				return fmt.Errorf(
+					"%w: updates to replied-to notes are append-only",
+					ErrBadRequest)
+			}
+		}
+
+		// update stored object
+		err = tx.Update(docRef, []firestore.Update{
+			{Path: "Updated", Value: editDate},
+			{Path: "URL", Value: editedObj["url"]},
+			{Path: "Content", Value: editedContent},
+		})
+		if err != nil {
+			return fmt.Errorf("could not update reply doc: %w", err)
+		}
+
+		return nil
+	}
+
+	return client.RunTransaction(ctx, txFunc)
 }

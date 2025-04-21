@@ -33,7 +33,6 @@ func handleInbox(ctx context.Context, request LambdaRequest) (*LambdaResponse, e
 		if err != nil {
 			return GetLambdaResp(err)
 		}
-
 		return GetLambdaResp(CallFollowService(&request, HOST_SITE, actorObj))
 
 	case "Create":
@@ -44,7 +43,6 @@ func handleInbox(ctx context.Context, request LambdaRequest) (*LambdaResponse, e
 		if !ok || object["type"] != "Follow" {
 			break
 		}
-
 		return GetLambdaResp(HandleUnfollow(&request, requestJSON))
 
 	case "Delete":
@@ -53,7 +51,6 @@ func handleInbox(ctx context.Context, request LambdaRequest) (*LambdaResponse, e
 	case "Update":
 		object, _ := requestJSON["object"].(map[string]any)
 		var err error
-
 		if object["type"] == "Person" {
 			err = HandleProfileUpdate(&request, requestJSON)
 		} else if object["type"] == "Note" {
@@ -61,7 +58,6 @@ func handleInbox(ctx context.Context, request LambdaRequest) (*LambdaResponse, e
 		} else {
 			break
 		}
-
 		return GetLambdaResp(err)
 	}
 

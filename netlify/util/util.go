@@ -17,6 +17,7 @@ import (
 var ErrUnauthorized = errors.New(http.StatusText(http.StatusUnauthorized))
 var ErrNotImplemented = errors.New(http.StatusText(http.StatusNotImplemented))
 var ErrBadRequest = errors.New(http.StatusText(http.StatusBadRequest))
+var ErrAlreadyDone = errors.New("already done")
 
 type LambdaRequest = events.APIGatewayProxyRequest
 type LambdaResponse = events.APIGatewayProxyResponse
@@ -74,6 +75,8 @@ func GetLambdaResp(err error) (*LambdaResponse, error) {
 		code = http.StatusNotImplemented
 	} else if err != nil {
 		code = http.StatusInternalServerError
+	} else if errors.Is(err, ErrAlreadyDone) {
+		code = http.StatusAlreadyReported
 	} else {
 		code = http.StatusOK
 	}
