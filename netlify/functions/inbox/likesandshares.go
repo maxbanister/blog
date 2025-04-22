@@ -39,6 +39,7 @@ func interact(a *ap.Actor, reqJSON map[string]any, colID, host string) error {
 		return fmt.Errorf("%w: malformed object URI: %w", ErrBadRequest, err)
 	}
 	slugObjURI := Sluggify(*objectURI)
+	objectID, _ := reqJSON["id"].(string)
 
 	// open database connection to firestore
 	ctx := context.Background()
@@ -69,6 +70,7 @@ func interact(a *ap.Actor, reqJSON map[string]any, colID, host string) error {
 
 	// set like or share object
 	_, err = docRef.Set(ctx, ap.LikeOrShare{
+		Id:     objectID,
 		Object: objectURIString,
 		Actor:  a,
 	})
@@ -82,7 +84,7 @@ func interact(a *ap.Actor, reqJSON map[string]any, colID, host string) error {
 func deinteract(reqJSON map[string]any, colID string) error {
 	objectURIString, ok := reqJSON["object"].(string)
 	if !ok {
-		return fmt.Errorf("%w: object must be URI strin", ErrBadRequest)
+		return fmt.Errorf("%w: object must be URI string", ErrBadRequest)
 	}
 	objectURI, err := url.ParseRequestURI(objectURIString)
 	if err != nil {
