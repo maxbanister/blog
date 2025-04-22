@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/url"
+	"reflect"
 	"strings"
 
 	"cloud.google.com/go/firestore"
@@ -37,22 +38,26 @@ func FetchCol(r *LambdaRequest, host, colName string) (*LambdaResponse, error) {
 
 	// get top-level likes document from firestore
 	collectionRef := client.Collection(colName)
-	fmt.Println("colName is", colName)
 	ctx := context.Background()
 	doc, err := collectionRef.Doc(slugPostURI).Get(ctx)
 	if err != nil {
 		return getErrorResp(fmt.Errorf("could not get top-level doc: %w", err))
 	}
-	fmt.Println("Doc:", doc.Data())
 	docID, _ := doc.DataAt("Id")
 	items, err := doc.DataAt("Items")
 	if err != nil {
 		return getErrorResp(fmt.Errorf("could not get items: %w", err))
 	}
-	activityURIs, _ := items.([]string)
+	fmt.Println(reflect.TypeOf(items))
+	activityURIs, _ := items.([]any)
+	fmt.Println(activityURIs)
 	var docRefs []*firestore.DocumentRef
 	for _, uri := range activityURIs {
-		parsedURI, err := url.Parse(uri)
+		uriString, ok := uri.(string)
+		if !ok {
+			continue
+		}
+		parsedURI, err := url.Parse(uriString)
 		if err != nil {
 			fmt.Println("could not parse URI", uri)
 			continue
@@ -61,6 +66,7 @@ func FetchCol(r *LambdaRequest, host, colName string) (*LambdaResponse, error) {
 		fmt.Println(docTitle)
 		docRefs = append(docRefs, collectionRef.Doc(docTitle))
 	}
+	fmt.Println(docRefs)
 
 	docs, err := client.GetAll(ctx, docRefs)
 	if err != nil {
