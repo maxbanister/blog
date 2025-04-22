@@ -16,15 +16,11 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-func HandleReply(r *LambdaRequest, reqJSON map[string]any, host string) error {
-	actor, err := ap.RecvActivity(r, reqJSON)
-	if err != nil {
-		return err
-	}
+func HandleReply(r *LambdaRequest, actor *ap.Actor, reqJSON map[string]any, host string) error {
 	var c struct {
 		Object ap.Reply `json:"object"`
 	}
-	err = json.Unmarshal([]byte(r.Body), &c)
+	err := json.Unmarshal([]byte(r.Body), &c)
 	if err != nil {
 		return err
 	}
@@ -71,8 +67,9 @@ func HandleReply(r *LambdaRequest, reqJSON map[string]any, host string) error {
 	defer client.Close()
 
 	fmt.Println("Checking for", inReplyTo)
+	repliesCollection := client.Collection("replies")
 	// check if inReplyTo's object exists in the replies collection
-	_, err = client.Collection("replies").Doc(inReplyToSlug).Get(ctx)
+	_, err = repliesCollection.Doc(inReplyToSlug).Get(ctx)
 	if err != nil {
 		if status.Code(err) != codes.NotFound {
 			return fmt.Errorf("error looking up replies: %w", err)
@@ -91,7 +88,6 @@ func HandleReply(r *LambdaRequest, reqJSON map[string]any, host string) error {
 	// We need to write two documents: the reply being added, and the original
 	// post (which may not exist yet) to link it to the newly created reply.
 
-	repliesCollection := client.Collection("replies")
 	txFunc := func(ctx context.Context, tx *firestore.Transaction) error {
 		// this will fail if the reply ID already exists
 		newReplyDoc := repliesCollection.Doc(replyIdSlug)

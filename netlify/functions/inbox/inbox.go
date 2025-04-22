@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	"github.com/aws/aws-lambda-go/lambda"
+	"github.com/maxbanister/blog/ap"
 	. "github.com/maxbanister/blog/util"
 )
 
@@ -24,29 +25,39 @@ func handleInbox(ctx context.Context, request LambdaRequest) (*LambdaResponse, e
 		return GetLambdaResp(fmt.Errorf(
 			"%w: bad json syntax: %s", ErrBadRequest, err.Error()))
 	}
+	actor, err := ap.RecvActivity(&request, requestJSON)
+	if err != nil {
+		return nil, err
+	}
 
 	fmt.Println("Request type:", requestJSON["type"])
 
 	switch requestJSON["type"] {
 	case "Follow":
-		actorObj, err := HandleFollow(&request, requestJSON)
+		err := HandleFollow(actor, requestJSON)
 		if err != nil {
 			return GetLambdaResp(err)
 		}
-		return GetLambdaResp(CallFollowService(&request, HOST_SITE, actorObj))
+		return GetLambdaResp(CallFollowService(&request, HOST_SITE, actor))
 
 	case "Create":
-		return GetLambdaResp(HandleReply(&request, requestJSON, HOST_SITE))
+		err := HandleReply(&request, actor, requestJSON, HOST_SITE)
+		return GetLambdaResp(err)
 
 	case "Undo":
 		object, ok := requestJSON["object"].(map[string]any)
-		if !ok || object["type"] != "Follow" {
-			break
+		if ok {
+			if object["type"] == "Follow" {
+				return GetLambdaResp(HandleUnfollow(actor, requestJSON))
+			} else if object["type"] == "Like" {
+				return GetLambdaResp(HandleUnlike(requestJSON))
+			} else if object["type"] == "Announce" {
+				return GetLambdaResp(HandleUnannounce(requestJSON))
+			}
 		}
-		return GetLambdaResp(HandleUnfollow(&request, requestJSON))
 
 	case "Delete":
-		return GetLambdaResp(HandleDelete(&request, requestJSON))
+		return GetLambdaResp(HandleDelete(requestJSON))
 
 	case "Update":
 		object, _ := requestJSON["object"].(map[string]any)
@@ -59,6 +70,12 @@ func handleInbox(ctx context.Context, request LambdaRequest) (*LambdaResponse, e
 			break
 		}
 		return GetLambdaResp(err)
+
+	case "Like":
+		return GetLambdaResp(HandleLike(actor, requestJSON, HOST_SITE))
+
+	case "Announce":
+		return GetLambdaResp(HandleAnnounce(actor, requestJSON, HOST_SITE))
 	}
 
 	return GetLambdaResp(fmt.Errorf(

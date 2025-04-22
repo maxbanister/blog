@@ -28,18 +28,21 @@
 				"cc": [],
 				"published": "2024-02-18T21:06:38-08:00",
 				"tag": [
-				{
-					"Type": "Mention",
-					"Href": "https://hachyderm.io/users/mapache",
-					"Name": "@mapache@hachyderm.io"
-				},
-				{
-					"Type": "Hashtag",
-					"Href": "https://maxscribes.netlify.app/tags/ai",
-					"Name": "#ai"
-				}
+					{
+						"Type": "Mention",
+						"Href": "https://hachyderm.io/users/mapache",
+						"Name": "@mapache@hachyderm.io"
+					},
+					{
+						"Type": "Hashtag",
+						"Href": "https://maxscribes.netlify.app/tags/ai",
+						"Name": "#ai"
+					}
 				],
-				"replies": "https://maxscribes.netlify.app/posts/note-a/replies"
+				"replies": "https://maxscribes.netlify.app/posts/note-a/replies",
+				"likes": "https://maxscribes.netlify.app/posts/note-a/likes",
+				"shares": "https://maxscribes.netlify.app/posts/note-a/shares"
+				
 			}
 		}
 	]

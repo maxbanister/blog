@@ -42,6 +42,12 @@ type Reply struct {
 	Actor        *Actor       `json:"actor,omitempty" firestore:",omitempty"`
 }
 
+type LikeOrShare struct {
+	Id     string `json:"id"`
+	Object string `json:"object"`
+	Actor  *Actor `json:"actor"`
+}
+
 const SigStringHeaders = "host date digest content-type (request-target)"
 
 func getSigningString(host, method, path, sigHeaders string, hdrs any) string {

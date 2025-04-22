@@ -52,7 +52,7 @@ func Sluggify(uri url.URL) string {
 	var res strings.Builder
 	lastDash := false
 	for _, c := range uriStr {
-		if strings.ContainsRune("/@-.:", c) {
+		if strings.ContainsRune("/@-.:#", c) {
 			if !lastDash {
 				res.WriteRune('-')
 				lastDash = true

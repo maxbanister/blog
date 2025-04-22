@@ -70,33 +70,35 @@ func HandleProfileUpdate(r *LambdaRequest, reqJSON map[string]any) error {
 		fmt.Println("Sucessfully updated actor in followers")
 	}
 
-	// query for all actor's with this ID in replies, update those
-	repliesCol := client.Collection("replies")
 	bulkWriter := client.BulkWriter(ctx)
 	defer bulkWriter.End()
-	// empty projection because we only want document refs
-	iter := repliesCol.Select().Where("Actor.Id", "==", actor.Id).Documents(ctx)
-	for {
-		doc, err := iter.Next()
-		if err == iterator.Done {
-			break
+
+	// query for all actors with this ID in these collections and update those
+	for _, collectionName := range []string{"replies", "likes", "shares"} {
+		col := client.Collection(collectionName)
+		// empty projection because we only need document refs
+		iter := col.Select().Where("Actor.Id", "==", actor.Id).Documents(ctx)
+		for {
+			doc, err := iter.Next()
+			if err == iterator.Done {
+				break
+			}
+			if err != nil {
+				return fmt.Errorf("document iterator error: %w", err)
+			}
+			fmt.Println("Updating document ref", doc.Ref.ID)
+			_, err = bulkWriter.Update(doc.Ref, []firestore.Update{
+				{Path: "Actor", Value: &actor},
+			})
+			if err != nil {
+				return fmt.Errorf("could not update collection: %w", err)
+			}
 		}
-		if err != nil {
-			return fmt.Errorf("document iterator error: %w", err)
-		}
-		fmt.Println("Updating reply document ref", doc.Ref.ID)
-		_, err = bulkWriter.Update(doc.Ref, []firestore.Update{
-			{Path: "Actor", Value: &actor},
-		})
-		if err != nil {
-			return fmt.Errorf("could not update replies: %w", err)
-		}
+		bulkWriter.Flush()
 	}
 
 	return nil
 }
-
-var re = regexp.MustCompile(`(</\w+>)*$`)
 
 func HandleReplyEdit(r *LambdaRequest, reqJSON map[string]any) error {
 	_, err := ap.RecvActivity(r, reqJSON)
@@ -155,6 +157,7 @@ func HandleReplyEdit(r *LambdaRequest, reqJSON map[string]any) error {
 			return fmt.Errorf("%w: must provide update content", ErrBadRequest)
 		}
 		if len(storedReply.Replies.Items) > 0 {
+			var re = regexp.MustCompile(`(</\w+>)*$`)
 			old := re.ReplaceAllLiteralString(storedReply.Content, "")
 			new := re.ReplaceAllLiteralString(editedContent, "")
 			fmt.Println("Old:", old)

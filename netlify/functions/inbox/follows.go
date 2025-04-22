@@ -15,16 +15,11 @@ import (
 	"github.com/maxbanister/blog/kv"
 )
 
-func HandleFollow(r *LambdaRequest, reqJSON map[string]any) (*ap.Actor, error) {
-	actor, err := ap.RecvActivity(r, reqJSON)
-	if err != nil {
-		return nil, err
-	}
-
+func HandleFollow(actor *ap.Actor, reqJSON map[string]any) error {
 	ctx := context.Background()
 	client, err := kv.GetFirestoreClient()
 	if err != nil {
-		return nil, fmt.Errorf("could not start firestore client: %w", err)
+		return fmt.Errorf("could not start firestore client: %w", err)
 	}
 	defer client.Close()
 
@@ -32,18 +27,13 @@ func HandleFollow(r *LambdaRequest, reqJSON map[string]any) (*ap.Actor, error) {
 	actorAt := ap.GetActorAt(actor)
 	_, err = client.Collection("followers").Doc(actorAt).Set(ctx, actor)
 	if err != nil {
-		return nil, fmt.Errorf("failed adding follower: %v", err)
+		return fmt.Errorf("failed adding follower: %v", err)
 	}
 
-	return actor, nil
+	return nil
 }
 
-func HandleUnfollow(r *LambdaRequest, requestJSON map[string]any) error {
-	actor, err := ap.RecvActivity(r, requestJSON)
-	if err != nil {
-		return err
-	}
-
+func HandleUnfollow(actor *ap.Actor, requestJSON map[string]any) error {
 	ctx := context.Background()
 	client, err := kv.GetFirestoreClient()
 	if err != nil {

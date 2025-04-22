@@ -13,7 +13,7 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-func HandleDelete(r *LambdaRequest, reqJSON map[string]any) error {
+func HandleDelete(reqJSON map[string]any) error {
 	deleteID, _ := reqJSON["id"].(string)
 	if deleteID == "" {
 		return fmt.Errorf("%w: no ID string in request", ErrBadRequest)
@@ -66,7 +66,7 @@ func HandleDelete(r *LambdaRequest, reqJSON map[string]any) error {
 		return nil
 	}
 
-	// If it's a leaf (reply items is empty), delete this collection.
+	// If it's a leaf (reply items is empty), delete this document.
 	// Traverse up the chain using InReplyTo to find tombstones, and remove them
 	// until coming across one that has more than zero replyItems
 	for {
