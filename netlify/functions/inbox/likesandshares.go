@@ -82,11 +82,12 @@ func interact(a *ap.Actor, reqJSON map[string]any, colID, host string) error {
 }
 
 func deinteract(reqJSON map[string]any, colID string) error {
-	objectURIString, ok := reqJSON["object"].(string)
-	if !ok {
-		return fmt.Errorf("%w: object must be URI string", ErrBadRequest)
+	object, _ := reqJSON["object"].(map[string]any)
+	objectID, _ := object["id"].(string)
+	if objectID == "" {
+		return fmt.Errorf("%w: no id property on object", ErrBadRequest)
 	}
-	objectURI, err := url.ParseRequestURI(objectURIString)
+	objectURI, err := url.ParseRequestURI(objectID)
 	if err != nil {
 		return fmt.Errorf("%w: malformed object URI: %w", ErrBadRequest, err)
 	}

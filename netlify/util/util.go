@@ -73,10 +73,10 @@ func GetLambdaResp(err error) (*LambdaResponse, error) {
 		code = http.StatusBadRequest
 	} else if errors.Is(err, ErrNotImplemented) {
 		code = http.StatusNotImplemented
-	} else if err != nil {
-		code = http.StatusInternalServerError
 	} else if errors.Is(err, ErrAlreadyDone) {
 		code = http.StatusAlreadyReported
+	} else if err != nil {
+		code = http.StatusInternalServerError
 	} else {
 		code = http.StatusOK
 	}

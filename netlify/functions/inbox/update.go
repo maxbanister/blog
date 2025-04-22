@@ -74,8 +74,8 @@ func HandleProfileUpdate(r *LambdaRequest, reqJSON map[string]any) error {
 	defer bulkWriter.End()
 
 	// query for all actors with this ID in these collections and update those
-	for _, collectionName := range []string{"replies", "likes", "shares"} {
-		col := client.Collection(collectionName)
+	for _, colName := range []string{"replies", "likes", "shares"} {
+		col := client.Collection(colName)
 		// empty projection because we only need document refs
 		iter := col.Select().Where("Actor.Id", "==", actor.Id).Documents(ctx)
 		for {
@@ -86,7 +86,7 @@ func HandleProfileUpdate(r *LambdaRequest, reqJSON map[string]any) error {
 			if err != nil {
 				return fmt.Errorf("document iterator error: %w", err)
 			}
-			fmt.Println("Updating document ref", doc.Ref.ID)
+			fmt.Printf("Updating document ref %s/%s\n", colName, doc.Ref.ID)
 			_, err = bulkWriter.Update(doc.Ref, []firestore.Update{
 				{Path: "Actor", Value: &actor},
 			})
