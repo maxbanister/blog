@@ -84,6 +84,7 @@ func interact(a *ap.Actor, reqJSON map[string]any, colID, host string) error {
 func deinteract(reqJSON map[string]any, colID string) error {
 	object, _ := reqJSON["object"].(map[string]any)
 	objectID, _ := object["id"].(string)
+	fmt.Println(object, objectID)
 	if objectID == "" {
 		return fmt.Errorf("%w: no id property on object", ErrBadRequest)
 	}
@@ -92,6 +93,7 @@ func deinteract(reqJSON map[string]any, colID string) error {
 		return fmt.Errorf("%w: malformed object URI: %w", ErrBadRequest, err)
 	}
 	slugObjURI := Sluggify(*objectURI)
+	fmt.Printf("Attempting to remove %s/%s\n", colID, slugObjURI)
 
 	// open database connection
 	ctx := context.Background()
