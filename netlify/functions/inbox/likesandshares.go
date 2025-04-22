@@ -32,10 +32,7 @@ func HandleUnannounce(reqJSON map[string]any) error {
 
 func endorse(a *ap.Actor, reqJSON map[string]any, colName, host string) error {
 	// object in this context is the original post being liked/shared
-	objectURIString, ok := reqJSON["object"].(string)
-	if !ok {
-		return fmt.Errorf("%w: no string object field", ErrBadRequest)
-	}
+	objectURIString, _ := reqJSON["object"].(string)
 	objectURI, err := url.ParseRequestURI(objectURIString)
 	if err != nil {
 		return fmt.Errorf("%w: malformed object URI: %w", ErrBadRequest, err)
@@ -43,10 +40,7 @@ func endorse(a *ap.Actor, reqJSON map[string]any, colName, host string) error {
 	slugObject := Sluggify(*objectURI)
 
 	// this is the id of the like/share activity
-	endorseURIString, ok := reqJSON["id"].(string)
-	if !ok {
-		return fmt.Errorf("%w: no string id: %w", ErrBadRequest, err)
-	}
+	endorseURIString, _ := reqJSON["id"].(string)
 	endorseURI, err := url.ParseRequestURI(endorseURIString)
 	if err != nil {
 		return fmt.Errorf("%w: malformed ID URI: %w", ErrBadRequest, err)
@@ -96,7 +90,7 @@ func endorse(a *ap.Actor, reqJSON map[string]any, colName, host string) error {
 		// create like/share activity
 		err = tx.Set(endorseDocRef, map[string]any{
 			"Id":     endorseURIString,
-			"Object": objectURI,
+			"Object": objectURIString,
 			"Actor":  a,
 		})
 		if err != nil {
