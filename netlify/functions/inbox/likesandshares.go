@@ -31,17 +31,27 @@ func HandleUnannounce(reqJSON map[string]any) error {
 }
 
 func endorse(a *ap.Actor, reqJSON map[string]any, colName, host string) error {
-	// object in this context is the post being liked/shared
+	// object in this context is the original post being liked/shared
 	objectURIString, ok := reqJSON["object"].(string)
 	if !ok {
-		return fmt.Errorf("%w: object must be URI strin", ErrBadRequest)
+		return fmt.Errorf("%w: no string object field", ErrBadRequest)
 	}
 	objectURI, err := url.ParseRequestURI(objectURIString)
 	if err != nil {
 		return fmt.Errorf("%w: malformed object URI: %w", ErrBadRequest, err)
 	}
-	slugObjURI := Sluggify(*objectURI)
-	endorseID, _ := reqJSON["id"].(string)
+	slugObject := Sluggify(*objectURI)
+
+	// this is the id of the like/share activity
+	endorseURIString, ok := reqJSON["id"].(string)
+	if !ok {
+		return fmt.Errorf("%w: no string id: %w", ErrBadRequest, err)
+	}
+	endorseURI, err := url.ParseRequestURI(endorseURIString)
+	if err != nil {
+		return fmt.Errorf("%w: malformed ID URI: %w", ErrBadRequest, err)
+	}
+	slugEndorse := Sluggify(*endorseURI)
 
 	// open database connection to firestore
 	ctx := context.Background()
@@ -51,10 +61,13 @@ func endorse(a *ap.Actor, reqJSON map[string]any, colName, host string) error {
 	}
 	defer client.Close()
 
+	collectionRef := client.Collection(colName)
+	objectDocRef := collectionRef.Doc(slugObject)
+	endorseDocRef := collectionRef.Doc(slugEndorse)
+
 	// check if post exists
 	fmt.Println("Checking for", objectURIString)
-	docRef := client.Collection(colName).Doc(slugObjURI)
-	_, err = docRef.Get(ctx)
+	_, err = objectDocRef.Get(ctx)
 	if err != nil {
 		if status.Code(err) != codes.NotFound {
 			return fmt.Errorf("error looking up document: %w", err)
@@ -70,35 +83,50 @@ func endorse(a *ap.Actor, reqJSON map[string]any, colName, host string) error {
 	}
 	fmt.Println("Post", objectURIString, "found")
 
-	// set like or share object
-	_, err = docRef.Set(ctx, map[string]any{
-		"Items": firestore.ArrayUnion(&ap.LikeOrShare{
-			Id:     endorseID,
-			Object: objectURIString,
-			Actor:  a,
-		}),
-	}, firestore.MergeAll)
-	if err != nil {
-		return fmt.Errorf("failed to add item: %v", err)
+	txFunc := func(ctx context.Context, tx *firestore.Transaction) error {
+		// add to object's list of likes/shares
+		err = tx.Set(objectDocRef, map[string]any{
+			"Id":    objectURI.JoinPath("likes").String(),
+			"Items": firestore.ArrayUnion(endorseURIString),
+		}, firestore.MergeAll)
+		if err != nil {
+			return fmt.Errorf("failed to add item: %v", err)
+		}
+
+		// create like/share activity
+		err = tx.Set(endorseDocRef, map[string]any{
+			"Id":     endorseURIString,
+			"Object": objectURI,
+			"Actor":  a,
+		})
+		if err != nil {
+			return fmt.Errorf("failed to add item: %v", err)
+		}
+		return nil
 	}
 
-	return nil
+	return client.RunTransaction(ctx, txFunc)
 }
 
 func unendorse(reqJSON map[string]any, colName string) error {
+	// object in this context is the original post being liked/shared
 	object, _ := reqJSON["object"].(map[string]any)
-	objectID, _ := object["id"].(string)
-	if objectID == "" {
-		return fmt.Errorf("%w: no id property on object", ErrBadRequest)
-	}
-	objectURI, err := url.ParseRequestURI(objectID)
+	objectObject, _ := object["object"].(string)
+	objectURI, err := url.ParseRequestURI(objectObject)
 	if err != nil {
 		return fmt.Errorf("%w: malformed object URI: %w", ErrBadRequest, err)
 	}
-	slugObjURI := Sluggify(*objectURI)
-	fmt.Printf("Attempting to remove %s/%s\n", colName, slugObjURI)
+	slugObjectObj := Sluggify(*objectURI)
 
-	// open database connection
+	// this is the id of the undo like/share activity
+	objectID, _ := object["id"].(string)
+	objectIDURI, err := url.ParseRequestURI(objectID)
+	if err != nil {
+		return fmt.Errorf("%w: malformed ID URI: %w", ErrBadRequest, err)
+	}
+	slugObjID := Sluggify(*objectIDURI)
+
+	// open database connection to firestore
 	ctx := context.Background()
 	client, err := kv.GetFirestoreClient()
 	if err != nil {
@@ -106,26 +134,25 @@ func unendorse(reqJSON map[string]any, colName string) error {
 	}
 	defer client.Close()
 
-	docRef := client.Collection(colName).Doc(slugObjURI)
+	collectionRef := client.Collection(colName)
+	originalPostDocRef := collectionRef.Doc(slugObjectObj)
+	endorseActivityDocRef := collectionRef.Doc(slugObjID)
 
-	// ArrayRemove in Firestore only works on the exact value to be removed, so
-	// we must Get the original item to pass to Update
-	doc, err := docRef.Get(ctx)
-	if err != nil {
-		return fmt.Errorf("failed to get item: %w", err)
-	}
-	var e ap.LikeOrShare
-	err = doc.DataTo(&e)
-	if err != nil {
-		return fmt.Errorf("couldn't unmarshal like or share to struct: %w", err)
+	fmt.Printf("Attempting to remove %s/%s\n", colName, slugObjID)
+
+	txFunc := func(ctx context.Context, tx *firestore.Transaction) error {
+		err = tx.Delete(endorseActivityDocRef)
+		if err != nil {
+			return fmt.Errorf("failed to get item: %w", err)
+		}
+		err = tx.Update(originalPostDocRef, []firestore.Update{
+			{Path: "Items", Value: firestore.ArrayRemove(objectID)},
+		})
+		if err != nil {
+			return fmt.Errorf("failed to remove item: %w", err)
+		}
+		return nil
 	}
 
-	_, err = docRef.Update(ctx, []firestore.Update{
-		{Path: "Items", Value: firestore.ArrayRemove(e)},
-	})
-	if err != nil {
-		return fmt.Errorf("failed to remove item: %w", err)
-	}
-
-	return nil
+	return client.RunTransaction(ctx, txFunc)
 }

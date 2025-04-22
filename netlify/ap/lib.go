@@ -49,6 +49,7 @@ type LikeOrShare struct {
 }
 
 type LikeOrShareContainer struct {
+	Id    string        `json:"id"`
 	Items []LikeOrShare `json:"items"`
 }
 
