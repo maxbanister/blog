@@ -48,9 +48,8 @@ func FetchCol(r *LambdaRequest, host, colName string) (*LambdaResponse, error) {
 	if err != nil {
 		return getErrorResp(fmt.Errorf("could not get items: %w", err))
 	}
-	fmt.Println(reflect.TypeOf(items))
 	activityURIs, _ := items.([]any)
-	fmt.Println(activityURIs)
+	fmt.Println(items, reflect.TypeOf(activityURIs[0]), activityURIs[0])
 	var docRefs []*firestore.DocumentRef
 	for _, uri := range activityURIs {
 		uriString, ok := uri.(string)
