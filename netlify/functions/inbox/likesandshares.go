@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/url"
 
+	"cloud.google.com/go/firestore"
 	"github.com/maxbanister/blog/ap"
 	"github.com/maxbanister/blog/kv"
 	. "github.com/maxbanister/blog/util"
@@ -14,22 +15,23 @@ import (
 )
 
 func HandleLike(actor *ap.Actor, reqJSON map[string]any, host string) error {
-	return interact(actor, reqJSON, "likes", host)
+	return endorse(actor, reqJSON, "likes", host)
 }
 
 func HandleUnlike(reqJSON map[string]any) error {
-	return deinteract(reqJSON, "likes")
+	return unendorse(reqJSON, "likes")
 }
 
 func HandleAnnounce(actor *ap.Actor, reqJSON map[string]any, host string) error {
-	return interact(actor, reqJSON, "shares", host)
+	return endorse(actor, reqJSON, "shares", host)
 }
 
 func HandleUnannounce(reqJSON map[string]any) error {
-	return deinteract(reqJSON, "shares")
+	return unendorse(reqJSON, "shares")
 }
 
-func interact(a *ap.Actor, reqJSON map[string]any, colID, host string) error {
+func endorse(a *ap.Actor, reqJSON map[string]any, colName, host string) error {
+	// object in this context is the post being liked/shared
 	objectURIString, ok := reqJSON["object"].(string)
 	if !ok {
 		return fmt.Errorf("%w: object must be URI strin", ErrBadRequest)
@@ -39,7 +41,7 @@ func interact(a *ap.Actor, reqJSON map[string]any, colID, host string) error {
 		return fmt.Errorf("%w: malformed object URI: %w", ErrBadRequest, err)
 	}
 	slugObjURI := Sluggify(*objectURI)
-	objectID, _ := reqJSON["id"].(string)
+	endorseID, _ := reqJSON["id"].(string)
 
 	// open database connection to firestore
 	ctx := context.Background()
@@ -51,7 +53,7 @@ func interact(a *ap.Actor, reqJSON map[string]any, colID, host string) error {
 
 	// check if post exists
 	fmt.Println("Checking for", objectURIString)
-	docRef := client.Collection(colID).Doc(slugObjURI)
+	docRef := client.Collection(colName).Doc(slugObjURI)
 	_, err = docRef.Get(ctx)
 	if err != nil {
 		if status.Code(err) != codes.NotFound {
@@ -69,22 +71,23 @@ func interact(a *ap.Actor, reqJSON map[string]any, colID, host string) error {
 	fmt.Println("Post", objectURIString, "found")
 
 	// set like or share object
-	_, err = docRef.Set(ctx, ap.LikeOrShare{
-		Id:     objectID,
-		Object: objectURIString,
-		Actor:  a,
-	})
+	_, err = docRef.Set(ctx, map[string]any{
+		"Items": firestore.ArrayUnion(&ap.LikeOrShare{
+			Id:     endorseID,
+			Object: objectURIString,
+			Actor:  a,
+		}),
+	}, firestore.MergeAll)
 	if err != nil {
-		return fmt.Errorf("failed to add: %v", err)
+		return fmt.Errorf("failed to add item: %v", err)
 	}
 
 	return nil
 }
 
-func deinteract(reqJSON map[string]any, colID string) error {
+func unendorse(reqJSON map[string]any, colName string) error {
 	object, _ := reqJSON["object"].(map[string]any)
 	objectID, _ := object["id"].(string)
-	fmt.Println(object, objectID)
 	if objectID == "" {
 		return fmt.Errorf("%w: no id property on object", ErrBadRequest)
 	}
@@ -93,7 +96,7 @@ func deinteract(reqJSON map[string]any, colID string) error {
 		return fmt.Errorf("%w: malformed object URI: %w", ErrBadRequest, err)
 	}
 	slugObjURI := Sluggify(*objectURI)
-	fmt.Printf("Attempting to remove %s/%s\n", colID, slugObjURI)
+	fmt.Printf("Attempting to remove %s/%s\n", colName, slugObjURI)
 
 	// open database connection
 	ctx := context.Background()
@@ -103,8 +106,23 @@ func deinteract(reqJSON map[string]any, colID string) error {
 	}
 	defer client.Close()
 
-	collection := client.Collection(colID)
-	_, err = collection.Doc(slugObjURI).Delete(ctx)
+	docRef := client.Collection(colName).Doc(slugObjURI)
+
+	// ArrayRemove in Firestore only works on the exact value to be removed, so
+	// we must Get the original item to pass to Update
+	doc, err := docRef.Get(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to get item: %w", err)
+	}
+	var e ap.LikeOrShare
+	err = doc.DataTo(&e)
+	if err != nil {
+		return fmt.Errorf("couldn't unmarshal like or share to struct: %w", err)
+	}
+
+	_, err = docRef.Update(ctx, []firestore.Update{
+		{Path: "Items", Value: firestore.ArrayRemove(e)},
+	})
 	if err != nil {
 		return fmt.Errorf("failed to remove item: %w", err)
 	}
