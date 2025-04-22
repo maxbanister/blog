@@ -31,6 +31,16 @@
 	to="/.netlify/functions/reply-service?id=:title"
 	status = 301
 
+[[redirects]]
+	from="/posts/:title/likes"
+	to="/.netlify/functions/likes-service?id=:title"
+	status = 301
+
+[[redirects]]
+	from="/posts/:title/shares"
+	to="/.netlify/functions/shares-service?id=:title"
+	status = 301
+
 [[headers]]
 	for = "/ap/user/blog"
 	[headers.values]
