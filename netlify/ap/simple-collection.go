@@ -24,9 +24,8 @@ func FetchCol(r *LambdaRequest, host, colName string) (*LambdaResponse, error) {
 	defer client.Close()
 
 	// get title from query param
-	postName := r.QueryStringParameters["id"]
-	postURIString := "https://" + host + "/posts/" + postName
-	fmt.Println("Got request for", postName)
+	postID := r.QueryStringParameters["id"]
+	postURIString := "https://" + host + "/posts/" + postID
 
 	// form full sluggified url
 	postURI, err := url.Parse(postURIString)
@@ -34,14 +33,17 @@ func FetchCol(r *LambdaRequest, host, colName string) (*LambdaResponse, error) {
 		return nil, fmt.Errorf("could not parse as URI: %w", err)
 	}
 	slugPostURI := Sluggify(*postURI)
+	fmt.Println("Got request for", slugPostURI)
 
 	// get top-level likes document from firestore
 	collectionRef := client.Collection(colName)
+	fmt.Println("colName is", colName)
 	ctx := context.Background()
 	doc, err := collectionRef.Doc(slugPostURI).Get(ctx)
 	if err != nil {
 		return getErrorResp(fmt.Errorf("could not get top-level doc: %w", err))
 	}
+	fmt.Println("Doc:", doc.Data())
 	docID, _ := doc.DataAt("Id")
 	items, err := doc.DataAt("Items")
 	if err != nil {
@@ -60,11 +62,11 @@ func FetchCol(r *LambdaRequest, host, colName string) (*LambdaResponse, error) {
 		docRefs = append(docRefs, collectionRef.Doc(docTitle))
 	}
 
-	// iterate over Items slice to find like activities
 	docs, err := client.GetAll(ctx, docRefs)
 	if err != nil {
 		return getErrorResp(fmt.Errorf("could not GetAll %s: %w", colName, err))
 	}
+	fmt.Println(docs)
 
 	likesOrShares := make([]*LikeOrShare, len(docs))
 	for i, doc := range docs {
@@ -74,13 +76,14 @@ func FetchCol(r *LambdaRequest, host, colName string) (*LambdaResponse, error) {
 			continue
 		}
 	}
+	fmt.Println(likesOrShares)
 
-	// format pseudo-AP response with all items (likes should just be object urls)
 	wantsAP := false
 	a := strings.ToLower(r.Headers["accept"])
 	if strings.Contains(a, "activity+json") || strings.Contains(a, "ld+json") {
 		wantsAP = true
 	}
+	// format pseudo-AP response with all items
 	if !wantsAP {
 		respBody, err := json.Marshal(likesOrShares)
 		if err != nil {
