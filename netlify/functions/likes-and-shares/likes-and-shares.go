@@ -89,7 +89,6 @@ func FetchCol(r *LambdaRequest, host, colName string) (*LambdaResponse, error) {
 	if err != nil {
 		return getErrorResp(fmt.Errorf("could not GetAll %s: %w", colName, err))
 	}
-	fmt.Println(docs)
 
 	likesOrShares := []*ap.LikeOrShare{}
 	for _, doc := range docs {
@@ -99,9 +98,9 @@ func FetchCol(r *LambdaRequest, host, colName string) (*LambdaResponse, error) {
 			fmt.Println("could not convert activity doc to struct:", err)
 			continue
 		}
+		fmt.Println(likeOrShare)
 		likesOrShares = append(likesOrShares, likeOrShare)
 	}
-	fmt.Println(likesOrShares)
 
 	wantsAP := false
 	a := strings.ToLower(r.Headers["accept"])

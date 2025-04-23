@@ -41,7 +41,7 @@ func handle(ctx context.Context, request LambdaRequest) (*LambdaResponse, error)
 	}
 	defer client.Close()
 
-	r, err := GetReplyTree(client, "https://"+host+"/posts/"+postID, wantsAP)
+	r, err := GetReplyTree(client, host+"/posts/"+postID, wantsAP)
 	if err != nil {
 		if wantsAP && status.Code(err) == codes.NotFound {
 			return &events.APIGatewayProxyResponse{
