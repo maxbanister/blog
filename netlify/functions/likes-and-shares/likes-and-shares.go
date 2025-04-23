@@ -21,6 +21,7 @@ func main() {
 
 func handleService(ctx context.Context, request LambdaRequest) (*LambdaResponse, error) {
 	HOST_SITE := GetHostSite()
+	fmt.Println(HOST_SITE)
 
 	colName := request.QueryStringParameters["col"]
 	if colName != "likes" && colName != "shares" {
@@ -44,7 +45,8 @@ func FetchCol(r *LambdaRequest, host, colName string) (*LambdaResponse, error) {
 
 	// get title from query param
 	postID := r.QueryStringParameters["id"]
-	postURIString := "https://" + host + "/posts/" + postID
+	postURIString := host + "/posts/" + postID
+	fmt.Println(postURIString)
 
 	// form full sluggified url
 	postURI, err := url.Parse(postURIString)
