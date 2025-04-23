@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/url"
-	"reflect"
 	"strings"
 
 	"cloud.google.com/go/firestore"
@@ -45,15 +44,13 @@ func FetchCol(r *LambdaRequest, host, colName string) (*LambdaResponse, error) {
 
 	// get title from query param
 	postID := r.QueryStringParameters["id"]
-	postURIString := host + "/posts/" + postID
-	fmt.Println(postURIString)
+	postURIString := "https://" + host + "/posts/" + postID
 
 	// form full sluggified url
 	postURI, err := url.Parse(postURIString)
 	if err != nil {
 		return nil, fmt.Errorf("could not parse as URI: %w", err)
 	}
-	fmt.Println(postURI.String())
 	slugPostURI := Sluggify(*postURI)
 	fmt.Println("Got request for", slugPostURI)
 
@@ -70,7 +67,6 @@ func FetchCol(r *LambdaRequest, host, colName string) (*LambdaResponse, error) {
 		return getErrorResp(fmt.Errorf("could not get items: %w", err))
 	}
 	activityURIs, _ := items.([]any)
-	fmt.Println(items, reflect.TypeOf(activityURIs[0]), activityURIs[0])
 	var docRefs []*firestore.DocumentRef
 	for _, uri := range activityURIs {
 		uriString, ok := uri.(string)
@@ -83,7 +79,6 @@ func FetchCol(r *LambdaRequest, host, colName string) (*LambdaResponse, error) {
 			continue
 		}
 		docTitle := Sluggify(*parsedURI)
-		fmt.Println(docTitle)
 		docRefs = append(docRefs, collectionRef.Doc(docTitle))
 	}
 	fmt.Println(docRefs)
@@ -94,13 +89,15 @@ func FetchCol(r *LambdaRequest, host, colName string) (*LambdaResponse, error) {
 	}
 	fmt.Println(docs)
 
-	likesOrShares := make([]*ap.LikeOrShare, len(docs))
-	for i, doc := range docs {
-		err := doc.DataTo(likesOrShares[i])
+	likesOrShares := []*ap.LikeOrShare{}
+	for _, doc := range docs {
+		likeOrShare := &ap.LikeOrShare{}
+		err := doc.DataTo(&likesOrShares)
 		if err != nil {
-			fmt.Println(err)
+			fmt.Println("could not convert activity doc to struct:", err)
 			continue
 		}
+		likesOrShares = append(likesOrShares, likeOrShare)
 	}
 	fmt.Println(likesOrShares)
 
