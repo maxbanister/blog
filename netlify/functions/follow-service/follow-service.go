@@ -38,7 +38,7 @@ func handle(ctx context.Context, request LambdaRequest) (*LambdaResponse, error)
 		return &events.APIGatewayProxyResponse{StatusCode: 400}, nil
 	}
 
-	hostSite := GetHostSite(ctx)
+	hostSite := GetHostSite()
 	AcceptRequest(hostSite, followObj, &actor)
 
 	return &events.APIGatewayProxyResponse{StatusCode: 200}, nil

@@ -22,7 +22,7 @@ func main() {
 }
 
 func handle(ctx context.Context, request LambdaRequest) (*LambdaResponse, error) {
-	host := GetHostSite(ctx)
+	host := GetHostSite()
 	// extract the referred to post from the query parameters
 	postID := request.QueryStringParameters["id"]
 	fmt.Println("Got request for", postID)

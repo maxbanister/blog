@@ -1,7 +1,6 @@
 package util
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"net/http"
@@ -20,32 +19,10 @@ var ErrAlreadyDone = errors.New("already done")
 type LambdaRequest = events.APIGatewayProxyRequest
 type LambdaResponse = events.APIGatewayProxyResponse
 
-func GetHostSite(ctx context.Context) string {
+func GetHostSite() string {
 	siteURL := os.Getenv("URL")
 	after, _ := strings.CutPrefix(siteURL, "//")
 	return after
-
-	/*var jsonData []byte
-	var err error
-	lc, ok := lambdacontext.FromContext(ctx)
-	if !ok {
-		fmt.Println("could not get lambda context")
-	} else {
-		ccc := lc.ClientContext.Custom
-		fmt.Println(lc.ClientContext)
-		jsonData, err = base64.StdEncoding.DecodeString(ccc["netlify"])
-		if err != nil {
-			fmt.Println("could not decode netlify base64:", err)
-			return ""
-		}
-	}
-	var netlifyData map[string]string
-	err = json.Unmarshal(jsonData, &netlifyData)
-	if err != nil {
-		fmt.Println("could not decode netlify json:", err)
-		return ""
-	}
-	return strings.TrimPrefix(netlifyData["site_url"], "https://")*/
 }
 
 func Sluggify(uri url.URL) string {

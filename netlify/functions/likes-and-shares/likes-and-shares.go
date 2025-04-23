@@ -21,12 +21,9 @@ func main() {
 }
 
 func handleService(ctx context.Context, request LambdaRequest) (*LambdaResponse, error) {
-	HOST_SITE := GetHostSite(ctx)
-	bytes, _ := json.MarshalIndent(request.Headers, "", "	")
-	fmt.Println(string(bytes))
-	fmt.Println(request.QueryStringParameters["id"])
+	HOST_SITE := GetHostSite()
 
-	colName := request.Headers["x-col-name"]
+	colName := request.QueryStringParameters["col"]
 	if colName != "likes" && colName != "shares" {
 		return getErrorResp(
 			fmt.Errorf("unallowed collection name: %s", colName),
@@ -49,12 +46,14 @@ func FetchCol(r *LambdaRequest, host, colName string) (*LambdaResponse, error) {
 	// get title from query param
 	postID := r.QueryStringParameters["id"]
 	postURIString := host + "/posts/" + postID
+	fmt.Println(postURIString)
 
 	// form full sluggified url
 	postURI, err := url.Parse(postURIString)
 	if err != nil {
 		return nil, fmt.Errorf("could not parse as URI: %w", err)
 	}
+	fmt.Println(postURI.String())
 	slugPostURI := Sluggify(*postURI)
 	fmt.Println("Got request for", slugPostURI)
 

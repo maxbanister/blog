@@ -29,19 +29,17 @@
 [[redirects]]
 	from="/posts/:title/replies"
 	to="/.netlify/functions/reply-service?id=:title"
-	status = 200
+	status = 301
 
 [[redirects]]
 	from="/posts/:title/likes"
-	to="/.netlify/functions/likes-and-shares?id=:title"
-	status = 200
-	headers = {X-Col-Name = "likes"}
+	to="/.netlify/functions/likes-and-shares?col=likes&id=:title"
+	status = 301
 
 [[redirects]]
 	from="/posts/:title/shares"
-	to="/.netlify/functions/likes-and-shares?id=:title"
-	status = 200
-	headers = {X-Col-Name = "shares"}
+	to="/.netlify/functions/likes-and-shares?col=shares&id=:title"
+	status = 301
 
 [[headers]]
 	for = "/ap/user/blog"

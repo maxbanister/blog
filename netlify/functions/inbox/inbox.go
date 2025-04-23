@@ -15,7 +15,7 @@ func main() {
 }
 
 func handleInbox(ctx context.Context, request LambdaRequest) (*LambdaResponse, error) {
-	HOST_SITE := GetHostSite(ctx)
+	HOST_SITE := GetHostSite()
 	fmt.Println("Headers:", request.Headers)
 	fmt.Println("Body:", request.Body)
 
