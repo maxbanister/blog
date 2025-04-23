@@ -46,7 +46,7 @@ func handle(ctx context.Context, request LambdaRequest) (*LambdaResponse, error)
 	if err != nil {
 		if status.Code(err) == codes.NotFound {
 			// dummy object that has no replies
-			r = &ap.Reply{}
+			r = &ap.Reply{Id: postURIString + "/replies"}
 		} else {
 			return nil, err
 		}
@@ -74,7 +74,7 @@ func handle(ctx context.Context, request LambdaRequest) (*LambdaResponse, error)
 	"type": "OrderedCollection",
 	"totalItems": %d,
 	"items": %s
-}`, postURIString+"/replies", len(r.Replies.Items), string(replyItems))
+}`, r.Replies.Id, len(r.Replies.Items), string(replyItems))
 
 	return &events.APIGatewayProxyResponse{
 		StatusCode: 200,

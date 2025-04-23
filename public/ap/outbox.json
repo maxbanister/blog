@@ -19,7 +19,7 @@
 				"@context": "https://www.w3.org/ns/activitystreams",
 				"id": "https://maxscribes.netlify.app/posts/note-b",
 				"type": "Note",
-				"content": "The Gendered Lens of AI: Unpacking Bias in Language  ... html content",
+				"content": "this is some text for blog post B",
 				"url": "https://maxscribes.netlify.app/posts/note-b",
 				"attributedTo": "https://maxscribes.netlify.app/ap/user/blog",
 				"to": [
