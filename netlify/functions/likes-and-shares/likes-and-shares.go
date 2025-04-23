@@ -22,6 +22,7 @@ func main() {
 
 func handleService(ctx context.Context, request LambdaRequest) (*LambdaResponse, error) {
 	HOST_SITE := GetHostSite(ctx)
+	fmt.Println(request.Headers)
 
 	colName := request.Headers["X-Col-Name"]
 	if colName != "likes" && colName != "shares" {
