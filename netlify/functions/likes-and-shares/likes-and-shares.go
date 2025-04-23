@@ -21,7 +21,6 @@ func main() {
 
 func handleService(ctx context.Context, request LambdaRequest) (*LambdaResponse, error) {
 	HOST_SITE := GetHostSite()
-	fmt.Println(HOST_SITE)
 
 	colName := request.QueryStringParameters["col"]
 	if colName != "likes" && colName != "shares" {
@@ -81,9 +80,9 @@ func FetchCol(r *LambdaRequest, host, colName string) (*LambdaResponse, error) {
 			continue
 		}
 		docTitle := Sluggify(*parsedURI)
+		fmt.Println("adding", docTitle)
 		docRefs = append(docRefs, collectionRef.Doc(docTitle))
 	}
-	fmt.Println(docRefs)
 
 	docs, err := client.GetAll(ctx, docRefs)
 	if err != nil {
@@ -124,17 +123,17 @@ func FetchCol(r *LambdaRequest, host, colName string) (*LambdaResponse, error) {
 
 	// Like activities aren't dereferenceable with Masto, so we must include the
 	// full object. With Announces, we can simply reference the ID
-	lst := make([]any, len(docs))
-	for _, likeOrShare := range likesOrShares {
+	lst := make([]any, len(likesOrShares))
+	for i, likeOrShare := range likesOrShares {
 		if colName == "likes" {
-			lst = append(lst, map[string]string{
+			lst[i] = map[string]string{
 				"id":     likeOrShare.Id,
 				"type":   "Like",
 				"actor":  likeOrShare.Actor.Id,
 				"object": likeOrShare.Object,
-			})
+			}
 		} else { // colName == "shares"
-			lst = append(lst, likeOrShare.Id)
+			lst[i] = likeOrShare.Id
 		}
 	}
 

@@ -70,7 +70,7 @@ func CallFollowService(r *LambdaRequest, host string, actor *ap.Actor) error {
 
 	// fire and forget
 	go func() {
-		url := "https://" + host + "/ap/follow-service"
+		url := host + "/ap/follow-service"
 		req, err := http.NewRequest("POST", url, bytes.NewReader(reqBody))
 		if err != nil {
 			fmt.Println("could not form request:", err)

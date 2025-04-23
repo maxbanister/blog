@@ -18,7 +18,7 @@ type Actor struct {
 	Inbox             string `json:"inbox"`
 	PublicKey         *struct {
 		PublicKeyPEM string `json:"publicKeyPem"`
-	} `json:"publicKey" firestore:",omitempty"`
+	} `json:"publicKey,omitempty" firestore:",omitempty"`
 	Icon interface{} `json:"icon"`
 }
 
