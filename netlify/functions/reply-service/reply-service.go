@@ -46,7 +46,9 @@ func handle(ctx context.Context, request LambdaRequest) (*LambdaResponse, error)
 	if err != nil {
 		if status.Code(err) == codes.NotFound {
 			// dummy object that has no replies
-			r = &ap.Reply{Id: postURIString + "/replies"}
+			r = &ap.Reply{Replies: ap.InnerReplies{
+				Id: postURIString + "/replies",
+			}}
 		} else {
 			return nil, err
 		}

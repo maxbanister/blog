@@ -20,7 +20,6 @@ func main() {
 }
 
 func handleDeploy(request LambdaRequest) (*LambdaResponse, error) {
-	HOST_SITE := GetHostSite()
 	fmt.Println("Broadcasting new post...")
 
 	var outbox struct {
@@ -37,7 +36,7 @@ func handleDeploy(request LambdaRequest) (*LambdaResponse, error) {
 			Body:       "no posts in outbox",
 		}, nil
 	}
-	postBody := outbox.OrderedItems[0]
+	createActivity := outbox.OrderedItems[0]
 
 	// get followers from firestore
 	ctx := context.Background()
@@ -72,39 +71,9 @@ func handleDeploy(request LambdaRequest) (*LambdaResponse, error) {
 		followers = append(followers, &follower)
 	}
 
-	var item struct {
-		Id        string `json:"id"`
-		Published string `json:"published"`
-	}
-	err = json.Unmarshal(postBody, &item)
-	if err != nil || item.Id == "" {
-		return GetErrorResp(fmt.Errorf("could not get id from post: %w", err))
-	}
-	postID := item.Id
-	published := item.Published
-	selfUser := HOST_SITE + "/ap/user/blog"
-	followersURI := HOST_SITE + "/ap/followers"
-
-	payload := fmt.Sprintf(`{
-	"@context": "https://www.w3.org/ns/activitystreams",
-	"id": "%s/create",
-	"type": "Create",
-	"actor": "%s",
-	"published": "%s",
-	"to": [
-		"https://www.w3.org/ns/activitystreams#Public"
-	],
-	"cc": [
-		"%s"
-	],
-	"object": %s
-}`, postID, selfUser, published, followersURI, string(postBody))
-
-	fmt.Println("Sending post", postID)
-
 	// broadcast to followers
 	for _, follower := range followers {
-		err = ap.SendActivity(payload, follower)
+		err = ap.SendActivity(string(createActivity), follower)
 		if err != nil {
 			fmt.Printf("failed sending post to %s: %s\n", follower.Id,
 				err.Error())

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"strings"
 
 	"cloud.google.com/go/firestore"
 	"github.com/maxbanister/blog/netlify/ap"
@@ -67,7 +68,8 @@ func endorse(a *ap.Actor, reqJSON map[string]any, colName, host string) error {
 			return fmt.Errorf("error looking up document: %w", err)
 		}
 		// this post isn't in the collection yet - confirm post exists
-		if objectURI.Host != host {
+		_, host, _ := strings.Cut(host, "//")
+		if host != objectURI.Host {
 			return fmt.Errorf("%w: post not in this domain", ErrBadRequest)
 		}
 		resp, err := http.Head(objectURIString)

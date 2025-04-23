@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"strings"
 	"time"
 
 	"cloud.google.com/go/firestore"
@@ -75,7 +76,8 @@ func HandleReply(r *LambdaRequest, actor *ap.Actor, reqJSON map[string]any, host
 			return fmt.Errorf("error looking up replies: %w", err)
 		}
 		// this post isn't in the replies collection yet - confirm post exists
-		if inReplyToURI.Host != host {
+		_, host, _ := strings.Cut(host, "//")
+		if host != inReplyToURI.Host {
 			return fmt.Errorf("%w: reply not for this domain", ErrBadRequest)
 		}
 		resp, err := http.Head(inReplyTo)
