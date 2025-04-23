@@ -94,7 +94,7 @@ func FetchCol(r *LambdaRequest, host, colName string) (*LambdaResponse, error) {
 	likesOrShares := []*ap.LikeOrShare{}
 	for _, doc := range docs {
 		likeOrShare := &ap.LikeOrShare{}
-		err := doc.DataTo(&likesOrShares)
+		err := doc.DataTo(&likeOrShare)
 		if err != nil {
 			fmt.Println("could not convert activity doc to struct:", err)
 			continue
