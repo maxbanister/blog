@@ -35,7 +35,7 @@ func HandleReply(r *LambdaRequest, actor *ap.Actor, reqJSON map[string]any, host
 	if err != nil {
 		return fmt.Errorf("%w: bad published timestamp: %w", ErrBadRequest, err)
 	}
-	_, err = url.ParseRequestURI(replyObj.URL)
+	_, err = url.Parse(replyObj.URL)
 	if err != nil {
 		return fmt.Errorf("%w: malformed backlink URL: %w", ErrBadRequest, err)
 	}
@@ -43,7 +43,7 @@ func HandleReply(r *LambdaRequest, actor *ap.Actor, reqJSON map[string]any, host
 		return fmt.Errorf("%w: actor and attributedTo mismatch", ErrBadRequest)
 	}
 
-	inReplyToURI, err := url.ParseRequestURI(inReplyTo)
+	inReplyToURI, err := url.Parse(inReplyTo)
 	if err != nil {
 		return fmt.Errorf("%w: malformed inReplyTo URI: %w", ErrBadRequest, err)
 	}
@@ -51,7 +51,7 @@ func HandleReply(r *LambdaRequest, actor *ap.Actor, reqJSON map[string]any, host
 	if replyObj.Id == "" || replyObj.Content == "" {
 		return fmt.Errorf("%w: missing reply details", ErrBadRequest)
 	}
-	replyObjId, err := url.ParseRequestURI(replyObj.Id)
+	replyObjId, err := url.Parse(replyObj.Id)
 	if err != nil {
 		return fmt.Errorf("%w: malformed object id: %w", ErrBadRequest, err)
 	}

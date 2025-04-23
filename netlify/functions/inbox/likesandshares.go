@@ -33,7 +33,7 @@ func HandleUnannounce(reqJSON map[string]any) error {
 func endorse(a *ap.Actor, reqJSON map[string]any, colName, host string) error {
 	// object in this context is the original post being liked/shared
 	objectURIString, _ := reqJSON["object"].(string)
-	objectURI, err := url.ParseRequestURI(objectURIString)
+	objectURI, err := url.Parse(objectURIString)
 	if err != nil {
 		return fmt.Errorf("%w: malformed object URI: %w", ErrBadRequest, err)
 	}
@@ -41,7 +41,7 @@ func endorse(a *ap.Actor, reqJSON map[string]any, colName, host string) error {
 
 	// this is the id of the like/share activity
 	endorseURIString, _ := reqJSON["id"].(string)
-	endorseURI, err := url.ParseRequestURI(endorseURIString)
+	endorseURI, err := url.Parse(endorseURIString)
 	if err != nil {
 		return fmt.Errorf("%w: malformed ID URI: %w", ErrBadRequest, err)
 	}
@@ -106,7 +106,7 @@ func unendorse(reqJSON map[string]any, colName string) error {
 	// object in this context is the original post being liked/shared
 	object, _ := reqJSON["object"].(map[string]any)
 	objectObject, _ := object["object"].(string)
-	objectURI, err := url.ParseRequestURI(objectObject)
+	objectURI, err := url.Parse(objectObject)
 	if err != nil {
 		return fmt.Errorf("%w: malformed object URI: %w", ErrBadRequest, err)
 	}
@@ -114,7 +114,7 @@ func unendorse(reqJSON map[string]any, colName string) error {
 
 	// this is the id of the undo like/share activity
 	objectID, _ := object["id"].(string)
-	objectIDURI, err := url.ParseRequestURI(objectID)
+	objectIDURI, err := url.Parse(objectID)
 	if err != nil {
 		return fmt.Errorf("%w: malformed ID URI: %w", ErrBadRequest, err)
 	}

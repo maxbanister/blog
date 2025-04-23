@@ -46,7 +46,6 @@ func GetHostSite(ctx context.Context) string {
 }
 
 func Sluggify(uri url.URL) string {
-	uri.Fragment = ""
 	uri.Scheme = ""
 	uriStr := strings.ToLower(uri.String()[2:])
 	var res strings.Builder

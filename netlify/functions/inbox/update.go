@@ -111,7 +111,7 @@ func HandleReplyEdit(r *LambdaRequest, reqJSON map[string]any) error {
 	if id == "" {
 		fmt.Println("%w: malformed update object", ErrBadRequest)
 	}
-	replyURI, err := url.ParseRequestURI(id)
+	replyURI, err := url.Parse(id)
 	if err != nil {
 		fmt.Println("%w: unable to parse object id URI", ErrBadRequest)
 	}

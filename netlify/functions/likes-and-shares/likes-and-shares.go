@@ -1,4 +1,4 @@
-package ap
+package main
 
 import (
 	"context"
@@ -10,9 +10,28 @@ import (
 
 	"cloud.google.com/go/firestore"
 	"github.com/aws/aws-lambda-go/events"
+	"github.com/aws/aws-lambda-go/lambda"
+	"github.com/maxbanister/blog/ap"
 	"github.com/maxbanister/blog/kv"
 	. "github.com/maxbanister/blog/util"
 )
+
+func main() {
+	lambda.Start(handleService)
+}
+
+func handleService(ctx context.Context, request LambdaRequest) (*LambdaResponse, error) {
+	HOST_SITE := GetHostSite(ctx)
+
+	colName := request.Headers["X-Col-Name"]
+	if colName != "likes" && colName != "shares" {
+		return getErrorResp(
+			fmt.Errorf("unallowed collection name: %s", colName),
+		)
+	}
+
+	return FetchCol(&request, HOST_SITE, colName)
+}
 
 func FetchCol(r *LambdaRequest, host, colName string) (*LambdaResponse, error) {
 	// connect to firestore database
@@ -73,7 +92,7 @@ func FetchCol(r *LambdaRequest, host, colName string) (*LambdaResponse, error) {
 	}
 	fmt.Println(docs)
 
-	likesOrShares := make([]*LikeOrShare, len(docs))
+	likesOrShares := make([]*ap.LikeOrShare, len(docs))
 	for i, doc := range docs {
 		err := doc.DataTo(likesOrShares[i])
 		if err != nil {

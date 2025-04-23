@@ -33,13 +33,15 @@
 
 [[redirects]]
 	from="/posts/:title/likes"
-	to="/.netlify/functions/likes-service?id=:title"
+	to="/.netlify/functions/likes-and-shares?id=:title"
 	status = 301
+	headers = {X-Col-Name = "likes"}
 
 [[redirects]]
 	from="/posts/:title/shares"
-	to="/.netlify/functions/shares-service?id=:title"
+	to="/.netlify/functions/likes-and-shares?id=:title"
 	status = 301
+	headers = {X-Col-Name = "shares"}
 
 [[headers]]
 	for = "/ap/user/blog"
