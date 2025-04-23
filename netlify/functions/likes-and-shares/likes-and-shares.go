@@ -13,6 +13,8 @@ import (
 	"github.com/maxbanister/blog/netlify/ap"
 	"github.com/maxbanister/blog/netlify/kv"
 	. "github.com/maxbanister/blog/netlify/util"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 func main() {
@@ -55,17 +57,32 @@ func FetchCol(r *LambdaRequest, host, colName string) (*LambdaResponse, error) {
 	slugPostURI := Sluggify(*postURI)
 	fmt.Println("Got request for", slugPostURI)
 
+	wantsAP := false
+	a := strings.ToLower(r.Headers["accept"])
+	if strings.Contains(a, "activity+json") || strings.Contains(a, "ld+json") {
+		wantsAP = true
+	}
+
 	// get top-level likes document from firestore
 	collectionRef := client.Collection(colName)
 	ctx := context.Background()
 	doc, err := collectionRef.Doc(slugPostURI).Get(ctx)
+	docExists := true
 	if err != nil {
-		return GetErrorResp(fmt.Errorf("could not get top-level doc: %w", err))
+		if status.Code(err) == codes.NotFound {
+			docExists = false
+		} else {
+			return GetErrorResp(
+				fmt.Errorf("could not get top-level doc: %w", err),
+			)
+		}
 	}
-	docID, _ := doc.DataAt("Id")
-	items, err := doc.DataAt("Items")
-	if err != nil {
-		return GetErrorResp(fmt.Errorf("could not get items: %w", err))
+	var items any
+	if docExists {
+		items, err = doc.DataAt("Items")
+		if err != nil {
+			return GetErrorResp(fmt.Errorf("could not get items: %w", err))
+		}
 	}
 	activityURIs, _ := items.([]any)
 	var docRefs []*firestore.DocumentRef
@@ -101,11 +118,6 @@ func FetchCol(r *LambdaRequest, host, colName string) (*LambdaResponse, error) {
 		likesOrShares = append(likesOrShares, likeOrShare)
 	}
 
-	wantsAP := false
-	a := strings.ToLower(r.Headers["accept"])
-	if strings.Contains(a, "activity+json") || strings.Contains(a, "ld+json") {
-		wantsAP = true
-	}
 	// format pseudo-AP response with all items
 	if !wantsAP {
 		respBody, err := json.Marshal(likesOrShares)
@@ -144,7 +156,7 @@ func FetchCol(r *LambdaRequest, host, colName string) (*LambdaResponse, error) {
 	"type": "Collection",
 	"totalItems": %d,
 	"items": %s
-}`, docID, len(lst), string(lstBytes))
+}`, postURIString+"/"+colName, len(lst), string(lstBytes))
 
 	return &events.APIGatewayProxyResponse{
 		StatusCode: 200,

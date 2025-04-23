@@ -41,15 +41,15 @@ func handle(ctx context.Context, request LambdaRequest) (*LambdaResponse, error)
 	}
 	defer client.Close()
 
-	r, err := GetReplyTree(client, host+"/posts/"+postID, wantsAP)
+	postURIString := host + "/posts/" + postID
+	r, err := GetReplyTree(client, postURIString, wantsAP)
 	if err != nil {
-		if wantsAP && status.Code(err) == codes.NotFound {
-			return &events.APIGatewayProxyResponse{
-				StatusCode: 404,
-				Body:       "no replies yet",
-			}, nil
+		if status.Code(err) == codes.NotFound {
+			// dummy object that has no replies
+			r = &ap.Reply{}
+		} else {
+			return nil, err
 		}
-		return nil, err
 	}
 
 	if !wantsAP {
@@ -74,7 +74,7 @@ func handle(ctx context.Context, request LambdaRequest) (*LambdaResponse, error)
 	"type": "OrderedCollection",
 	"totalItems": %d,
 	"items": %s
-}`, r.Replies.Id, len(r.Replies.Items), string(replyItems))
+}`, postURIString+"/replies", len(r.Replies.Items), string(replyItems))
 
 	return &events.APIGatewayProxyResponse{
 		StatusCode: 200,
