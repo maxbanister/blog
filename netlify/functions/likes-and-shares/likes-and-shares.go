@@ -22,9 +22,11 @@ func main() {
 
 func handleService(ctx context.Context, request LambdaRequest) (*LambdaResponse, error) {
 	HOST_SITE := GetHostSite(ctx)
-	fmt.Println(request.Headers)
+	bytes, _ := json.MarshalIndent(request.Headers, "", "	")
+	fmt.Println(string(bytes))
+	fmt.Println(request.QueryStringParameters["id"])
 
-	colName := request.Headers["X-Col-Name"]
+	colName := request.Headers["x-col-name"]
 	if colName != "likes" && colName != "shares" {
 		return getErrorResp(
 			fmt.Errorf("unallowed collection name: %s", colName),
@@ -46,7 +48,7 @@ func FetchCol(r *LambdaRequest, host, colName string) (*LambdaResponse, error) {
 
 	// get title from query param
 	postID := r.QueryStringParameters["id"]
-	postURIString := "https://" + host + "/posts/" + postID
+	postURIString := host + "/posts/" + postID
 
 	// form full sluggified url
 	postURI, err := url.Parse(postURIString)

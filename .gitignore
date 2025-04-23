@@ -1,3 +1,6 @@
 private.pem
 public.pem
 firebase-svc.json
+
+# Local Netlify folder
+.netlify
