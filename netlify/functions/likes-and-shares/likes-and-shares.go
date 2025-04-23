@@ -10,9 +10,9 @@ import (
 	"cloud.google.com/go/firestore"
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
-	"github.com/maxbanister/blog/ap"
-	"github.com/maxbanister/blog/kv"
-	. "github.com/maxbanister/blog/util"
+	"github.com/maxbanister/blog/netlify/ap"
+	"github.com/maxbanister/blog/netlify/kv"
+	. "github.com/maxbanister/blog/netlify/util"
 )
 
 func main() {
@@ -24,7 +24,7 @@ func handleService(ctx context.Context, request LambdaRequest) (*LambdaResponse,
 
 	colName := request.QueryStringParameters["col"]
 	if colName != "likes" && colName != "shares" {
-		return getErrorResp(
+		return GetErrorResp(
 			fmt.Errorf("unallowed collection name: %s", colName),
 		)
 	}
@@ -36,7 +36,7 @@ func FetchCol(r *LambdaRequest, host, colName string) (*LambdaResponse, error) {
 	// connect to firestore database
 	client, err := kv.GetFirestoreClient()
 	if err != nil {
-		return getErrorResp(
+		return GetErrorResp(
 			fmt.Errorf("could not start firestore client: %w", err),
 		)
 	}
@@ -60,12 +60,12 @@ func FetchCol(r *LambdaRequest, host, colName string) (*LambdaResponse, error) {
 	ctx := context.Background()
 	doc, err := collectionRef.Doc(slugPostURI).Get(ctx)
 	if err != nil {
-		return getErrorResp(fmt.Errorf("could not get top-level doc: %w", err))
+		return GetErrorResp(fmt.Errorf("could not get top-level doc: %w", err))
 	}
 	docID, _ := doc.DataAt("Id")
 	items, err := doc.DataAt("Items")
 	if err != nil {
-		return getErrorResp(fmt.Errorf("could not get items: %w", err))
+		return GetErrorResp(fmt.Errorf("could not get items: %w", err))
 	}
 	activityURIs, _ := items.([]any)
 	var docRefs []*firestore.DocumentRef
@@ -86,7 +86,7 @@ func FetchCol(r *LambdaRequest, host, colName string) (*LambdaResponse, error) {
 
 	docs, err := client.GetAll(ctx, docRefs)
 	if err != nil {
-		return getErrorResp(fmt.Errorf("could not GetAll %s: %w", colName, err))
+		return GetErrorResp(fmt.Errorf("could not GetAll %s: %w", colName, err))
 	}
 
 	likesOrShares := []*ap.LikeOrShare{}
@@ -110,7 +110,7 @@ func FetchCol(r *LambdaRequest, host, colName string) (*LambdaResponse, error) {
 	if !wantsAP {
 		respBody, err := json.Marshal(likesOrShares)
 		if err != nil {
-			return getErrorResp(fmt.Errorf("could not marshal slice: %w", err))
+			return GetErrorResp(fmt.Errorf("could not marshal slice: %w", err))
 		}
 		return &events.APIGatewayProxyResponse{
 			StatusCode: 200,
@@ -152,12 +152,5 @@ func FetchCol(r *LambdaRequest, host, colName string) (*LambdaResponse, error) {
 			"Content-Type": "application/activity+json",
 		},
 		Body: body,
-	}, nil
-}
-
-func getErrorResp(err error) (*LambdaResponse, error) {
-	return &events.APIGatewayProxyResponse{
-		StatusCode: 500,
-		Body:       err.Error(),
 	}, nil
 }

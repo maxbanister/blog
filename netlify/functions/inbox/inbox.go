@@ -6,8 +6,8 @@ import (
 	"fmt"
 
 	"github.com/aws/aws-lambda-go/lambda"
-	"github.com/maxbanister/blog/ap"
-	. "github.com/maxbanister/blog/util"
+	"github.com/maxbanister/blog/netlify/ap"
+	. "github.com/maxbanister/blog/netlify/util"
 )
 
 func main() {

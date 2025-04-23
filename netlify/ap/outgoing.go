@@ -18,15 +18,14 @@ import (
 	"time"
 )
 
-func SendActivity(payload string, actor *Actor) {
+func SendActivity(payload string, actor *Actor) error {
 	fmt.Println("Payload:", payload)
 
 	// post to actor inbox a message
 	actorInbox := actor.Inbox
 	r, err := http.NewRequest("POST", actorInbox, strings.NewReader(payload))
 	if err != nil {
-		fmt.Println("couldn't post to actor inbox:", err.Error())
-		return
+		return fmt.Errorf("couldn't post to actor inbox: %w", err)
 	}
 	// first, compose headers
 	r.Header["date"] = []string{time.Now().UTC().Format(http.TimeFormat)}
@@ -41,8 +40,7 @@ func SendActivity(payload string, actor *Actor) {
 
 	privKeyRSA, err := getPrivKey()
 	if err != nil {
-		fmt.Println(err.Error())
-		return
+		return err
 	}
 
 	// Sign header string with PKCIS private key
@@ -50,8 +48,7 @@ func SendActivity(payload string, actor *Actor) {
 	sigBytes, err := rsa.SignPKCS1v15(rand.Reader, privKeyRSA, crypto.SHA256,
 		hashedHdrs[:])
 	if err != nil {
-		fmt.Println("signing error:", err.Error())
-		return
+		return fmt.Errorf("signing error: %w", err)
 	}
 	sigBase64 := base64.StdEncoding.EncodeToString(sigBytes)
 
@@ -67,15 +64,15 @@ func SendActivity(payload string, actor *Actor) {
 
 	resp, err := (&http.Client{}).Do(r)
 	if err != nil {
-		fmt.Println("error sending AcceptFollow:", err.Error())
-		return
+		return fmt.Errorf("error sending AcceptFollow: %w", err)
 	}
 	respBody, _ := io.ReadAll(resp.Body)
 	fmt.Println(resp.StatusCode, string(respBody))
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		fmt.Printf("instance did not accept activity: %v\n", resp)
-		return
+		return fmt.Errorf("instance did not accept activity: %v\n", resp)
 	}
+
+	return nil
 }
 
 func getPrivKey() (*rsa.PrivateKey, error) {

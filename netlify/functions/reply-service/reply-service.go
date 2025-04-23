@@ -10,9 +10,9 @@ import (
 	"cloud.google.com/go/firestore"
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
-	"github.com/maxbanister/blog/ap"
-	"github.com/maxbanister/blog/kv"
-	. "github.com/maxbanister/blog/util"
+	"github.com/maxbanister/blog/netlify/ap"
+	"github.com/maxbanister/blog/netlify/kv"
+	. "github.com/maxbanister/blog/netlify/util"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )

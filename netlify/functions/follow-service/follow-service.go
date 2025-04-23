@@ -8,8 +8,8 @@ import (
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
-	. "github.com/maxbanister/blog/ap"
-	. "github.com/maxbanister/blog/util"
+	. "github.com/maxbanister/blog/netlify/ap"
+	. "github.com/maxbanister/blog/netlify/util"
 )
 
 func main() {
@@ -55,5 +55,8 @@ func AcceptRequest(hostSite, followReqBody string, actor *Actor) {
 		"actor": "https://%s/ap/user/blog",
 		"object": %s%s`, hostSite, actorAt, hostSite, followReqBody, "\n}\n")
 
-	SendActivity(payload, actor)
+	err := SendActivity(payload, actor)
+	if err != nil {
+		fmt.Println("error sending activity:", err.Error())
+	}
 }

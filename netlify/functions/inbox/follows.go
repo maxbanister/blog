@@ -9,10 +9,10 @@ import (
 	"os"
 	"time"
 
-	. "github.com/maxbanister/blog/util"
+	. "github.com/maxbanister/blog/netlify/util"
 
-	"github.com/maxbanister/blog/ap"
-	"github.com/maxbanister/blog/kv"
+	"github.com/maxbanister/blog/netlify/ap"
+	"github.com/maxbanister/blog/netlify/kv"
 )
 
 func HandleFollow(actor *ap.Actor, reqJSON map[string]any) error {

@@ -10,8 +10,8 @@ import (
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
-	"github.com/maxbanister/blog/kv"
-	. "github.com/maxbanister/blog/util"
+	"github.com/maxbanister/blog/netlify/kv"
+	. "github.com/maxbanister/blog/netlify/util"
 	"google.golang.org/api/iterator"
 )
 
@@ -51,11 +51,14 @@ func handleFollowers(request LambdaRequest) (*LambdaResponse, error) {
 	}
 
 	fmt.Printf("%v\n", followers)
+	host := GetHostSite()
 
 	payloadStr := strings.Builder{}
 	payloadStr.WriteString(`{
 	"@context": "https://www.w3.org/ns/activitystreams",
-	"id": "https://maxscribes.netilfy.app/ap/followers",
+	"id": "`)
+	payloadStr.WriteString(host)
+	payloadStr.WriteString(`/ap/followers",
 	"type": "OrderedCollection",
 	"totalItems": `)
 	payloadStr.WriteString(strconv.Itoa(len(followers)))

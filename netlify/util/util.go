@@ -68,3 +68,11 @@ func GetLambdaResp(err error) (*LambdaResponse, error) {
 		Body:       errMsg,
 	}, nil
 }
+
+// Simpler version of the above that only returns status code 500
+func GetErrorResp(err error) (*LambdaResponse, error) {
+	return &events.APIGatewayProxyResponse{
+		StatusCode: 500,
+		Body:       err.Error(),
+	}, nil
+}
