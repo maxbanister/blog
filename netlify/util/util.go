@@ -20,15 +20,12 @@ type LambdaRequest = events.APIGatewayProxyRequest
 type LambdaResponse = events.APIGatewayProxyResponse
 
 func GetHostSite() string {
-	siteURL := os.Getenv("URL")
-	siteURL = strings.TrimPrefix(siteURL, "http://")
-	siteURL = strings.TrimPrefix(siteURL, "https://")
-	return siteURL
+	return os.Getenv("URL")
 }
 
 func Sluggify(uri url.URL) string {
 	uri.Scheme = ""
-	uriStr := strings.ToLower(uri.String()[2:])
+	uriStr := strings.ToLower(uri.String())
 	var res strings.Builder
 	lastDash := false
 	for _, c := range uriStr {
