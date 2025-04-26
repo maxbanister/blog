@@ -1,0 +1,16 @@
+name = "default theme"
+license = "GPLv3"
+licenselink = "https://github.com/owner/repo/LICENSE"
+description = "Theme description"
+
+# The home page of the theme, where the source can be found
+homepage = "https://github.com/owner/repo"
+
+# Taxonomy terms
+tags = ["blog", "company"]
+features = ["some", "awesome", "features"]
+
+# If the theme has a single author
+[author]
+  name = "Max Banister"
+  homepage = "maxscribes.netlify.app"
