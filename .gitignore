@@ -3,3 +3,6 @@ public.pem
 firebase-svc.json
 .netlify
 .hugo_build.lock
+public/
+!public/ap/
+!public/.well-known

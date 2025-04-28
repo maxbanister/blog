@@ -1,10 +1,10 @@
-name = "default theme"
+name = "default"
 license = "GPLv3"
 licenselink = "https://github.com/owner/repo/LICENSE"
-description = "Theme description"
+description = "basic theme"
 
 # The home page of the theme, where the source can be found
-homepage = "https://github.com/owner/repo"
+homepage = "https://github.com/maxbanister/blog"
 
 # Taxonomy terms
 tags = ["blog", "company"]

@@ -1,3 +1,6 @@
 baseURL = 'https://maxscribes.netlify.app/'
 languageCode = 'en-us'
-title = "Max Banister's Blog"
+title = "Max Banister's Notes"
+theme = "default"
+[params]
+    subtitle = "The boys have been retowned."
