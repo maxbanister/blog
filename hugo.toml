@@ -1,9 +1,13 @@
-baseURL = 'https://maxbanister.com/'
-languageCode = 'en-us'
+baseURL = "https://maxbanister.com/"
+languageCode = "en-us"
 title = "Max Banister's Notes"
 theme = "default"
+
 [params]
     subtitle = "The boys have been retowned."
+
 enableGitInfo = true
+
 [frontmatter]
-  lastmod = ["lastmod", ":git", "date", "publishDate"]
+  lastmod = ["lastmod", ":git", "date", "pubdate"]
+  date = ["pubdate", "date", "lastmod", "modified"]

@@ -1,5 +1,6 @@
 +++
-title = 'My First Post'
+title = "My First Post"
+date = "2025-04-26"
 +++
 
 ## Introduction

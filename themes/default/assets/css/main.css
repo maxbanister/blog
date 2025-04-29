@@ -12,13 +12,12 @@ body {
   margin-left: auto;
   margin-right: auto;
   text-align: left;
-  background-color: #222;
   color: white;
   font-family: "Roboto Slab", serif;
   font-size: 18px;
-  background-color: #222;
-  background-image: linear-gradient(to bottom, #222 80%, transparent 100%
+  background-image: linear-gradient(to bottom, rgb(40, 27, 21) 80%, transparent 100%
   ), url("https://static.vecteezy.com/system/resources/previews/016/596/768/large_2x/gray-concrete-wall-texture-grunge-background-distressed-grunge-texture-and-dark-gray-charcoal-color-paint-background-illustration-free-vector.jpg");
+  /*background-repeat: no-repeat;*/
 }
 
 h1, h2, h3, h4, h5, h6 {
