@@ -13,4 +13,4 @@ features = ["some", "awesome", "features"]
 # If the theme has a single author
 [author]
   name = "Max Banister"
-  homepage = "maxscribes.netlify.app"
+  homepage = "maxbanister.com"

@@ -1,6 +1,7 @@
 +++
 title = "My First Post"
 date = "2025-04-26"
+lastmod = "2025-04-26"
 +++
 
 ## Introduction

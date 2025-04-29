@@ -1,7 +1,11 @@
 {{ define "main" }}
   {{ .Content }}
   {{ range site.RegularPages }}
-    <h2><a href="{{ .RelPermalink }}">{{ .LinkTitle }}</a></h2>
-    {{ .Summary }}
+    <card>
+      <h2><a href="{{ .RelPermalink }}">{{ .LinkTitle }}</a></h2>
+      {{ partial "printdate.html" (dict "date" .Date) }}
+      <br/>
+      {{ .Summary }}
+    </card>
   {{ end }}
 {{ end }}

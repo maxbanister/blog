@@ -2,12 +2,12 @@ baseURL = "https://maxbanister.com/"
 languageCode = "en-us"
 title = "Max Banister's Notes"
 theme = "default"
+enableGitInfo = true
 
 [params]
     subtitle = "The boys have been retowned."
 
-enableGitInfo = true
 
 [frontmatter]
-  lastmod = ["lastmod", ":git", "date", "pubdate"]
-  date = ["pubdate", "date", "lastmod", "modified"]
+    lastmod = ["lastmod", ":git", "modified", "pubdate"]
+    date = ["pubdate", "date", "lastmod", "modified"]

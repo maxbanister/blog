@@ -1,13 +1,13 @@
 {{ define "main" }}
   <h1>{{ .Title }}</h1>
 
-  {{ $dateMachine := .Date | time.Format "2006-01-02T15:04:05-07:00" }}
-  {{ $dateHuman := .Date | time.Format ":date_long" }}
-  <time datetime="{{ $dateMachine }}">{{ $dateHuman }}</time>
+  {{ partial "printdate.html" (dict "date" .Date) }}
   <br/>
-  {{ $editDateMachine := .Lastmod | time.Format "2006-01-02T15:04:05-07:00" }}
-  {{ $editDateHuman := .Lastmod | time.Format ":date_long" }}
-  Updated: <time datetime="{{ $editDateMachine }}">{{ $editDateHuman }}</time>
+  {{ if ne (.Date.Format "2006-01-02") (.Lastmod.Format "2006-01-02") }}
+    <i>Updated: {{ partial "printdate.html" (dict "date" .Lastmod) }}</i>
+    <br/>
+  {{ end }}
+  <br/>
 
   {{ .Content }}
   {{ partial "terms.html" (dict "taxonomy" "tags" "page" .) }}
