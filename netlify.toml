@@ -42,7 +42,7 @@
 	status = 301
 
 [[headers]]
-	for = "/ap/user/blog"
+	for = "/ap/user/max"
 	[headers.values]
 		Content-Type = "application/activity+json"
 

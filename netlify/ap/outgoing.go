@@ -54,7 +54,7 @@ func SendActivity(payload string, actor *Actor) error {
 
 	r.Header["Signature"] = []string{
 		fmt.Sprintf(`keyId="%s",algorithm="%s",headers="%s",signature="%s"`,
-			"https://maxscribes.netlify.app/ap/user/blog#main-key",
+			"https://maxscribes.netlify.app/ap/user/max#main-key",
 			"rsa-sha256",
 			SigStringHeaders,
 			sigBase64,

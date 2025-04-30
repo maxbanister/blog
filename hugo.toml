@@ -7,7 +7,19 @@ enableGitInfo = true
 [params]
     subtitle = "The boys have been retowned."
 
-
 [frontmatter]
     lastmod = ["lastmod", ":git", "modified", "pubdate"]
     date = ["pubdate", "date", "lastmod", "modified"]
+
+[mediaTypes]
+    [mediaTypes."application/activity+json"]
+        suffixes = ["json"]
+
+[outputFormats]
+    [outputFormats.activity_outbox]
+        mediaType = "application/activity+json"
+        notAlternative = true
+        baseName = "outbox"
+
+[outputs]
+    home = ["html", "rss", "activity_outbox"]

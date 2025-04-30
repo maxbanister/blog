@@ -50,9 +50,9 @@ func AcceptRequest(hostSite, followReqBody string, actor *Actor) {
 
 	payload := fmt.Sprintf(`{
 		"@context": "https://www.w3.org/ns/activitystreams",
-		"id": "%s/ap/user/blog#accepts/follows/%s",
+		"id": "%s/ap/user/max#accepts/follows/%s",
 		"type": "Accept",
-		"actor": "%s/ap/user/blog",
+		"actor": "%s/ap/user/max",
 		"object": %s%s`, hostSite, actorAt, hostSite, followReqBody, "\n}\n")
 
 	err := SendActivity(payload, actor)

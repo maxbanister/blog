@@ -1,0 +1,63 @@
+{{- $pctx := . -}}
+{{- if .IsHome -}}{{ $pctx = .Site }}{{- end -}}
+{{- $pages := slice -}}
+{{- if or $.IsHome $.IsSection -}}
+{{- $pages = $pctx.RegularPages -}}
+{{- else -}}
+{{- $pages = $pctx.Pages -}}
+{{- end -}}
+{{- $limit := .Site.Config.Services.RSS.Limit -}}
+{{- if ge $limit 1 -}}
+{{- $pages = $pages | first $limit -}}
+{{- end -}}
+{
+	"@context": "https://www.w3.org/ns/activitystreams",
+	"id": "{{ $.Site.BaseURL }}ap/outbox",
+	"summary": "Recent posts from Max's blog",
+	"type": "OrderedCollection",
+	{{- $notdrafts := where $pages ".Draft" "!=" true }}
+	{{- $all :=  where $notdrafts ".Type" "in" (slice "posts") }}
+	"totalItems": {{(len $all)}},
+	"orderedItems": [
+		{{- range $index, $element := $all -}}
+		{{- if ne $index 0 }}, {{ end }}
+		{
+			"@context": "https://www.w3.org/ns/activitystreams",
+			"id": "{{.Permalink}}#create",
+			"type": "Create",
+			"actor": "https://maxbanister.com/ap/user/max",
+			"to": "https://www.w3.org/ns/activitystreams#Public",
+			{{ $postDate := dateFormat "2006-01-02T15:04:05-07:00" .Date | jsonify }}
+			"published": {{ $postDate }},
+			"object": {
+				"id": "{{ .Permalink }}",
+				"type": "Note",
+				{{- /* TODO: format across mastodon, bluesky, and threads */ -}}
+				{{- $postBody := printf "%s\\n%s" .Title (strings.Replace .Summary "\n" `\n`) -}}
+				{{- $postBodyTrunc := truncate (sub 299 (len .Permalink)) $postBody -}}
+				{{- $postWithURL := printf "%s %s" $postBodyTrunc .Permalink }}
+				"content": "{{ $postWithURL }}",
+				"url": "{{.Permalink}}",
+				"attributedTo": "https://maxbanister.com/ap/user/max",
+				"to": "https://www.w3.org/ns/activitystreams#Public",
+				"published": {{ $postDate }},
+				"replies": "{{.Permalink }}replies",
+				"likes": "{{.Permalink }}likes",
+				"shares": "{{.Permalink }}shares"
+				{{- with $tags := .Param "tags" }},
+				"tag": [
+					{{- range $index, $element := $tags }}
+					{{- if ne $index 0 }}, {{ end }}
+					{
+						"Type": "Hashtag",
+						"Href": "https://maxbanister.com/tags/{{ $element }}",
+						"Name": "#{{ $element }}"
+					}
+					{{- end }}
+				]
+				{{- end }}
+			}
+		}
+		{{- end }}
+	]
+}
