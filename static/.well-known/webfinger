@@ -1,7 +1,7 @@
 {
-    "subject": "acct:blog@maxscribes.netlify.app",
+    "subject": "acct:max@maxbanister.com",
     "aliases": [
-        "https://maxscribes.netlify.app/ap/user/max"
+        "https://maxbanister.com/ap/user/max"
     ],
     "links": [
         {

@@ -2,14 +2,26 @@
   --accent: tan;
 }
 
+/* Intentionally only use the regular font. */
+@font-face {
+  font-family: "Cardo";
+  src: local("Cardo"), url("/fonts/Cardo/Cardo-Regular.ttf") format("truetype");
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "Roboto Slab";
+  src: local("Roboto Slab"), url("/fonts/Roboto_Slab/RobotoSlab-VariableFont_wght.ttf") format("truetype");
+  font-weight: 100 900;
+}
+
 html {
   /* Needed to stick background image to the bottom of the page. */
   min-height: 100%;
 }
 
 body {
-  color: #222;
-  font-family: sans-serif;
   line-height: 1.5;
   margin: 1rem;
   max-width: 768px;
@@ -25,6 +37,8 @@ body {
   background-image: linear-gradient(#222 80%, transparent 100%
   ), url("/images/bg-image-bottom-charcoal.jpg");
 }
+
+@media (prefers-color-scheme: light) { }
 
 h1, h2, h3, h4, h5, h6 {
   font-weight: bold;
@@ -210,6 +224,10 @@ header #container {
   background-color: black;
 }
 
+.main-content {
+  margin-bottom: 2rem;
+}
+
 #tags {
   margin-top: 2rem;
 }
@@ -231,4 +249,5 @@ header #container {
 
 #tags > ul > li:hover {
   background-color: rgba(255, 0, 0, 0.3);
+  text-decoration: none;
 }

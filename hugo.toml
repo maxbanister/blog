@@ -5,11 +5,11 @@ theme = "default"
 enableGitInfo = true
 
 [params]
-    subtitle = "The boys have been retowned."
+    subtitle = "The boys are retowned."
 
 [frontmatter]
-    lastmod = ["lastmod", ":git", "modified", "pubdate"]
-    date = ["pubdate", "date", "lastmod", "modified"]
+    lastmod = ["lastmod", ":git", ":fileModTime"]
+    date = ["date", ":fileModTime", "lastmod"]
 
 [mediaTypes]
     [mediaTypes."application/activity+json"]
@@ -20,6 +20,7 @@ enableGitInfo = true
         mediaType = "application/activity+json"
         notAlternative = true
         baseName = "outbox"
+        path = "ap"
 
 [outputs]
     home = ["html", "rss", "activity_outbox"]

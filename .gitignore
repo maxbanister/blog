@@ -4,3 +4,6 @@ firebase-svc.json
 .netlify
 .hugo_build.lock
 public/
+node_modules/
+package-lock.json
+package.json

@@ -8,7 +8,11 @@
     <br/>
   {{ end }}
   <br/>
-
-  {{ .Content }}
-  {{ partial "terms.html" (dict "taxonomy" "tags" "page" .) }}
+  <div class="main-content">
+    {{ .Content }}
+    {{ partial "terms.html" (dict "taxonomy" "tags" "page" .) }}
+  </div>
+    {{ if eq .Page.Type "posts" }}
+      {{ partial "interaction.html" . }}
+    {{ end }}
 {{ end }}

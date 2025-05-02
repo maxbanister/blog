@@ -16,6 +16,8 @@ import (
 	"reflect"
 	"strings"
 	"time"
+
+	. "github.com/maxbanister/blog/netlify/util"
 )
 
 func SendActivity(payload string, actor *Actor) error {
@@ -54,7 +56,7 @@ func SendActivity(payload string, actor *Actor) error {
 
 	r.Header["Signature"] = []string{
 		fmt.Sprintf(`keyId="%s",algorithm="%s",headers="%s",signature="%s"`,
-			"https://maxscribes.netlify.app/ap/user/max#main-key",
+			GetHostSite()+"/ap/user/max#main-key",
 			"rsa-sha256",
 			SigStringHeaders,
 			sigBase64,
@@ -69,7 +71,7 @@ func SendActivity(payload string, actor *Actor) error {
 	respBody, _ := io.ReadAll(resp.Body)
 	fmt.Println(resp.StatusCode, string(respBody))
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		return fmt.Errorf("instance did not accept activity: %v\n", resp)
+		return fmt.Errorf("instance did not accept activity: %v", resp)
 	}
 
 	return nil

@@ -1,10 +1,12 @@
 +++
 title = "My First Post"
-lastmod = "2025-04-26"
+date = "2025-04-30"
 +++
 
 ## Introduction
 
+Testing ActivityPub crossposting.
+
 This is **bold** text, and this is *emphasized* text.
 
-Visit the [Hugo](https://gohugo.io) website!
+Visit my [website](https://maxbanister.com/) !

@@ -20,7 +20,13 @@ type LambdaRequest = events.APIGatewayProxyRequest
 type LambdaResponse = events.APIGatewayProxyResponse
 
 func GetHostSite() string {
-	return os.Getenv("URL")
+	host := os.Getenv("URL")
+	// hack to get to work in dev
+	if strings.Contains(host, "localhost") {
+		return "https://maxbanister.com"
+	} else {
+		return host
+	}
 }
 
 func Sluggify(uri url.URL) string {

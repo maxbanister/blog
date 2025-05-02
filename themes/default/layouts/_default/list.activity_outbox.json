@@ -25,9 +25,14 @@
 			"@context": "https://www.w3.org/ns/activitystreams",
 			"id": "{{.Permalink}}#create",
 			"type": "Create",
-			"actor": "https://maxbanister.com/ap/user/max",
-			"to": "https://www.w3.org/ns/activitystreams#Public",
-			{{ $postDate := dateFormat "2006-01-02T15:04:05-07:00" .Date | jsonify }}
+			"actor": "{{ $.Site.BaseURL }}ap/user/max",
+			"to": [
+				"https://www.w3.org/ns/activitystreams#Public"
+			],
+			"cc": [
+				"{{.Permalink}}ap/followers"
+			],
+			{{- $postDate := dateFormat "2006-01-02T15:04:05-07:00" .Date | jsonify }}
 			"published": {{ $postDate }},
 			"object": {
 				"id": "{{ .Permalink }}",
@@ -38,8 +43,10 @@
 				{{- $postWithURL := printf "%s %s" $postBodyTrunc .Permalink }}
 				"content": "{{ $postWithURL }}",
 				"url": "{{.Permalink}}",
-				"attributedTo": "https://maxbanister.com/ap/user/max",
-				"to": "https://www.w3.org/ns/activitystreams#Public",
+				"attributedTo": "{{ $.Site.BaseURL }}ap/user/max",
+				"to": [
+					"https://www.w3.org/ns/activitystreams#Public"
+				],
 				"published": {{ $postDate }},
 				"replies": "{{.Permalink }}replies",
 				"likes": "{{.Permalink }}likes",
@@ -50,7 +57,7 @@
 					{{- if ne $index 0 }}, {{ end }}
 					{
 						"Type": "Hashtag",
-						"Href": "https://maxbanister.com/tags/{{ $element }}",
+						"Href": "{{ $.Site.BaseURL }}tags/{{ $element }}",
 						"Name": "#{{ $element }}"
 					}
 					{{- end }}
