@@ -76,6 +76,16 @@ func handleInbox(ctx context.Context, request LambdaRequest) (*LambdaResponse, e
 
 	case "Announce":
 		return GetLambdaResp(HandleAnnounce(actor, requestJSON, HOST_SITE))
+
+	case "Accept":
+		object, _ := requestJSON["object"].(map[string]any)
+		if object["type"] == "Follow" {
+			fmt.Println("AcceptFollow from", object["actor"])
+			return GetLambdaResp(nil)
+		} else {
+			return GetLambdaResp(fmt.Errorf("%w: only accepts follow requests",
+				ErrBadRequest))
+		}
 	}
 
 	return GetLambdaResp(fmt.Errorf(

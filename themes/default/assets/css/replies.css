@@ -96,7 +96,6 @@
     flex: 1;
     flex-grow: 1;
     display: inline-block;
-    vertical-align: top;
 }
 
 .reply-profile-info > span:first-child, .reply-profile-info a {
@@ -119,9 +118,11 @@
 .reply-op-button {
     text-align: right;
     display: inline-block;
+    white-space: nowrap;
 }
 
 .reply-op-button a {
+    display: inline-block;
     font-size: 16px;
     color: white;
     border-radius: 0.25rem;
