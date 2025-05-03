@@ -1,5 +1,5 @@
 {{- $resources := slice "js/main.js" }}
-{{- if eq .Page.Type "posts" }}
+{{- if and (eq .Page.Type "posts") .Page.IsPage }}
   {{- $resources = $resources | append "js/interactions.js" "js/replies.js" }}
 {{- end }}
 

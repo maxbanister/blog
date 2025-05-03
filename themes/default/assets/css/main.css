@@ -38,8 +38,6 @@ body {
   ), url("/images/bg-image-bottom-charcoal.jpg");
 }
 
-@media (prefers-color-scheme: light) { }
-
 h1, h2, h3, h4, h5, h6 {
   font-weight: bold;
   font-family: "Cardo", serif;
@@ -224,8 +222,8 @@ header #container {
   background-color: black;
 }
 
-.main-content {
-  margin-bottom: 2rem;
+article {
+  margin-bottom: 3rem;
 }
 
 #tags {

@@ -82,7 +82,7 @@ func endorse(a *ap.Actor, reqJSON map[string]any, colName, host string) error {
 	txFunc := func(ctx context.Context, tx *firestore.Transaction) error {
 		// add to object's list of likes/shares
 		err = tx.Set(objectDocRef, map[string]any{
-			"Id":    objectURI.JoinPath("likes").String(),
+			"Id":    objectURI.JoinPath(colName).String(),
 			"Items": firestore.ArrayUnion(endorseURIString),
 		}, firestore.MergeAll)
 		if err != nil {

@@ -17,6 +17,7 @@ func main() {
 }
 
 func handle(ctx context.Context, request LambdaRequest) (*LambdaResponse, error) {
+	fmt.Println("Got accept follow request")
 	if request.Headers["authorization"] != os.Getenv("SELF_API_KEY") {
 		fmt.Println("Authorization header did not match key")
 		return &events.APIGatewayProxyResponse{StatusCode: 400}, nil

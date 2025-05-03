@@ -17,7 +17,6 @@ async function renderInteractions(typ) {
     expandedEl.style.display = "flex";
     const typCapitalized = typ.charAt(0).toUpperCase() + typ.slice(1);
     labelEl.firstChild.textContent = typCapitalized + " (" + items.length + ")";
-    console.log(items);
 
     previewImages = likesOrSharesEl.getElementsByClassName("preview_images")[0];
 
@@ -45,7 +44,7 @@ async function renderInteractions(typ) {
             previewImages.appendChild(document.createTextNode("\u00A0…"));
         }
 
-        // <span><img src="…" alt="…"/><a href="…">@name@example.com</a></span>
+        // <span><img src="…" alt="…"/><a href="…">name</a></span>
         const a = document.createElement("a");
         const span = document.createElement("span");
         img = img.cloneNode();

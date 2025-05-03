@@ -178,7 +178,7 @@ func fetchActor(actorData any) (*Actor, error) {
 	if err != nil {
 		return nil, fmt.Errorf("bad json syntax: %s", err.Error())
 	}
-	if actor.PublicKey.PublicKeyPEM == "" {
+	if actor.PublicKey == nil || actor.PublicKey.PublicKeyPEM == "" {
 		return nil, errors.New("no actor public key found")
 	}
 	if actor.Inbox == "" {
