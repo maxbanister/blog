@@ -5,6 +5,7 @@ import (
 	_ "embed"
 	"encoding/json"
 	"fmt"
+	"sync"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
@@ -71,16 +72,26 @@ func handleDeploy(request LambdaRequest) (*LambdaResponse, error) {
 		followers = append(followers, &follower)
 	}
 
+	var wg sync.WaitGroup
+	createActivityStr := string(createActivity)
+
 	// broadcast to followers
 	for _, follower := range followers {
-		err = ap.SendActivity(string(createActivity), follower)
-		if err != nil {
-			fmt.Printf("failed sending post to %s: %s\n", follower.Id,
-				err.Error())
-		} else {
-			fmt.Printf("successfully sent to %s\n", follower.Id)
-		}
+		wg.Add(1)
+
+		go func(follower ap.Actor) {
+			defer wg.Done()
+			err = ap.SendActivity(createActivityStr, &follower)
+			if err != nil {
+				fmt.Printf("failed sending post to %s: %s\n", follower.Id,
+					err.Error())
+			} else {
+				fmt.Printf("successfully sent to %s\n", follower.Id)
+			}
+		}(*follower)
 	}
+
+	wg.Wait()
 
 	return &events.APIGatewayProxyResponse{
 		StatusCode: 200,

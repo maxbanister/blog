@@ -14,10 +14,11 @@
 				"https://www.w3.org/ns/activitystreams#Public"
 			],
 			"cc": [
-				"https://maxbanister.com/posts/my-first-post/ap/followers"
+				"https://maxbanister.com/ap/followers"
 			],
 			"published": "2025-04-30T00:00:00+00:00",
 			"object": {
+				"@context": "https://www.w3.org/ns/activitystreams",
 				"id": "https://maxbanister.com/posts/my-first-post/",
 				"type": "Note",
 				"content": "My First Post\nIntroduction Testing ActivityPub crossposting.\nThis is bold text, and this is emphasized text.\nVisit my website ! https://maxbanister.com/posts/my-first-post/",
@@ -26,6 +27,7 @@
 				"to": [
 					"https://www.w3.org/ns/activitystreams#Public"
 				],
+				"cc": [],
 				"published": "2025-04-30T00:00:00+00:00",
 				"replies": "https://maxbanister.com/posts/my-first-post/replies",
 				"likes": "https://maxbanister.com/posts/my-first-post/likes",
@@ -41,10 +43,11 @@
 				"https://www.w3.org/ns/activitystreams#Public"
 			],
 			"cc": [
-				"https://maxbanister.com/posts/post-3/ap/followers"
+				"https://maxbanister.com/ap/followers"
 			],
 			"published": "2023-03-15T11:00:00-07:00",
 			"object": {
+				"@context": "https://www.w3.org/ns/activitystreams",
 				"id": "https://maxbanister.com/posts/post-3/",
 				"type": "Note",
 				"content": "Post 3\nOccaecat aliqua consequat laborum ut ex aute aliqua culpa quis irure esse magna dolore quis. Proident fugiat labore eu laboris officia Lorem enim. Ipsum occaecat cillum ut tempor id sint aliqua incididunt nisi incididunt reprehenderit. Voluptate ad minim … https://maxbanister.com/posts/post-3/",
@@ -53,6 +56,7 @@
 				"to": [
 					"https://www.w3.org/ns/activitystreams#Public"
 				],
+				"cc": [],
 				"published": "2023-03-15T11:00:00-07:00",
 				"replies": "https://maxbanister.com/posts/post-3/replies",
 				"likes": "https://maxbanister.com/posts/post-3/likes",
@@ -85,10 +89,11 @@
 				"https://www.w3.org/ns/activitystreams#Public"
 			],
 			"cc": [
-				"https://maxbanister.com/posts/post-2/ap/followers"
+				"https://maxbanister.com/ap/followers"
 			],
 			"published": "2023-02-15T10:00:00-07:00",
 			"object": {
+				"@context": "https://www.w3.org/ns/activitystreams",
 				"id": "https://maxbanister.com/posts/post-2/",
 				"type": "Note",
 				"content": "Post 2\nAnim eiusmod irure incididunt sint cupidatat. Incididunt irure irure irure nisi ipsum do ut quis fugiat consectetur proident cupidatat incididunt cillum. Dolore voluptate occaecat qui mollit laborum ullamco et. Ipsum laboris officia anim laboris culpa … https://maxbanister.com/posts/post-2/",
@@ -97,6 +102,7 @@
 				"to": [
 					"https://www.w3.org/ns/activitystreams#Public"
 				],
+				"cc": [],
 				"published": "2023-02-15T10:00:00-07:00",
 				"replies": "https://maxbanister.com/posts/post-2/replies",
 				"likes": "https://maxbanister.com/posts/post-2/likes",
@@ -124,10 +130,11 @@
 				"https://www.w3.org/ns/activitystreams#Public"
 			],
 			"cc": [
-				"https://maxbanister.com/posts/post-1/ap/followers"
+				"https://maxbanister.com/ap/followers"
 			],
 			"published": "2023-01-15T09:00:00-07:00",
 			"object": {
+				"@context": "https://www.w3.org/ns/activitystreams",
 				"id": "https://maxbanister.com/posts/post-1/",
 				"type": "Note",
 				"content": "Post 1\nTempor proident minim aliquip reprehenderit dolor et ad anim Lorem duis sint eiusmod. Labore ut ea duis dolor. Incididunt consectetur proident qui occaecat incididunt do nisi Lorem. Tempor do laborum elit laboris excepteur eiusmod do. Eiusmod nisi … https://maxbanister.com/posts/post-1/",
@@ -136,6 +143,7 @@
 				"to": [
 					"https://www.w3.org/ns/activitystreams#Public"
 				],
+				"cc": [],
 				"published": "2023-01-15T09:00:00-07:00",
 				"replies": "https://maxbanister.com/posts/post-1/replies",
 				"likes": "https://maxbanister.com/posts/post-1/likes",

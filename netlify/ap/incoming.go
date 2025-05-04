@@ -11,7 +11,6 @@ import (
 	"encoding/pem"
 	"errors"
 	"fmt"
-	"io"
 	"net/http"
 	"reflect"
 	"slices"
@@ -52,7 +51,7 @@ func RecvActivity(r *LambdaRequest, requestJSON map[string]any) (*Actor, error) 
 				ErrBadRequest)
 		}
 	}
-	actor, err := fetchActor(requestJSON["actor"])
+	actor, err := FetchActorAuthorized(requestJSON["actor"])
 	if err != nil {
 		return nil, fmt.Errorf("%w: %w", ErrBadRequest, err)
 	}
@@ -147,35 +146,28 @@ func getActorPubKey(actor *Actor) (*rsa.PublicKey, error) {
 	return rsaPublicKey, nil
 }
 
-func fetchActor(actorData any) (*Actor, error) {
-	var readBody io.Reader
+func FetchActorAuthorized(actorData any) (*Actor, error) {
+	var respBody []byte
 
 	switch actorVal := actorData.(type) {
 	case string:
-		req, err := http.NewRequest("GET", actorVal, nil)
-		req.Header.Set("Accept",
-			`application/ld+json; profile="https://www.w3.org/ns/activitystreams`)
+		var err error
+		respBody, err = RequestAuthorized("GET", "", actorVal)
 		if err != nil {
 			return nil, fmt.Errorf("%w: %w", ErrBadRequest, err)
 		}
-		resp, err := http.DefaultClient.Do(req)
-		if err != nil {
-			return nil, fmt.Errorf("%w: %w", ErrBadRequest, err)
-		}
-		readBody = resp.Body
 
 	case map[string]any:
 		// it is rare that the actor is embedded in the request, so we can shirk
 		// performance and convert the map back to JSON and redecode as a struct
-		jsonBytes, _ := json.Marshal(actorVal)
-		readBody = bytes.NewReader(jsonBytes)
+		respBody, _ = json.Marshal(actorVal)
 
 	default:
 		return nil, fmt.Errorf("%w: unknown actor type", ErrBadRequest)
 	}
 
 	var actor Actor
-	err := json.NewDecoder(readBody).Decode(&actor)
+	err := json.Unmarshal(respBody, &actor)
 	if err != nil {
 		return nil, fmt.Errorf("bad json syntax: %s", err.Error())
 	}

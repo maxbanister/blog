@@ -30,11 +30,12 @@
 				"https://www.w3.org/ns/activitystreams#Public"
 			],
 			"cc": [
-				"{{.Permalink}}ap/followers"
+				"{{ $.Site.BaseURL }}ap/followers"
 			],
 			{{- $postDate := dateFormat "2006-01-02T15:04:05-07:00" .Date | jsonify }}
 			"published": {{ $postDate }},
 			"object": {
+				"@context": "https://www.w3.org/ns/activitystreams",
 				"id": "{{ .Permalink }}",
 				"type": "Note",
 				{{- /* TODO: format across mastodon, bluesky, and threads */ -}}
@@ -47,6 +48,7 @@
 				"to": [
 					"https://www.w3.org/ns/activitystreams#Public"
 				],
+				"cc": [],
 				"published": {{ $postDate }},
 				"replies": "{{.Permalink }}replies",
 				"likes": "{{.Permalink }}likes",

@@ -88,7 +88,9 @@ func CallFollowService(r *LambdaRequest, host string, actor *ap.Actor) error {
 	}()
 
 	// give the follow service time to read request body
-	time.Sleep(50 * time.Millisecond)
+	time.Sleep(100 * time.Millisecond)
+
+	fmt.Println("Finished sleeping")
 
 	return nil
 }

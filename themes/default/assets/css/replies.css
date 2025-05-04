@@ -5,6 +5,7 @@
     padding-right: 3rem;
     margin-top: 1rem;
     text-align: center;
+    color: grey;
 }
 
 #social-links br {
@@ -21,7 +22,7 @@
     }
 }
 
-#social-links > a {
+#social-links > * {
     white-space: pre;
     flex: 1;
 }

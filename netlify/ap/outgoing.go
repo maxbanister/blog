@@ -21,28 +21,44 @@ import (
 )
 
 func SendActivity(payload string, actor *Actor) error {
-	fmt.Println("Payload:", payload)
+	// post a message to actor inbox
+	_, err := RequestAuthorized("POST", payload, actor.Inbox)
+	return err
+}
 
-	// post to actor inbox a message
-	actorInbox := actor.Inbox
-	r, err := http.NewRequest("POST", actorInbox, strings.NewReader(payload))
+func RequestAuthorized(method, payload, destURL string) ([]byte, error) {
+	//fmt.Println("Payload:", payload)
+
+	r, err := http.NewRequest(method, destURL, strings.NewReader(payload))
 	if err != nil {
-		return fmt.Errorf("couldn't post to actor inbox: %w", err)
+		return nil, fmt.Errorf("couldn't post to actor inbox: %w", err)
 	}
 	// first, compose headers
+	var sigHeaders string
 	r.Header["date"] = []string{time.Now().UTC().Format(http.TimeFormat)}
-	r.Header["content-type"] = []string{"application/activity+json; charset=utf-8"}
+	if method == "POST" {
+		r.Header["content-type"] = []string{
+			"application/activity+json; charset=utf-8",
+		}
+		sigHeaders = SupportedSigHeaders
+	} else if method == "GET" {
+		r.Header.Set("accept", `application/ld+json; `+
+			`profile="https://www.w3.org/ns/activitystreams`)
+		sigHeaders = FetchSigHeaders
+	}
+	// digest will always be sha256("") for a get request, but the AP spec
+	// seems to require it
 	digest := sha256.Sum256([]byte(payload))
 	digestBase64 := base64.StdEncoding.EncodeToString(digest[:])
 	r.Header["digest"] = []string{"SHA-256=" + digestBase64}
 
 	h, m, p := r.Host, r.Method, r.URL.Path
-	signingString := getSigningString(h, m, p, SupportedSigHeaders, r.Header)
-	fmt.Println("signing string 2:", signingString)
+	signingString := getSigningString(h, m, p, sigHeaders, r.Header)
+	//fmt.Println("signing string 2:", signingString)
 
 	privKeyRSA, err := getPrivKey()
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	// Sign header string with PKCIS private key
@@ -50,7 +66,7 @@ func SendActivity(payload string, actor *Actor) error {
 	sigBytes, err := rsa.SignPKCS1v15(rand.Reader, privKeyRSA, crypto.SHA256,
 		hashedHdrs[:])
 	if err != nil {
-		return fmt.Errorf("signing error: %w", err)
+		return nil, fmt.Errorf("signing error: %w", err)
 	}
 	sigBase64 := base64.StdEncoding.EncodeToString(sigBytes)
 
@@ -58,23 +74,23 @@ func SendActivity(payload string, actor *Actor) error {
 		fmt.Sprintf(`keyId="%s",algorithm="%s",headers="%s",signature="%s"`,
 			GetHostSite()+"/ap/user/max#main-key",
 			"rsa-sha256",
-			SupportedSigHeaders,
+			sigHeaders,
 			sigBase64,
 		),
 	}
-	fmt.Println("Signature:", r.Header["Signature"][0])
+	//fmt.Println("Signature:", r.Header["Signature"][0])
 
 	resp, err := http.DefaultClient.Do(r)
 	if err != nil {
-		return fmt.Errorf("error sending AcceptFollow: %w", err)
+		return nil, fmt.Errorf("error sending activity: %w", err)
 	}
 	respBody, _ := io.ReadAll(resp.Body)
 	fmt.Println(resp.StatusCode, string(respBody))
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		return fmt.Errorf("instance did not accept activity: %v", resp)
+		return nil, fmt.Errorf("http activity request error: %v", resp)
 	}
 
-	return nil
+	return respBody, nil
 }
 
 func getPrivKey() (*rsa.PrivateKey, error) {

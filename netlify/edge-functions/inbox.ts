@@ -14,19 +14,33 @@ export default async (req: Request, context: Context) => {
 		if (typeof obj == "string" && obj.toLowerCase().includes("users")) {
 			console.log(body);
 
+			// Tell it the user is gone, so it stops pinging us
 			return new Response(
-				"501 Not Implemented: unsupported operation",
+				"202 Accepted",
 				{
-					status: 501,
+					status: 202,
 					headers: { "content-type": "text/html" }
 				}
 			);
 		}
 	}
 
+	context.waitUntil(logRequest());
+
 	// It is necessary to replace the body which was just read out
 	return context.next(new Request(req, { body: text }));
 };
+
+async function logRequest() {
+	console.log("Spinning up");
+
+	const resp = await fetch("https://maxbanister.com/posts/my-first-post/likes", {
+	  method: "GET",
+	  headers: { "Accept": "application/json" },
+	});
+
+	console.log(await resp.json());
+  }
 
 export const config: Config = {
 	path: "/ap/inbox",

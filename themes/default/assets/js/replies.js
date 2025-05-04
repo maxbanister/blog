@@ -1,4 +1,9 @@
 async function renderReplies() {
+	const mastodonAnchor = document.querySelector("#social-links > a");
+	mastodonAnchor.href =
+		"https://mastodon.social/authorize_interaction?uri=" +
+		window.location.href;
+
 	const resp = await fetch(window.location.pathname + "replies");
 	if (!resp.ok) {
 		console.log(resp.statusText);

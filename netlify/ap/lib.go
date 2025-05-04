@@ -54,6 +54,7 @@ type LikeOrShareContainer struct {
 }
 
 const SupportedSigHeaders = "host date digest content-type (request-target)"
+const FetchSigHeaders = "host date digest (request-target)"
 
 func getSigningString(host, method, path, sigHeaders string, hdrs any) string {
 	var outStr strings.Builder
