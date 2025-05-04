@@ -53,7 +53,7 @@ type LikeOrShareContainer struct {
 	Items []LikeOrShare `json:"items"`
 }
 
-const SigStringHeaders = "host date digest content-type (request-target)"
+const SupportedSigHeaders = "host date digest content-type (request-target)"
 
 func getSigningString(host, method, path, sigHeaders string, hdrs any) string {
 	var outStr strings.Builder

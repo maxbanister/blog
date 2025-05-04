@@ -37,7 +37,7 @@ func SendActivity(payload string, actor *Actor) error {
 	r.Header["digest"] = []string{"SHA-256=" + digestBase64}
 
 	h, m, p := r.Host, r.Method, r.URL.Path
-	signingString := getSigningString(h, m, p, SigStringHeaders, r.Header)
+	signingString := getSigningString(h, m, p, SupportedSigHeaders, r.Header)
 	fmt.Println("signing string 2:", signingString)
 
 	privKeyRSA, err := getPrivKey()
@@ -58,13 +58,13 @@ func SendActivity(payload string, actor *Actor) error {
 		fmt.Sprintf(`keyId="%s",algorithm="%s",headers="%s",signature="%s"`,
 			GetHostSite()+"/ap/user/max#main-key",
 			"rsa-sha256",
-			SigStringHeaders,
+			SupportedSigHeaders,
 			sigBase64,
 		),
 	}
 	fmt.Println("Signature:", r.Header["Signature"][0])
 
-	resp, err := (&http.Client{}).Do(r)
+	resp, err := http.DefaultClient.Do(r)
 	if err != nil {
 		return fmt.Errorf("error sending AcceptFollow: %w", err)
 	}

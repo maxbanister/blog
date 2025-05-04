@@ -148,6 +148,11 @@ nav a:hover > span {
   border-bottom: 3px solid white;
 }
 
+nav a:active > span {
+  width: 100%;
+  border-bottom: 3px solid white;
+}
+
 footer {
   padding-top: 1rem;
   border-top: 1px solid white;

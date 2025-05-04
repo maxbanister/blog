@@ -35,7 +35,7 @@ func RecvActivity(r *LambdaRequest, requestJSON map[string]any) (*Actor, error) 
 		return nil, fmt.Errorf("%w: %w", ErrBadRequest, err)
 	}
 
-	sigBytes, keyID, err := getSigHeaderParts(r)
+	sigBytes, keyID, sigStrHdrs, err := getSigHeaderParts(r)
 	if err != nil {
 		return nil, fmt.Errorf("%w: %w", ErrBadRequest, err)
 	}
@@ -64,7 +64,7 @@ func RecvActivity(r *LambdaRequest, requestJSON map[string]any) (*Actor, error) 
 	actor.PublicKey = nil
 
 	h, m, p := r.Headers["host"], r.HTTPMethod, r.Path
-	signingString := getSigningString(h, m, p, SigStringHeaders, r.Headers)
+	signingString := getSigningString(h, m, p, sigStrHdrs, r.Headers)
 
 	hashed := sha256.Sum256([]byte(signingString))
 	fmt.Println("signing string:", signingString)
@@ -78,12 +78,12 @@ func RecvActivity(r *LambdaRequest, requestJSON map[string]any) (*Actor, error) 
 	return actor, nil
 }
 
-func getSigHeaderParts(r *LambdaRequest) ([]byte, string, error) {
+func getSigHeaderParts(r *LambdaRequest) ([]byte, string, string, error) {
 	signatureHeader := r.Headers["signature"]
 	if signatureHeader == "" {
-		return nil, "", errors.New("no signature header")
+		return nil, "", "", errors.New("no signature header")
 	}
-	var keyID, sigBase64 string
+	var keyID, sigBase64, sigStrHdrs string
 	for _, sig := range strings.Split(signatureHeader, ",") {
 		sigKey, sigVal, found := strings.Cut(sig, "=")
 		if !found || len(sigVal) < 2 {
@@ -99,28 +99,29 @@ func getSigHeaderParts(r *LambdaRequest) ([]byte, string, error) {
 		case "algorithm":
 			algo := strings.ToLower(sigVal)
 			if algo != "rsa-sha256" && algo != "hs2019" {
-				return nil, "", errors.New("unsupported signature algorithm")
+				return nil, "", "", errors.New("unsupported signature algorithm")
 			}
 		case "headers":
 			// headers are always lowercase in signature
 			// check if the headers values of each are equal
-			sigStrHdrs := strings.Split(SigStringHeaders, " ")
+			supportedHdrs := strings.Split(SupportedSigHeaders, " ")
 			for _, hdrStr := range strings.Split(sigVal, " ") {
-				if !slices.Contains(sigStrHdrs, hdrStr) {
-					return nil, "", errors.New("bad signature headers")
+				if !slices.Contains(supportedHdrs, hdrStr) {
+					return nil, "", "", errors.New("bad signature headers")
 				}
 			}
+			sigStrHdrs = sigVal
 		}
 	}
 	if keyID == "" || sigBase64 == "" {
-		return nil, "", errors.New("invalid signature")
+		return nil, "", "", errors.New("invalid signature")
 	}
 	sigBytes, err := base64.StdEncoding.DecodeString(sigBase64)
 	if err != nil {
-		return nil, "", fmt.Errorf("couldn't decode base64 signature: %w", err)
+		return nil, "", "", fmt.Errorf("couldn't decode base64 signature: %w", err)
 	}
 
-	return sigBytes, keyID, nil
+	return sigBytes, keyID, sigStrHdrs, nil
 }
 
 func getActorPubKey(actor *Actor) (*rsa.PublicKey, error) {
@@ -157,7 +158,7 @@ func fetchActor(actorData any) (*Actor, error) {
 		if err != nil {
 			return nil, fmt.Errorf("%w: %w", ErrBadRequest, err)
 		}
-		resp, err := (&http.Client{}).Do(req)
+		resp, err := http.DefaultClient.Do(req)
 		if err != nil {
 			return nil, fmt.Errorf("%w: %w", ErrBadRequest, err)
 		}

@@ -22,7 +22,7 @@ type LambdaResponse = events.APIGatewayProxyResponse
 func GetHostSite() string {
 	host := os.Getenv("URL")
 	// hack to get to work in dev
-	if strings.Contains(host, "localhost") {
+	if host == "" || strings.Contains(host, "localhost") {
 		return "https://maxbanister.com"
 	} else {
 		return host
