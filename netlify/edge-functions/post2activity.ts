@@ -29,5 +29,6 @@ export default async (req: Request, context: Context) => {
 
 export const config: Config = {
 	path: "/posts/*",
+	excludedPaths: ["/posts/*/likes", "/posts/*/shares", "/posts/*/replies"],
 	onError: "bypass"
 };
