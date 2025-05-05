@@ -14,7 +14,8 @@ import (
 )
 
 func HandleDelete(reqJSON map[string]any) error {
-	deleteID, _ := reqJSON["id"].(string)
+	nestedObj, _ := reqJSON["object"].(map[string]any)
+	deleteID, _ := nestedObj["id"].(string)
 	if deleteID == "" {
 		return fmt.Errorf("%w: no ID string in request", ErrBadRequest)
 	}

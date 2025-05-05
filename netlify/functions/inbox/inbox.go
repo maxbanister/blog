@@ -41,6 +41,9 @@ func handleInbox(ctx context.Context, request LambdaRequest) (*LambdaResponse, e
 		return GetLambdaResp(CallFollowService(&request, HOST_SITE, actor))
 
 	case "Create":
+		if requestJSON["actor"] == "https://bsky.brid.gy/bsky.brid.gy" {
+			return GetLambdaResp(nil)
+		}
 		err := HandleReply(&request, actor, requestJSON, HOST_SITE)
 		return GetLambdaResp(err)
 

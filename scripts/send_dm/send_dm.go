@@ -50,11 +50,12 @@ func main() {
 		],
 		"cc": [],
 		"object": {
+		  "@context": "https://www.w3.org/ns/activitystreams",
 		  "id": "https://maxbanister.com/posts/%s",
 		  "type": "Note",
 		  "summary": null,
 		  "inReplyTo": null,
-		  "published": "2025-05-03T22:46:52Z",
+		  "published": "2025-05-05T07:46:52Z",
 		  "url": "https://maxbanister.com/posts/%s",
 		  "attributedTo": "https://maxbanister.com/ap/user/max",
 		  "to": [

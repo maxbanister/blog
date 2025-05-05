@@ -85,10 +85,11 @@ func RequestAuthorized(method, payload, destURL string) ([]byte, error) {
 		return nil, fmt.Errorf("error sending activity: %w", err)
 	}
 	respBody, _ := io.ReadAll(resp.Body)
-	fmt.Println(resp.StatusCode, string(respBody))
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		fmt.Println(resp.StatusCode, string(respBody))
 		return nil, fmt.Errorf("http activity request error: %v", resp)
 	}
+	fmt.Println(resp.StatusCode)
 
 	return respBody, nil
 }
