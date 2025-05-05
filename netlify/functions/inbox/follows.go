@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"net/http"
 	"os"
-	"time"
 
 	. "github.com/maxbanister/blog/netlify/util"
 
@@ -68,29 +67,26 @@ func CallFollowService(r *LambdaRequest, host string, actor *ap.Actor) error {
 			ErrBadRequest, err)
 	}
 
-	// fire and forget
-	go func() {
-		url := host + "/ap/follow-service"
-		req, err := http.NewRequest("POST", url, bytes.NewReader(reqBody))
-		if err != nil {
-			fmt.Println("could not form request:", err)
-			return
-		}
-		req.Header.Set("Content-Type", "application/json; charset=utf-8")
-		req.Header.Set("Authorization", os.Getenv("SELF_API_KEY"))
+	url := host + "/.netlify/functions/follow-service-wrapper"
+	req, err := http.NewRequest("POST", url, bytes.NewReader(reqBody))
+	if err != nil {
+		return fmt.Errorf("could not form request: %w", err)
+	}
+	req.Header.Set("Content-Type", "application/json; charset=utf-8")
+	req.Header.Set("Authorization", os.Getenv("SELF_API_KEY"))
 
-		resp, err := http.DefaultClient.Do(req)
-		if err != nil {
-			fmt.Println("could not send post to follow service:", err)
-			return
-		}
-		fmt.Println("Resp:", resp, "Err:", err)
-	}()
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return fmt.Errorf("could not send post to follow service: %w", err)
+	}
+	fmt.Println("Resp:", resp, "Err:", err)
 
-	// give the follow service time to read request body
-	time.Sleep(100 * time.Millisecond)
+	if resp.StatusCode != 200 {
+		return fmt.Errorf("follow service wrapper aborted with status: %s",
+			resp.Status)
+	}
 
-	fmt.Println("Finished sleeping")
+	fmt.Println("Returning from follow")
 
 	return nil
 }
