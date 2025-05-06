@@ -28,7 +28,7 @@ function addRepliesRecursive(parentEl, replyItems) {
 			userURL: item.actor.id,
 			date: item.published,
 			editDate: item.updated,
-			opURL: item.id,
+			opURL: item.url,
 			content: item.content
 		});
 
