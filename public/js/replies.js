@@ -33,7 +33,8 @@
         date: item.published,
         editDate: item.updated,
         opURL: item.id,
-        content: item.content
+        content: item.content,
+        linkBackURL: item.url
       });
       addRepliesRecursive(newReply, item.replies.items);
     }
@@ -72,7 +73,7 @@
     const userAnchor = clone.querySelector(".reply-profile-info > a");
     userAnchor.href = userURL;
     const [nameSpan, dateSpan] = clone.querySelectorAll(".reply-profile-info > span");
-    nameSpan.textContent = name;
+    nameSpan.textContent = name ? name : shortName;
     dateSpan.textContent = modifiedDate;
     const originalPostAnchor = clone.querySelector(".reply-op-button > a");
     originalPostAnchor.href = opURL;

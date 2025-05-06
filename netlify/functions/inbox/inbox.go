@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strings"
 
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/maxbanister/blog/netlify/ap"
@@ -41,20 +42,22 @@ func handleInbox(ctx context.Context, request LambdaRequest) (*LambdaResponse, e
 		return GetLambdaResp(CallFollowService(&request, HOST_SITE, actor))
 
 	case "Create":
-		if requestJSON["actor"] == "https://bsky.brid.gy/bsky.brid.gy" {
-			return GetLambdaResp(nil)
-		}
 		err := HandleReply(&request, actor, requestJSON, HOST_SITE)
 		return GetLambdaResp(err)
 
 	case "Undo":
-		object, ok := requestJSON["object"].(map[string]any)
-		if ok {
+		if object, ok := requestJSON["object"].(map[string]any); ok {
 			if object["type"] == "Follow" {
 				return GetLambdaResp(HandleUnfollow(actor, requestJSON))
 			} else if object["type"] == "Like" {
 				return GetLambdaResp(HandleUnlike(requestJSON))
 			} else if object["type"] == "Announce" {
+				return GetLambdaResp(HandleUnannounce(requestJSON))
+			}
+		} else if objectStr, ok := requestJSON["object"].(string); ok {
+			if strings.Contains(objectStr, "app.bsky.feed.like") {
+				return GetLambdaResp(HandleUnfollow(actor, requestJSON))
+			} else if strings.Contains(objectStr, "app.bsky.feed.repost") {
 				return GetLambdaResp(HandleUnannounce(requestJSON))
 			}
 		}

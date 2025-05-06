@@ -23,7 +23,9 @@ async function renderInteractions(typ) {
     for (const [i, item] of items.entries()) {
         // Mastodon's boost URL redirects you to the original post, i.e. this very page.
         // This is unhelpful, so we will instead link to the user's profile.
-        const url = typ == "likes" ? item.id : item.actor.id;
+        const url = item.url
+                        ? item.url
+                        : typ == "likes" ? item.id : item.actor.id;
         const actorHost = new URL(item.actor.id).hostname;
         const actorName = item.actor.preferredUsername;
         const handle = "@" + actorName + "@" + actorHost;

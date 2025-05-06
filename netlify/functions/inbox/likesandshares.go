@@ -40,6 +40,8 @@ func endorse(a *ap.Actor, reqJSON map[string]any, colName, host string) error {
 	}
 	slugObject := Sluggify(*objectURI)
 
+	endorseBackLink, _ := reqJSON["url"].(string)
+
 	// this is the id of the like/share activity
 	endorseURIString, _ := reqJSON["id"].(string)
 	endorseURI, err := url.Parse(endorseURIString)
@@ -92,6 +94,7 @@ func endorse(a *ap.Actor, reqJSON map[string]any, colName, host string) error {
 		// create like/share activity
 		err = tx.Set(endorseDocRef, map[string]any{
 			"Id":     endorseURIString,
+			"URL":    endorseBackLink,
 			"Object": objectURIString,
 			"Actor":  a,
 		})
@@ -107,12 +110,6 @@ func endorse(a *ap.Actor, reqJSON map[string]any, colName, host string) error {
 func unendorse(reqJSON map[string]any, colName string) error {
 	// object in this context is the original post being liked/shared
 	object, _ := reqJSON["object"].(map[string]any)
-	objectObject, _ := object["object"].(string)
-	objectURI, err := url.Parse(objectObject)
-	if err != nil {
-		return fmt.Errorf("%w: malformed object URI: %w", ErrBadRequest, err)
-	}
-	slugObjectObj := Sluggify(*objectURI)
 
 	// this is the id of the undo like/share activity
 	objectID, _ := object["id"].(string)
@@ -131,13 +128,31 @@ func unendorse(reqJSON map[string]any, colName string) error {
 	defer client.Close()
 
 	collectionRef := client.Collection(colName)
-	originalPostDocRef := collectionRef.Doc(slugObjectObj)
-	endorseActivityDocRef := collectionRef.Doc(slugObjID)
+	likeOrShareDocRef := collectionRef.Doc(slugObjID)
+
+	// Need to get the ID of the post this like/share refers to from firestore
+	fmt.Printf("Getting %s/%s\n", colName, slugObjID)
+	likeOrShareDoc, err := likeOrShareDocRef.Get(ctx)
+	if err != nil {
+		return fmt.Errorf("error looking up document: %w", err)
+	}
+	originalPostURI, err := likeOrShareDoc.DataAt("Object")
+	originalPostURIStr, _ := originalPostURI.(string)
+	if originalPostURIStr == "" || err != nil {
+		return fmt.Errorf("error getting document data: %w", err)
+	}
+
+	opURI, err := url.Parse(originalPostURIStr)
+	if err != nil {
+		return fmt.Errorf("%w: malformed object URI: %w", ErrBadRequest, err)
+	}
+	slugOPURI := Sluggify(*opURI)
+	originalPostDocRef := collectionRef.Doc(slugOPURI)
 
 	fmt.Printf("Attempting to remove %s/%s\n", colName, slugObjID)
 
 	txFunc := func(ctx context.Context, tx *firestore.Transaction) error {
-		err = tx.Delete(endorseActivityDocRef)
+		err = tx.Delete(likeOrShareDocRef)
 		if err != nil {
 			return fmt.Errorf("failed to get item: %w", err)
 		}

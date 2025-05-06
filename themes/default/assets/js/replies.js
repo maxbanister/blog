@@ -22,9 +22,6 @@ async function renderReplies() {
 		opURL: "https://maxbanister.com/post",
 		content: "Hello World"
 	};
-	//let r = createAndAddReply(document.getElementById("replies"), p);
-	//let r2 = createAndAddReply(document.getElementById("replies"), p);
-	//return createAndAddReply(r, p);
 }
 
 function addRepliesRecursive(parentEl, replyItems) {
@@ -41,7 +38,8 @@ function addRepliesRecursive(parentEl, replyItems) {
 			date: item.published,
 			editDate: item.updated,
 			opURL: item.id,
-			content: item.content
+			content: item.content,
+			linkBackURL: item.url
 		});
 
 		addRepliesRecursive(newReply, item.replies.items);
@@ -82,7 +80,7 @@ function createAndAddReply(parentEl, params) {
 	userAnchor.href = userURL;
 
 	const [nameSpan, dateSpan] = clone.querySelectorAll(".reply-profile-info > span");
-	nameSpan.textContent = name;
+	nameSpan.textContent = name ? name : shortName;
 	dateSpan.textContent = modifiedDate;
 
 	const originalPostAnchor = clone.querySelector(".reply-op-button > a");

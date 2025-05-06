@@ -1,6 +1,9 @@
 package ap
 
 import (
+	"encoding/json"
+	"errors"
+	"fmt"
 	"net/http"
 	"net/url"
 	"strings"
@@ -44,6 +47,7 @@ type Reply struct {
 
 type LikeOrShare struct {
 	Id     string `json:"id"`
+	URL    string `json:"url"`
 	Object string `json:"object"`
 	Actor  *Actor `json:"actor"`
 }
@@ -89,4 +93,27 @@ func GetActorAt(actor *Actor) string {
 		return actor.PreferredUsername + "@" + parsedURL.Host
 	}
 	return actor.Name + "@" + parsedURL.Host
+}
+
+func GetObject(value any) (map[string]any, error) {
+	object, ok := value.(map[string]any)
+	if ok {
+		return object, nil
+	}
+	objectURI, ok := value.(string)
+	if !ok {
+		return nil, errors.New("unknown object type")
+	}
+
+	respBody, err := RequestAuthorized("GET", "", objectURI)
+	if err != nil {
+		return nil, fmt.Errorf("could not fetch object: %w", err)
+	}
+
+	err = json.Unmarshal(respBody, &object)
+	if err != nil {
+		return nil, fmt.Errorf("failed to unmarshal object body: %w", err)
+	}
+
+	return object, nil
 }
