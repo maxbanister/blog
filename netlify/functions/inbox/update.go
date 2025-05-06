@@ -5,8 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/url"
-	"regexp"
-	"strings"
 
 	"cloud.google.com/go/firestore"
 	"github.com/maxbanister/blog/netlify/ap"
@@ -155,18 +153,6 @@ func HandleReplyEdit(r *LambdaRequest, reqJSON map[string]any) error {
 		editedContent, _ := editedObj["content"].(string)
 		if editedContent == "" {
 			return fmt.Errorf("%w: must provide update content", ErrBadRequest)
-		}
-		if len(storedReply.Replies.Items) > 0 {
-			var re = regexp.MustCompile(`(</\w+>)*$`)
-			old := re.ReplaceAllLiteralString(storedReply.Content, "")
-			new := re.ReplaceAllLiteralString(editedContent, "")
-			fmt.Println("Old:", old)
-			fmt.Println("New:", new)
-			if !strings.HasPrefix(new, old) {
-				return fmt.Errorf(
-					"%w: updates to replied-to notes are append-only",
-					ErrBadRequest)
-			}
 		}
 
 		// update stored object
