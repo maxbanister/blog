@@ -33,7 +33,7 @@ type InnerReplies struct {
 type Reply struct {
 	Id           string       `json:"id"`
 	Type         string       `json:"type,omitempty" firestore:",omitempty"`
-	InReplyTo    string       `json:"inReplyTo,omitempty" firestore:",omitempty"`
+	InReplyTo    any          `json:"inReplyTo,omitempty" firestore:",omitempty"`
 	Published    string       `json:"published,omitempty" firestore:",omitempty"`
 	Updated      string       `json:"updated,omitempty" firestore:",omitempty"`
 	URL          string       `json:"url,omitempty" firestore:",omitempty"`
@@ -116,4 +116,13 @@ func GetObject(value any) (map[string]any, error) {
 	}
 
 	return object, nil
+}
+
+func GetLinkOrObjectID(object any) (objectID string) {
+	if objectMap, ok := object.(map[string]any); ok {
+		objectID, _ = objectMap["id"].(string)
+	} else {
+		objectID, _ = object.(string)
+	}
+	return objectID
 }

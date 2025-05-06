@@ -28,7 +28,7 @@ func HandleReply(r *LambdaRequest, actor *ap.Actor, reqJSON map[string]any, host
 	replyObj := c.Object
 
 	// validate reply properties
-	inReplyTo := replyObj.InReplyTo
+	inReplyTo := ap.GetLinkOrObjectID(replyObj.InReplyTo)
 	if inReplyTo == "" {
 		return fmt.Errorf("%w: inReplyTo not provided", ErrBadRequest)
 	}
