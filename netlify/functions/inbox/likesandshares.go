@@ -109,10 +109,13 @@ func endorse(a *ap.Actor, reqJSON map[string]any, colName, host string) error {
 
 func unendorse(reqJSON map[string]any, colName string) error {
 	// object in this context is the original post being liked/shared
-	object, _ := reqJSON["object"].(map[string]any)
+	var objectID string
+	if object, ok := reqJSON["object"].(map[string]any); ok {
+		objectID, _ = object["id"].(string)
+	} else {
+		objectID, _ = reqJSON["object"].(string)
+	}
 
-	// this is the id of the undo like/share activity
-	objectID, _ := object["id"].(string)
 	objectIDURI, err := url.Parse(objectID)
 	if err != nil {
 		return fmt.Errorf("%w: malformed ID URI: %w", ErrBadRequest, err)

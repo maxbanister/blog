@@ -1,8 +1,9 @@
 (() => {
   // <stdin>
+  var mastodonPrefix = "https://mastodon.social/authorize_interaction?uri=";
   async function renderReplies() {
     const mastodonAnchor = document.querySelector("#social-links > a");
-    mastodonAnchor.href = "https://mastodon.social/authorize_interaction?uri=" + window.location.href;
+    mastodonAnchor.href = mastodonPrefix + window.location.href;
     const resp = await fetch(window.location.pathname + "replies");
     if (!resp.ok) {
       console.log(resp.statusText);
@@ -11,14 +12,6 @@
     let repliesData = await resp.json();
     console.log(repliesData);
     addRepliesRecursive(document.getElementById("replies"), repliesData.items);
-    let p = {
-      name: "max",
-      host: "congress.gov",
-      picURL: "https://external-content.duckduckgo.com/iu/?u=http%3A%2F%2Fih1.redbubble.net%2Fimage.186232319.8599%2Fsticker%2C375x360.u1.png&f=1&nofb=1&ipt=78c48edebb516b832dc4bb4c3cf1bf8ba11f110e1c8718de68dbdbb829e4f151",
-      userURL: "https://maxbanister.com",
-      opURL: "https://maxbanister.com/post",
-      content: "Hello World"
-    };
   }
   function addRepliesRecursive(parentEl, replyItems) {
     if (!replyItems)
@@ -33,8 +26,7 @@
         date: item.published,
         editDate: item.updated,
         opURL: item.id,
-        content: item.content,
-        linkBackURL: item.url
+        content: item.content
       });
       addRepliesRecursive(newReply, item.replies.items);
     }
@@ -77,6 +69,12 @@
     dateSpan.textContent = modifiedDate;
     const originalPostAnchor = clone.querySelector(".reply-op-button > a");
     originalPostAnchor.href = opURL;
+    const [mastodonReplyBtn, ...rest] = clone.querySelectorAll(".reply-controls a");
+    if (new URL(opURL).host == "mastodon.social") {
+      mastodonReplyBtn.href = opURL;
+    } else {
+      mastodonReplyBtn.href = mastodonPrefix + opURL;
+    }
     parentEl.appendChild(clone);
     return cloneEl;
   }

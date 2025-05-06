@@ -19,7 +19,7 @@
     labelEl.firstChild.textContent = typCapitalized + " (" + items.length + ")";
     previewImages = likesOrSharesEl.getElementsByClassName("preview_images")[0];
     for (const [i, item] of items.entries()) {
-      const url = item.url ? item.url : typ == "likes" ? item.id : item.actor.id;
+      const url = item.actor.id;
       const actorHost = new URL(item.actor.id).hostname;
       const actorName = item.actor.preferredUsername;
       const handle = "@" + actorName + "@" + actorHost;
