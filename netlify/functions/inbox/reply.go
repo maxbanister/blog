@@ -32,6 +32,7 @@ func HandleReply(r *LambdaRequest, actor *ap.Actor, reqJSON map[string]any, host
 	if inReplyTo == "" {
 		return fmt.Errorf("%w: inReplyTo not provided", ErrBadRequest)
 	}
+	replyObj.InReplyTo = inReplyTo
 	_, err = time.Parse(time.RFC3339, replyObj.Published)
 	if err != nil {
 		return fmt.Errorf("%w: bad published timestamp: %w", ErrBadRequest, err)

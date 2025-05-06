@@ -76,7 +76,7 @@ func HandleDelete(reqJSON map[string]any) error {
 			return fmt.Errorf("failed to remove leaf reply: %w", err)
 		}
 		fmt.Println("Successful delete of leaf node", slugDeleteID)
-		replyURI, err = url.Parse(deleteObj.InReplyTo)
+		replyURI, err = url.Parse(deleteObj.InReplyTo.(string))
 		if err != nil {
 			return err
 		}
