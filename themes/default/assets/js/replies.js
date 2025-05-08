@@ -37,7 +37,9 @@ async function getBlueskyURL(handle, postURL) {
 async function renderReplies() {
 	const [mastodonAnchor, blueskyAnchor] = document.querySelectorAll("#social-links > a");
 	mastodonAnchor.href = mastodonPrefix + window.location.href;
-	blueskyAnchor.href = await getBlueskyURL("maxbanister.com", "https://maxbanister.com" + window.location.pathname);
+	blueskyAnchor.href = await getBlueskyURL("maxbanister.com",
+	                                         "https://maxbanister.com"
+											 + window.location.pathname);
 	console.log(blueskyAnchor.href);
 
 	const resp = await fetch(window.location.pathname + "replies");
@@ -125,7 +127,9 @@ function createAndAddReply(parentEl, params) {
 	}
 	else {
 		getBlueskyURL(shortName + "." + host + ".ap.brid.gy", opURL).then((res) => {
-			blueskyReplyBtn.href = res;
+			if (res) {
+				blueskyReplyBtn.href = res;
+			}
 		});
 	}
 
