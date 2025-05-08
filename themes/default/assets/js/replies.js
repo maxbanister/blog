@@ -1,46 +1,45 @@
 const mastodonPrefix = "https://mastodon.social/authorize_interaction?uri=";
 
-const recordsCache = new Map();
+// Use reversed=true when it gets supported
+async function getBlueskyURL(handle, cursor, postURL) {
+	console.log("fetching records for handle", handle+cursor);
 
-async function getBlueskyURL(handle, postURL) {
-	console.log("looking for handle", handle);
-	let recordsJSON = recordsCache.get(handle);
-	if (!recordsJSON) {
-		bridgyEndpoint = "https://atproto.brid.gy/xrpc/com.atproto.repo.listRecords?repo=";
-		bridgyRequestURI = bridgyEndpoint + handle + "&collection=app.bsky.feed.post";
-
-		const resp = await fetch(bridgyRequestURI, {
-			headers: {"Accept": "application/json"}
-		});
-
-		recordsJSON = await resp.json();
-		recordsCache.set(handle, recordsJSON);
-		console.log("fetched record for", handle);
-	} else {
-		console.log("got record from cache for", handle);
+	bridgyRequestURI = "https://atproto.brid.gy/xrpc/com.atproto.repo.listRecords?repo=";
+	bridgyRequestURI += handle + "&collection=app.bsky.feed.post";
+	if (cursor) {
+		bridgyRequestURI += "&cursor=" + cursor;
 	}
 
-	//console.log(recordsJSON);
+	const resp = await fetch(bridgyRequestURI, {
+		headers: {"Accept": "application/json"}
+	});
+	const recordsJSON = await resp.json();
+
+	console.log(recordsJSON);
 	if (!recordsJSON) {
-		console.log("could not get bluesky URL of post ", postURL);
+		console.log("could not get records for", handle+cursor);
 		return;
 	}
-	for (record of recordsJSON.records) {
+	for (const record of recordsJSON.records) {
 		if (record.value.bridgyOriginalUrl == postURL) {
 			const atURI = record.uri.replace("at://", "")
-			                        .replace("app\.bsky\.feed\.post", "post");
+									.replace("app.bsky.feed.post", "post");
 			return "https://bsky.app/profile/" + atURI;
 		}
+	}
+	if (recordsJSON.cursor) {
+		return getBlueskyURL(handle, recordsJSON.cursor);
 	}
 }
 
 async function renderReplies() {
 	const [mastodonAnchor, blueskyAnchor] = document.querySelectorAll("#social-links > a");
 	mastodonAnchor.href = mastodonPrefix + window.location.href;
-	blueskyAnchor.href = await getBlueskyURL("maxbanister.com",
-	                                         "https://maxbanister.com"
-											 + window.location.pathname);
-	console.log(blueskyAnchor.href);
+	blueskyAnchor.href = await getBlueskyURL(
+		"maxbanister.com",
+		"",
+		"https://maxbanister.com" + window.location.pathname
+	);
 
 	const resp = await fetch(window.location.pathname + "replies");
 	if (!resp.ok) {
@@ -56,10 +55,11 @@ function addRepliesRecursive(parentEl, replyItems) {
 	if (!replyItems)
 		return;
 
-	for (item of replyItems) {
+	for (const item of replyItems) {
 		item.url = item.url.replace("https://fed.brid.gy/r/", "");
 
 		const newReply = createAndAddReply(parentEl, {
+			id: item.id,
 			name: item.actor.name,
 			shortName: item.actor.preferredUsername,
 			host: new URL(item.actor.id).hostname,
@@ -77,7 +77,7 @@ function addRepliesRecursive(parentEl, replyItems) {
 
 function createAndAddReply(parentEl, params) {
 	const {
-		name, shortName, host, picURL, userURL, date, editDate, opURL, content
+		id, name, shortName, host, picURL, userURL, date, editDate, opURL, content
 	} = params;
 
 	const options = {
@@ -120,15 +120,20 @@ function createAndAddReply(parentEl, params) {
 		mastodonReplyBtn.href = opURL;
 	}
 	else {
-		mastodonReplyBtn.href = mastodonPrefix + opURL;
+		mastodonReplyBtn.href = mastodonPrefix + id;
 	}
 	if (host === "bsky.brid.gy") {
 		blueskyReplyBtn.href = opURL;
 	}
 	else {
-		getBlueskyURL(shortName + "." + host + ".ap.brid.gy", opURL).then((res) => {
-			if (res) {
-				blueskyReplyBtn.href = res;
+		const bridgedHandle = shortName + "." + host + ".ap.brid.gy";
+		blueskyReplyBtn.addEventListener("click", async (e) => {
+			console.log(blueskyReplyBtn.href);
+			if (blueskyReplyBtn.getAttribute("href") === "#") {
+				e.preventDefault();
+				const newLoc = await getBlueskyURL(bridgedHandle, "", opURL);
+				blueskyReplyBtn.href = newLoc;
+				blueskyReplyBtn.click();
 			}
 		});
 	}
