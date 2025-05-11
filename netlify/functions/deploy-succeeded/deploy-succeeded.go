@@ -38,7 +38,8 @@ func handleDeploy(request LambdaRequest) (*LambdaResponse, error) {
 		Payload string `json:"-"`
 	}
 	var validOutboxItems []OutboxItem
-	topPost := false
+	gotUpdatePost := false
+	gotCreatePost := false
 
 	for _, outboxActivity := range outbox.OrderedItems {
 		var decodedItem OutboxItem
@@ -48,11 +49,16 @@ func handleDeploy(request LambdaRequest) (*LambdaResponse, error) {
 			continue
 		}
 		// Send out all the deletes every time
-		if decodedItem.Typ == "Delete" || !topPost {
+		if decodedItem.Typ == "Delete" || !gotUpdatePost || !gotCreatePost {
 			fmt.Printf("Queuing %s of %s\n", decodedItem.Typ, decodedItem.ID)
 			decodedItem.Payload = string(outboxActivity)
 			validOutboxItems = append(validOutboxItems, decodedItem)
-			topPost = true
+
+			if decodedItem.Typ == "Update" {
+				gotUpdatePost = true
+			} else if decodedItem.Typ == "Create" {
+				gotCreatePost = true
+			}
 		}
 	}
 

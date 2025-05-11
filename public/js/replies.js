@@ -49,7 +49,7 @@
       return;
     for (const item of replyItems) {
       const deleted = item.type == "Tombstone";
-      item.url = deleted ? "" : item.url.replace("https://fed.brid.gy/r/", "");
+      item.url = deleted ? "javascript:void(0)" : item.url.replace("https://fed.brid.gy/r/", "");
       item.actor ||= {};
       const newReply = createAndAddReply(parentEl, {
         id: item.id,
@@ -108,12 +108,12 @@
     const originalPostAnchor = clone.querySelector(".reply-op-button > a");
     originalPostAnchor.href = opURL;
     const [mastodonReplyBtn, blueskyReplyBtn] = clone.querySelectorAll(".reply-controls > a");
-    if (!opURL || new URL(opURL).host === "mastodon.social") {
+    if (new URL(opURL).host === "mastodon.social") {
       mastodonReplyBtn.href = opURL;
     } else {
       mastodonReplyBtn.href = mastodonPrefix + id;
     }
-    if (host === "bsky.brid.gy") {
+    if (deleted || host === "bsky.brid.gy") {
       blueskyReplyBtn.href = opURL;
     } else {
       const bridgedHandle = shortName + "." + host + ".ap.brid.gy";
