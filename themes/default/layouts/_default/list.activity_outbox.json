@@ -23,8 +23,15 @@
 		{{- if ne $index 0 }}, {{ end }}
 		{
 			"@context": "https://www.w3.org/ns/activitystreams",
-			"id": "{{.Permalink}}#create",
-			"type": "Create",
+			{{- $activityType := "create" }}
+			{{- if gt (.Lastmod.Format "2006-01-02") (.Date.Format "2006-01-02") }}
+				{{- $activityType = "update" }}
+			{{- end }}
+			{{- with .ExpiryDate }}
+				{{- $activityType = "delete" }}
+			{{- end }}
+			"id": "{{.Permalink}}#{{$activityType}}",
+			"type": "{{ title $activityType }}",
 			"actor": "{{ $.Site.BaseURL }}ap/user/max",
 			"to": [
 				"https://www.w3.org/ns/activitystreams#Public"
@@ -32,7 +39,15 @@
 			"cc": [
 				"{{ $.Site.BaseURL }}ap/followers"
 			],
+			{{- if eq $activityType "delete" }}
+			"object": {
+				"@context": "https://www.w3.org/ns/activitystreams",
+				"id": "{{ .Permalink }}",
+				"type": "Tombstone"
+			}
+			{{- else }}
 			{{- $postDate := dateFormat "2006-01-02T15:04:05-07:00" .Date | jsonify }}
+			{{- $modDate := dateFormat "2006-01-02T15:04:05-07:00" .Lastmod | jsonify }}
 			"published": {{ $postDate }},
 			"object": {
 				"@context": "https://www.w3.org/ns/activitystreams",
@@ -40,7 +55,7 @@
 				"type": "Note",
 				{{- /* TODO: format across mastodon, bluesky, and threads */ -}}
 				{{- $postBody := printf "%s\\n%s" .Title (strings.Replace .Summary "\n" `\n`) -}}
-				{{- $postBodyTrunc := truncate (sub 299 (len .Permalink)) $postBody -}}
+				{{- $postBodyTrunc := truncate (sub 294 (len .Permalink)) $postBody -}}
 				{{- $postWithURL := printf "%s %s" $postBodyTrunc .Permalink }}
 				"content": "{{ $postWithURL }}",
 				"url": "{{.Permalink}}",
@@ -50,6 +65,9 @@
 				],
 				"cc": [],
 				"published": {{ $postDate }},
+				{{- if eq $activityType "update" }}
+				"updated": {{ $modDate }},
+				{{- end }}
 				"replies": "{{.Permalink }}replies",
 				"likes": "{{.Permalink }}likes",
 				"shares": "{{.Permalink }}shares"
@@ -66,6 +84,7 @@
 				]
 				{{- end }}
 			}
+			{{- end }}
 		}
 		{{- end }}
 	]

@@ -5,6 +5,7 @@ import (
 	_ "embed"
 	"encoding/json"
 	"fmt"
+	"strings"
 	"sync"
 
 	"github.com/aws/aws-lambda-go/events"
@@ -21,7 +22,7 @@ func main() {
 }
 
 func handleDeploy(request LambdaRequest) (*LambdaResponse, error) {
-	fmt.Println("Broadcasting new post...")
+	fmt.Println("Deploy successful")
 
 	var outbox struct {
 		OrderedItems []json.RawMessage `json:"orderedItems"`
@@ -31,13 +32,37 @@ func handleDeploy(request LambdaRequest) (*LambdaResponse, error) {
 		return GetErrorResp(fmt.Errorf("could not decode outbox JSON: %w", err))
 	}
 
-	if len(outbox.OrderedItems) == 0 {
+	type OutboxItem struct {
+		Typ     string `json:"type"`
+		ID      string `json:"id"`
+		Payload string `json:"-"`
+	}
+	var validOutboxItems []OutboxItem
+	topPost := false
+
+	for _, outboxActivity := range outbox.OrderedItems {
+		var decodedItem OutboxItem
+		err := json.Unmarshal(outboxActivity, &decodedItem)
+		if err != nil {
+			fmt.Println("could not decode outbox item:", err.Error())
+			continue
+		}
+		// Send out all the deletes every time
+		if decodedItem.Typ == "Delete" || !topPost {
+			fmt.Printf("Queuing %s of %s\n", decodedItem.Typ, decodedItem.ID)
+			decodedItem.Payload = string(outboxActivity)
+			fmt.Println(decodedItem.Payload)
+			validOutboxItems = append(validOutboxItems, decodedItem)
+			topPost = true
+		}
+	}
+
+	if len(validOutboxItems) == 0 {
 		return &events.APIGatewayProxyResponse{
 			StatusCode: 200,
-			Body:       "no posts in outbox",
+			Body:       "outbox empty",
 		}, nil
 	}
-	createActivity := outbox.OrderedItems[0]
 
 	// get followers from firestore
 	ctx := context.Background()
@@ -73,22 +98,31 @@ func handleDeploy(request LambdaRequest) (*LambdaResponse, error) {
 	}
 
 	var wg sync.WaitGroup
-	createActivityStr := string(createActivity)
 
 	// broadcast to followers
-	for _, follower := range followers {
-		wg.Add(1)
-
-		go func(follower ap.Actor) {
-			defer wg.Done()
-			err = ap.SendActivity(createActivityStr, &follower)
-			if err != nil {
-				fmt.Printf("failed sending post to %s: %s\n", follower.Id,
-					err.Error())
-			} else {
-				fmt.Printf("successfully sent to %s\n", follower.Id)
+	fmt.Printf("Broadcasting %d changes...\n", len(validOutboxItems))
+	for _, outboxItem := range validOutboxItems {
+		for _, follower := range followers {
+			// Bluesky doesn't support editing posts
+			isBskyUsr := strings.HasPrefix(follower.Id, "https://bsky.brid.gy/")
+			if outboxItem.Typ == "Update" && isBskyUsr {
+				continue
 			}
-		}(*follower)
+
+			wg.Add(1)
+
+			go func(follower ap.Actor) {
+				defer wg.Done()
+				err = ap.SendActivity(outboxItem.Payload, &follower)
+				if err != nil {
+					fmt.Printf("failed to send %s to %s: %s\n", outboxItem.ID,
+						follower.Id, err.Error())
+				} else {
+					fmt.Printf("successfully sent %s to %s\n", outboxItem.ID,
+						follower.Id)
+				}
+			}(*follower)
+		}
 	}
 
 	wg.Wait()

@@ -89,7 +89,7 @@ func RequestAuthorized(method, payload, destURL string) ([]byte, error) {
 		fmt.Println(resp.StatusCode, string(respBody))
 		return nil, fmt.Errorf("http activity request error: %v", resp)
 	}
-	fmt.Println(resp.StatusCode)
+	fmt.Println(resp.StatusCode, string(respBody))
 
 	return respBody, nil
 }
