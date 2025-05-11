@@ -41,29 +41,32 @@
       return;
     }
     let repliesData = await resp.json();
+    console.log(repliesData);
     addRepliesRecursive(document.getElementById("replies"), repliesData.items);
   }
   function addRepliesRecursive(parentEl, replyItems) {
     if (!replyItems)
       return;
     for (const item of replyItems) {
-      item.url = item.url.replace("https://fed.brid.gy/r/", "");
+      const deleted = item.type == "Tombstone";
+      item.url = deleted ? "" : item.url.replace("https://fed.brid.gy/r/", "");
+      item.actor ||= {};
       const newReply = createAndAddReply(parentEl, {
         id: item.id,
         name: item.actor.name,
         shortName: item.actor.preferredUsername,
-        host: new URL(item.actor.id).hostname,
+        host: deleted ? "" : new URL(item.actor.id).hostname,
         picURL: item.actor.icon,
         userURL: item.actor.id,
         date: item.published,
         editDate: item.updated,
         opURL: item.url,
         content: item.content
-      });
+      }, deleted);
       addRepliesRecursive(newReply, item.replies.items);
     }
   }
-  function createAndAddReply(parentEl, params) {
+  function createAndAddReply(parentEl, params, deleted) {
     const {
       id,
       name,
@@ -89,21 +92,23 @@
     const clone = template.content.cloneNode(true);
     const cloneEl = clone.firstElementChild;
     const [nameEl, hostEl] = clone.querySelectorAll(".reply-profile-info a span");
-    nameEl.textContent = "@" + shortName;
-    hostEl.textContent = "@" + host;
+    nameEl.textContent = deleted ? "" : "@" + shortName;
+    hostEl.textContent = deleted ? "" : "@" + host;
     const contentEl = cloneEl.getElementsByClassName("reply-contents")[0];
-    contentEl.innerHTML = content;
+    contentEl.innerHTML = deleted ? '<i style="color: grey">[deleted]</i>' : content;
     const profileImage = clone.querySelector(".reply-top > img");
-    profileImage.src = picURL;
+    profileImage.src = deleted ? "" : picURL;
+    if (deleted)
+      profileImage.alt = "";
     const userAnchor = clone.querySelector(".reply-profile-info > a");
     userAnchor.href = userURL;
     const [nameSpan, dateSpan] = clone.querySelectorAll(".reply-profile-info > span");
-    nameSpan.textContent = name ? name : shortName;
+    nameSpan.textContent = deleted ? "[deleted]" : name ? name : shortName;
     dateSpan.textContent = modifiedDate;
     const originalPostAnchor = clone.querySelector(".reply-op-button > a");
     originalPostAnchor.href = opURL;
     const [mastodonReplyBtn, blueskyReplyBtn] = clone.querySelectorAll(".reply-controls > a");
-    if (new URL(opURL).host === "mastodon.social") {
+    if (!opURL || new URL(opURL).host === "mastodon.social") {
       mastodonReplyBtn.href = opURL;
     } else {
       mastodonReplyBtn.href = mastodonPrefix + id;

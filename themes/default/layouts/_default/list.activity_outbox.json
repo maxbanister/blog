@@ -54,9 +54,10 @@
 				"id": "{{ .Permalink }}",
 				"type": "Note",
 				{{- /* TODO: format across mastodon, bluesky, and threads */ -}}
-				{{- $postBody := printf "%s\\n%s" .Title (strings.Replace .Summary "\n" `\n`) -}}
-				{{- $postBodyTrunc := truncate (sub 294 (len .Permalink)) $postBody -}}
-				{{- $postWithURL := printf "%s %s" $postBodyTrunc .Permalink }}
+				{{- $postBody := printf "%s<br/>%s" .Title (strings.Replace .Summary "\n" `\n`) -}}
+				{{- $postBodyTrunc := truncate (sub 499 23) $postBody -}}
+				{{- $postAnchor := printf `<a href=\"%s\">%s</a>` .Permalink .Permalink }}
+				{{- $postWithURL := printf "%s %s" $postBodyTrunc $postAnchor }}
 				"content": "{{ $postWithURL }}",
 				"url": "{{.Permalink}}",
 				"attributedTo": "{{ $.Site.BaseURL }}ap/user/max",

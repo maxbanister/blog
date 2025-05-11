@@ -51,7 +51,6 @@ func handleDeploy(request LambdaRequest) (*LambdaResponse, error) {
 		if decodedItem.Typ == "Delete" || !topPost {
 			fmt.Printf("Queuing %s of %s\n", decodedItem.Typ, decodedItem.ID)
 			decodedItem.Payload = string(outboxActivity)
-			fmt.Println(decodedItem.Payload)
 			validOutboxItems = append(validOutboxItems, decodedItem)
 			topPost = true
 		}

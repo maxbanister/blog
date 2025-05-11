@@ -88,6 +88,14 @@
     background-color: #222;;
 }
 
+.reply label:has(input:checked) {
+    background-color: #353535;
+}
+
+.reply label:has(input:checked) ~ div {
+    display: none;
+}
+
 .reply-top > img {
     background-color: rgba(128, 0, 128, 0.114);
     border: 1px solid grey;

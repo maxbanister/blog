@@ -18,6 +18,7 @@ enableGitInfo = true
 [outputFormats]
     [outputFormats.activity_outbox]
         mediaType = "application/activity+json"
+        isPlainText = true
         notAlternative = true
         baseName = "outbox"
         path = "ap"
