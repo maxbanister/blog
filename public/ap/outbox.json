@@ -3,7 +3,7 @@
 	"id": "https://maxbanister.com/ap/outbox",
 	"summary": "Recent posts from Max's blog",
 	"type": "OrderedCollection",
-	"totalItems": 4,
+	"totalItems": 3,
 	"orderedItems": [
 		{
 			"@context": "https://www.w3.org/ns/activitystreams",
@@ -21,7 +21,7 @@
 				"@context": "https://www.w3.org/ns/activitystreams",
 				"id": "https://maxbanister.com/posts/post-4/",
 				"type": "Note",
-				"content": "Post 4<br/>\nTempor proident minim aliquip reprehenderit dolor et ad anim Lorem duis sint eiusmod. Labore ut ea duis dolor. Incididunt consectetur proident qui occaecat incididunt do nisi Lorem. Tempor do laborum elit laboris excepteur eiusmod do. Eiusmod nisi excepteur ut amet pariatur adipisicing Lorem.\nOccaecat nulla excepteur dolore excepteur duis eiusmod ullamco officia anim in voluptate ea occaecat officia. Cillum sint esse velit ea officia minim fugiat. Elit ea esse id … <a href=\"https://maxbanister.com/posts/post-4/\">https://maxbanister.com/posts/post-4/</a>",
+				"content": "Post 4<br/>Tempor proident minim aliquip reprehenderit dolor et ad anim Lorem duis sint eiusmod. Labore ut ea duis dolor. Incididunt consectetur proident qui occaecat incididunt do nisi Lorem. Tempor do laborum elit laboris excepteur eiusmod do. Eiusmod nisi excepteur ut amet pariatur adipisicing Lorem.\nOccaecat nulla excepteur dolore excepteur duis eiusmod ullamco officia anim in voluptate ea occaecat officia. Cillum sint esse velit ea officia minim fugiat. Elit ea esse id … <a href=\"https://maxbanister.com/posts/post-4/\">https://maxbanister.com/posts/post-4/</a>",
 				"url": "https://maxbanister.com/posts/post-4/",
 				"attributedTo": "https://maxbanister.com/ap/user/max",
 				"to": [
@@ -43,8 +43,8 @@
 		}, 
 		{
 			"@context": "https://www.w3.org/ns/activitystreams",
-			"id": "https://maxbanister.com/posts/post-5/#update",
-			"type": "Update",
+			"id": "https://maxbanister.com/posts/post-5/#create",
+			"type": "Create",
 			"actor": "https://maxbanister.com/ap/user/max",
 			"to": [
 				"https://www.w3.org/ns/activitystreams#Public"
@@ -57,7 +57,7 @@
 				"@context": "https://www.w3.org/ns/activitystreams",
 				"id": "https://maxbanister.com/posts/post-5/",
 				"type": "Note",
-				"content": "Post 5<br/>\nOccaecat aliqua consequat laborum ut ex aute aliqua culpa quis irure esse magna dolore quis. Proident fugiat labore eu laboris officia Lorem enim. Ipsum occaecat cillum ut tempor id sint aliqua incididunt nisi incididunt reprehenderit. Voluptate ad minim sint est aute aliquip esse occaecat tempor officia qui sunt. Aute ex ipsum id ut in est velit est laborum incididunt. Aliqua qui id do esse sunt eiusmod id deserunt eu nostrud aute sit ipsum. <a href=\"https://maxbanister.com/posts/post-5/\">https://maxbanister.com/posts/post-5/</a>",
+				"content": "Post 5<br/>Occaecat aliqua consequat laborum ut ex aute aliqua culpa quis irure esse magna dolore quis. Proident fugiat labore eu laboris officia Lorem enim. Ipsum occaecat cillum ut tempor id sint aliqua incididunt nisi incididunt reprehenderit. Voluptate ad minim sint est aute aliquip esse occaecat tempor officia qui sunt. Aute ex ipsum id ut in est velit est laborum incididunt. Aliqua qui id do esse sunt eiusmod id deserunt eu nostrud aute sit ipsum. <a href=\"https://maxbanister.com/posts/post-5/\">https://maxbanister.com/posts/post-5/</a>",
 				"url": "https://maxbanister.com/posts/post-5/",
 				"attributedTo": "https://maxbanister.com/ap/user/max",
 				"to": [
@@ -65,7 +65,6 @@
 				],
 				"cc": [],
 				"published": "2025-05-09T11:00:00-07:00",
-				"updated": "2025-05-11T09:36:18-07:00",
 				"replies": "https://maxbanister.com/posts/post-5/replies",
 				"likes": "https://maxbanister.com/posts/post-5/likes",
 				"shares": "https://maxbanister.com/posts/post-5/shares",
@@ -104,7 +103,7 @@
 				"@context": "https://www.w3.org/ns/activitystreams",
 				"id": "https://maxbanister.com/posts/my-first-post/",
 				"type": "Note",
-				"content": "My First Post<br/>\nIntroduction Testing ActivityPub crossposting.\nThis is bold text, and this is emphasized text.\nVisit my website ! <a href=\"https://maxbanister.com/posts/my-first-post/\">https://maxbanister.com/posts/my-first-post/</a>",
+				"content": "My First Post<br/>Introduction Testing ActivityPub crossposting.\nThis is bold text, and this is emphasized text.\nVisit my website ! <a href=\"https://maxbanister.com/posts/my-first-post/\">https://maxbanister.com/posts/my-first-post/</a>",
 				"url": "https://maxbanister.com/posts/my-first-post/",
 				"attributedTo": "https://maxbanister.com/ap/user/max",
 				"to": [
@@ -116,23 +115,6 @@
 				"replies": "https://maxbanister.com/posts/my-first-post/replies",
 				"likes": "https://maxbanister.com/posts/my-first-post/likes",
 				"shares": "https://maxbanister.com/posts/my-first-post/shares"
-			}
-		}, 
-		{
-			"@context": "https://www.w3.org/ns/activitystreams",
-			"id": "https://maxbanister.com/posts/post-2/#delete",
-			"type": "Delete",
-			"actor": "https://maxbanister.com/ap/user/max",
-			"to": [
-				"https://www.w3.org/ns/activitystreams#Public"
-			],
-			"cc": [
-				"https://maxbanister.com/ap/followers"
-			],
-			"object": {
-				"@context": "https://www.w3.org/ns/activitystreams",
-				"id": "https://maxbanister.com/posts/post-2/",
-				"type": "Tombstone"
 			}
 		}
 	]

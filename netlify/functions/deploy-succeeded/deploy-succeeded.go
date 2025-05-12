@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
@@ -36,10 +37,12 @@ func handleDeploy(request LambdaRequest) (*LambdaResponse, error) {
 		Typ     string `json:"type"`
 		ID      string `json:"id"`
 		Payload string `json:"-"`
+		Object  struct {
+			Updated string `json:"updated"`
+		} `json:"object"`
 	}
-	var validOutboxItems []OutboxItem
-	gotUpdatePost := false
-	gotCreatePost := false
+	var validOutboxItems []*OutboxItem
+	createPostSeen := false
 
 	for _, outboxActivity := range outbox.OrderedItems {
 		var decodedItem OutboxItem
@@ -48,16 +51,21 @@ func handleDeploy(request LambdaRequest) (*LambdaResponse, error) {
 			fmt.Println("could not decode outbox item:", err.Error())
 			continue
 		}
+
+		twoDaysAgo := time.Now().Add(-48 * time.Hour)
+		twoDaysAgoStr := twoDaysAgo.Format("2006-01-02T15:04:05-07:00")
+		gotUpdatePost := false
+		if decodedItem.Object.Updated >= twoDaysAgoStr {
+			gotUpdatePost = decodedItem.Typ == "Update"
+		}
 		// Send out all the deletes every time
-		if decodedItem.Typ == "Delete" || !gotUpdatePost || !gotCreatePost {
+		if decodedItem.Typ == "Delete" || !createPostSeen || gotUpdatePost {
 			fmt.Printf("Queuing %s of %s\n", decodedItem.Typ, decodedItem.ID)
 			decodedItem.Payload = string(outboxActivity)
-			validOutboxItems = append(validOutboxItems, decodedItem)
+			validOutboxItems = append(validOutboxItems, &decodedItem)
 
-			if decodedItem.Typ == "Update" {
-				gotUpdatePost = true
-			} else if decodedItem.Typ == "Create" {
-				gotCreatePost = true
+			if decodedItem.Typ == "Create" {
+				createPostSeen = true
 			}
 		}
 	}
