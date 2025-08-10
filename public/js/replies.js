@@ -1,1 +1,137 @@
-(()=>{var R="https://mastodon.social/authorize_interaction?uri=";async function d(o,t,e){console.log("fetching records for handle",o+t),bridgyRequestURI="https://atproto.brid.gy/xrpc/com.atproto.repo.listRecords?repo=",bridgyRequestURI+=o+"&collection=app.bsky.feed.post",t&&(bridgyRequestURI+="&cursor="+t);let n=await(await fetch(bridgyRequestURI,{headers:{Accept:"application/json"}})).json();if(console.log(n),!n){console.log("could not get records for",o+t);return}for(let a of n.records)if(a.value.bridgyOriginalUrl==e)return"https://bsky.app/profile/"+a.uri.replace("at://","").replace("app.bsky.feed.post","post");if(n.cursor)return d(o,n.cursor)}async function B(){let[o,t]=document.querySelectorAll("#social-links > a");o.href=R+window.location.href,t.href=await d("maxbanister.com","","https://maxbanister.com"+window.location.pathname);let e=await fetch(window.location.pathname+"replies");if(!e.ok){console.log(e.statusText);return}let r=await e.json();console.log(r),b(document.getElementById("replies"),r.items)}function b(o,t){if(t)for(let e of t){let r=e.type=="Tombstone";e.url=r?"javascript:void(0)":e.url.replace("https://fed.brid.gy/r/",""),e.actor||={};let n=N(o,{id:e.id,name:e.actor.name,shortName:e.actor.preferredUsername,host:r?"":new URL(e.actor.id).hostname,picURL:e.actor.icon,userURL:e.actor.id,date:e.published,editDate:e.updated,opURL:e.url,content:e.content},r);b(n,e.replies.items)}}function N(o,t,e){let{id:r,name:n,shortName:a,host:l,picURL:w,userURL:U,date:A,editDate:f,opURL:i,content:L}=t,u={dateStyle:"long",timeStyle:"short"},m=new Intl.DateTimeFormat(void 0,u).format(new Date(A));if(f){let p=new Intl.DateTimeFormat(void 0,u).format(new Date(f));m+=" (Edited: "+p+")"}let s=document.getElementById("reply-template").content.cloneNode(!0),y=s.firstElementChild,[S,k]=s.querySelectorAll(".reply-profile-info a span");S.textContent=e?"":"@"+a,k.textContent=e?"":"@"+l;let q=y.getElementsByClassName("reply-contents")[0];q.innerHTML=e?'<i style="color: grey">[deleted]</i>':L;let h=s.querySelector(".reply-top > img");h.src=e?"":w,e&&(h.alt="");let E=s.querySelector(".reply-profile-info > a");E.href=U;let[I,x]=s.querySelectorAll(".reply-profile-info > span");I.textContent=e?"[deleted]":n||a,x.textContent=m;let D=s.querySelector(".reply-op-button > a");D.href=i;let[g,c]=s.querySelectorAll(".reply-controls > a");if(new URL(i).host==="mastodon.social"?g.href=i:g.href=R+r,e||l==="bsky.brid.gy")c.href=i;else{let p=a+"."+l+".ap.brid.gy";c.addEventListener("click",async C=>{if(console.log(c.href),c.getAttribute("href")==="#"){C.preventDefault();let v=await d(p,"",i);c.href=v,c.click()}})}return o.appendChild(s),y}async function T(){return B()}T();})();
+(() => {
+  // <stdin>
+  var mastodonPrefix = "https://mastodon.social/authorize_interaction?uri=";
+  async function getBlueskyURL(handle, cursor, postURL) {
+    console.log("fetching records for handle", handle + cursor);
+    bridgyRequestURI = "https://atproto.brid.gy/xrpc/com.atproto.repo.listRecords?repo=";
+    bridgyRequestURI += handle + "&collection=app.bsky.feed.post";
+    if (cursor) {
+      bridgyRequestURI += "&cursor=" + cursor;
+    }
+    const resp = await fetch(bridgyRequestURI, {
+      headers: { "Accept": "application/json" }
+    });
+    const recordsJSON = await resp.json();
+    console.log(recordsJSON);
+    if (!recordsJSON) {
+      console.log("could not get records for", handle + cursor);
+      return;
+    }
+    for (const record of recordsJSON.records) {
+      if (record.value.bridgyOriginalUrl == postURL) {
+        const atURI = record.uri.replace("at://", "").replace("app.bsky.feed.post", "post");
+        return "https://bsky.app/profile/" + atURI;
+      }
+    }
+    if (recordsJSON.cursor) {
+      return getBlueskyURL(handle, recordsJSON.cursor);
+    }
+  }
+  async function renderReplies() {
+    const [mastodonAnchor, blueskyAnchor] = document.querySelectorAll("#social-links > a");
+    mastodonAnchor.href = mastodonPrefix + window.location.href;
+    blueskyAnchor.href = await getBlueskyURL(
+      "maxbanister.com",
+      "",
+      "https://maxbanister.com" + window.location.pathname
+    );
+    const resp = await fetch(window.location.pathname + "replies");
+    if (!resp.ok) {
+      console.log(resp.statusText);
+      return;
+    }
+    let repliesData = await resp.json();
+    console.log(repliesData);
+    addRepliesRecursive(document.getElementById("replies"), repliesData.items);
+  }
+  function addRepliesRecursive(parentEl, replyItems) {
+    if (!replyItems)
+      return;
+    for (const item of replyItems) {
+      const deleted = item.type == "Tombstone";
+      item.url = deleted ? "javascript:void(0)" : item.url.replace("https://fed.brid.gy/r/", "");
+      item.actor ||= {};
+      const newReply = createAndAddReply(parentEl, {
+        id: item.id,
+        name: item.actor.name,
+        shortName: item.actor.preferredUsername,
+        host: deleted ? "" : new URL(item.actor.id).hostname,
+        picURL: item.actor.icon,
+        userURL: item.actor.id,
+        date: item.published,
+        editDate: item.updated,
+        opURL: item.url,
+        content: item.content
+      }, deleted);
+      addRepliesRecursive(newReply, item.replies.items);
+    }
+  }
+  function createAndAddReply(parentEl, params, deleted) {
+    const {
+      id,
+      name,
+      shortName,
+      host,
+      picURL,
+      userURL,
+      date,
+      editDate,
+      opURL,
+      content
+    } = params;
+    const options = {
+      dateStyle: "long",
+      timeStyle: "short"
+    };
+    let modifiedDate = new Intl.DateTimeFormat(void 0, options).format(new Date(date));
+    if (editDate) {
+      const dateEdited = new Intl.DateTimeFormat(void 0, options).format(new Date(editDate));
+      modifiedDate += " (Edited: " + dateEdited + ")";
+    }
+    const template = document.getElementById("reply-template");
+    const clone = template.content.cloneNode(true);
+    const cloneEl = clone.firstElementChild;
+    const [nameEl, hostEl] = clone.querySelectorAll(".reply-profile-info a span");
+    nameEl.textContent = deleted ? "" : "@" + shortName;
+    hostEl.textContent = deleted ? "" : "@" + host;
+    const contentEl = cloneEl.getElementsByClassName("reply-contents")[0];
+    contentEl.innerHTML = deleted ? '<i style="color: grey">[deleted]</i>' : content;
+    const profileImage = clone.querySelector(".reply-top > img");
+    profileImage.src = deleted ? "" : picURL;
+    if (deleted)
+      profileImage.alt = "";
+    const userAnchor = clone.querySelector(".reply-profile-info > a");
+    userAnchor.href = userURL;
+    const [nameSpan, dateSpan] = clone.querySelectorAll(".reply-profile-info > span");
+    nameSpan.textContent = deleted ? "[deleted]" : name ? name : shortName;
+    dateSpan.textContent = modifiedDate;
+    const originalPostAnchor = clone.querySelector(".reply-op-button > a");
+    originalPostAnchor.href = opURL;
+    const [mastodonReplyBtn, blueskyReplyBtn] = clone.querySelectorAll(".reply-controls > a");
+    if (new URL(opURL).host === "mastodon.social") {
+      mastodonReplyBtn.href = opURL;
+    } else {
+      mastodonReplyBtn.href = mastodonPrefix + id;
+    }
+    if (deleted || host === "bsky.brid.gy") {
+      blueskyReplyBtn.href = opURL;
+    } else {
+      const bridgedHandle = shortName + "." + host + ".ap.brid.gy";
+      blueskyReplyBtn.addEventListener("click", async (e) => {
+        console.log(blueskyReplyBtn.href);
+        if (blueskyReplyBtn.getAttribute("href") === "#") {
+          e.preventDefault();
+          const newLoc = await getBlueskyURL(bridgedHandle, "", opURL);
+          blueskyReplyBtn.href = newLoc;
+          blueskyReplyBtn.click();
+        }
+      });
+    }
+    parentEl.appendChild(clone);
+    return cloneEl;
+  }
+  async function main() {
+    return renderReplies();
+  }
+  main();
+})();
