@@ -47,7 +47,6 @@ form label:hover {
 }
 
 .preview_images {
-    vertical-align: middle;
     display: flex;
     align-items: center;
     padding-left: 1rem;
@@ -59,9 +58,18 @@ form label:hover {
 }
 
 form img {
-    margin-top: auto;
-    margin-bottom: auto;
+    font-size: 18px;
     border-radius: 50%;
+    color: white;
+    width: 32px;
+    height: 32px;
+    display: inline-block;
+    text-align: center;
+}
+
+form a:hover {
+    text-shadow: none;
+    text-decoration: none;
 }
 
 .expanded {

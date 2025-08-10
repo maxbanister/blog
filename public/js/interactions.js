@@ -1,5 +1,16 @@
 (() => {
   // <stdin>
+  function colorHash(string) {
+    let hash = 0;
+    for (const char of string) {
+      hash = (hash << 5) - hash + char.charCodeAt(0);
+      hash |= 0;
+    }
+    const r = hash >> 0 & 255;
+    const g = hash >> 8 & 255;
+    const b = hash >> 16 & 255;
+    return "rgb(" + r + "," + g + "," + b + ",0.5)";
+  }
   async function renderInteractions(typ) {
     const likesOrSharesEl = document.getElementById(typ);
     const labelEl = likesOrSharesEl.getElementsByTagName("label")[0];
@@ -29,9 +40,14 @@
       aPreview.title = handle;
       let img = document.createElement("img");
       img.setAttribute("src", imgSrc);
-      img.setAttribute("alt", actorName);
+      img.setAttribute("alt", actorName[0]);
       img.setAttribute("width", "32");
       img.setAttribute("height", "32");
+      const r = actorName[0].charCodeAt(0);
+      const g = actorName[1].charCodeAt(0);
+      const b = actorName[2].charCodeAt(0);
+      img.style.backgroundColor = colorHash(handle);
+      console.log(img.style.backgroundColor);
       aPreview.appendChild(img);
       if (i <= 3) {
         previewImages.appendChild(aPreview);

@@ -1,6 +1,17 @@
 (() => {
   // <stdin>
   var mastodonPrefix = "https://mastodon.social/authorize_interaction?uri=";
+  function colorHash(string) {
+    let hash = 0;
+    for (const char of string) {
+      hash = (hash << 5) - hash + char.charCodeAt(0);
+      hash |= 0;
+    }
+    const r = hash >> 0 & 255;
+    const g = hash >> 8 & 255;
+    const b = hash >> 16 & 255;
+    return "rgb(" + r + "," + g + "," + b + ",0.5)";
+  }
   async function getBlueskyURL(handle, cursor, postURL) {
     console.log("fetching records for handle", handle + cursor);
     bridgyRequestURI = "https://atproto.brid.gy/xrpc/com.atproto.repo.listRecords?repo=";
@@ -98,6 +109,8 @@
     contentEl.innerHTML = deleted ? '<i style="color: grey">[deleted]</i>' : content;
     const profileImage = clone.querySelector(".reply-top > img");
     profileImage.src = deleted ? "" : picURL;
+    console.log(nameEl.innerText + hostEl.innerText);
+    profileImage.style.backgroundColor = colorHash(nameEl.innerText + hostEl.innerText);
     if (deleted)
       profileImage.alt = "";
     const userAnchor = clone.querySelector(".reply-profile-info > a");

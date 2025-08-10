@@ -1,5 +1,17 @@
 const mastodonPrefix = "https://mastodon.social/authorize_interaction?uri=";
 
+function colorHash(string) {
+	let hash = 0;
+	for (const char of string) {
+		hash = (hash << 5) - hash + char.charCodeAt(0);
+		hash |= 0; // Constrain to 32bit integer
+	}
+	const r = (hash >> 0) & 0x0ff;
+	const g = (hash >> 8) & 0xff;
+	const b = (hash >> 16) & 0xff;
+	return "rgb(" + r + "," + g + "," + b +",0.5)";
+}
+
 // Use reversed=true when it gets supported
 async function getBlueskyURL(handle, cursor, postURL) {
 	console.log("fetching records for handle", handle+cursor);
@@ -108,6 +120,8 @@ function createAndAddReply(parentEl, params, deleted) {
 
 	const profileImage = clone.querySelector(".reply-top > img");
 	profileImage.src = deleted ? "" : picURL;
+	console.log(nameEl.innerText + hostEl.innerText);
+	profileImage.style.backgroundColor = colorHash(nameEl.innerText + hostEl.innerText);
 	if (deleted)
 		profileImage.alt = "";
 

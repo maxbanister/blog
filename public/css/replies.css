@@ -97,6 +97,7 @@
 }
 
 .reply-top > img {
+    color: transparent;
     background-color: rgba(128, 0, 128, 0.114);
     border: 1px solid grey;
     border-radius: 0.25rem;
