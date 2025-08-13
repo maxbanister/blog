@@ -10,7 +10,6 @@ import (
 	"github.com/maxbanister/blog/netlify/ap"
 	"github.com/maxbanister/blog/netlify/kv"
 	. "github.com/maxbanister/blog/netlify/util"
-	"google.golang.org/api/iterator"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -20,17 +19,13 @@ func HandleProfileUpdate(r *LambdaRequest, reqJSON map[string]any) error {
 	if reqJSON["actor"] != object["id"] {
 		return fmt.Errorf("%w: actor must be equal to object id", ErrBadRequest)
 	}
-	_, err := ap.RecvActivity(r, reqJSON)
-	if err != nil {
-		return err
-	}
 
 	// We can't use the fetched actor, since it's been observed that it updates
 	// after the update activity is sent. So, we copy this info from the object
 	var a struct {
 		Object ap.Actor `json:"object"`
 	}
-	err = json.Unmarshal([]byte(r.Body), &a)
+	err := json.Unmarshal([]byte(r.Body), &a)
 	if err != nil {
 		return fmt.Errorf("%w: could not decode object: %w", ErrBadRequest, err)
 	}
@@ -39,71 +34,11 @@ func HandleProfileUpdate(r *LambdaRequest, reqJSON map[string]any) error {
 		a.Object.Icon = actorIcon["url"]
 	}
 	actor := a.Object
-	actorAt := ap.GetActorAt(&actor)
-	fmt.Println("Got profile update for", actorAt)
 
-	// check if follower exists, if so update there
-	client, err := kv.GetFirestoreClient()
-	if err != nil {
-		return fmt.Errorf("could not start firestore client: %w", err)
-	}
-	defer client.Close()
-
-	followersCol := client.Collection("followers")
-	ctx := context.Background()
-	// can't update with a struct using the firestore SDK
-	_, err = followersCol.Doc(actorAt).Update(ctx, []firestore.Update{
-		{Path: "Name", Value: actor.Name},
-		{Path: "PreferredUsername", Value: actor.PreferredUsername},
-		{Path: "Inbox", Value: actor.Inbox},
-		{Path: "Icon", Value: actor.Icon},
-	})
-	if err != nil {
-		if status.Code(err) == codes.NotFound {
-			fmt.Println("actor not in followers")
-		} else {
-			return fmt.Errorf("could not update followers: %w", err)
-		}
-	} else {
-		fmt.Println("Sucessfully updated actor in followers")
-	}
-
-	bulkWriter := client.BulkWriter(ctx)
-	defer bulkWriter.End()
-
-	// query for all actors with this ID in these collections and update those
-	for _, colName := range []string{"replies", "likes", "shares"} {
-		col := client.Collection(colName)
-		// empty projection because we only need document refs
-		iter := col.Select().Where("Actor.Id", "==", actor.Id).Documents(ctx)
-		for {
-			doc, err := iter.Next()
-			if err == iterator.Done {
-				break
-			}
-			if err != nil {
-				return fmt.Errorf("document iterator error: %w", err)
-			}
-			fmt.Printf("Updating document ref %s/%s\n", colName, doc.Ref.ID)
-			_, err = bulkWriter.Update(doc.Ref, []firestore.Update{
-				{Path: "Actor", Value: &actor},
-			})
-			if err != nil {
-				return fmt.Errorf("could not update collection: %w", err)
-			}
-		}
-		bulkWriter.Flush()
-	}
-
-	return nil
+	return kv.UpdateAllActorRefs(&actor)
 }
 
 func HandleReplyEdit(r *LambdaRequest, reqJSON map[string]any) error {
-	_, err := ap.RecvActivity(r, reqJSON)
-	if err != nil {
-		return err
-	}
-
 	editedObj, _ := reqJSON["object"].(map[string]any)
 	id, _ := editedObj["id"].(string)
 	if id == "" {

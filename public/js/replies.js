@@ -108,8 +108,7 @@
     const contentEl = cloneEl.getElementsByClassName("reply-contents")[0];
     contentEl.innerHTML = deleted ? '<i style="color: grey">[deleted]</i>' : content;
     const profileImage = clone.querySelector(".reply-top > img");
-    profileImage.src = deleted ? "" : picURL;
-    console.log(nameEl.innerText + hostEl.innerText);
+    profileImage.src = deleted ? "" : "/image_proxy/" + encodeURIComponent(picURL) + "/" + encodeURIComponent(userURL);
     profileImage.style.backgroundColor = colorHash(nameEl.innerText + hostEl.innerText);
     if (deleted)
       profileImage.alt = "";

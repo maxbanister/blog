@@ -26,6 +26,7 @@ func main() {
 		fmt.Println("could not fetch actor:", err.Error())
 		return
 	}
+	return
 
 	payload := fmt.Sprintf(`{
 		"@context": "https://www.w3.org/ns/activitystreams",

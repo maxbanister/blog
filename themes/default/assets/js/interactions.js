@@ -39,7 +39,9 @@ async function renderInteractions(typ) {
         const actorHost = new URL(item.actor.id).hostname;
         const actorName = item.actor.preferredUsername;
         const handle = "@" + actorName + "@" + actorHost;
-        const imgSrc = item.actor.icon;
+        const imgSrc = "/image_proxy/" +
+            encodeURIComponent(item.actor.icon) + "/" +
+            encodeURIComponent(item.actor.id);
 
         const aPreview = document.createElement("a");
         aPreview.href = url;
@@ -53,7 +55,6 @@ async function renderInteractions(typ) {
         const g = actorName[1].charCodeAt(0);
         const b = actorName[2].charCodeAt(0);
         img.style.backgroundColor = colorHash(handle);
-        console.log(img.style.backgroundColor);
         aPreview.appendChild(img);
 
         if (i <= 3) {

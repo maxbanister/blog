@@ -13,6 +13,10 @@
 	function = "inbox"
 
 [[edge_functions]]
+	path = "/image_proxy/*"
+	function = "image_proxy"
+
+[[edge_functions]]
 	path = "/posts/*"
 	excludedPath = ["/posts/*/likes", "/posts/*/shares", "/posts/*/replies"]
 	function = "post2activity"
