@@ -7,26 +7,32 @@ import type { Config, Context } from "@netlify/edge-functions";
 
 export default async (req: Request, context: Context) => {
 	const parts = req.url.split("image_proxy/").pop()?.split("/");
-	if (!parts || parts.length !== 2) {
+	if (!parts || parts.length !== 3) {
 		return;
 	}
-	const destURL = decodeURIComponent(parts[0]);
-	const actorID = decodeURIComponent(parts[1]);
-	if (!destURL) {
-		return;
+	const [iconURL, colName, refID] = parts;
+	if (!colName || !iconURL || !refID ||
+		["likes", "shares", "replies"].indexOf(colName) == -1
+	) {
+		return new Response("Bad Request", {"status": 400});
 	}
 
-	const origResp = await fetch(destURL);
-	if (origResp.status === 200) {
-		return origResp;
+	try {
+		const origResp = await fetch(decodeURIComponent(iconURL));
+		if (origResp.status === 200) {
+			return origResp;
+		}
+	} catch (error) {
+		// do nothing
 	}
 
-	console.log("Original image link rotten, fetching new - " + actorID);
+	console.log("Original image link rotten, fetching new - ", iconURL, refID);
 
 	const refreshResp = await fetch(
 		context.site.url +
-		"/.netlify/functions/refresh-profile?actorID=" +
-		actorID,
+		"/.netlify/functions/refresh-profile?iconURL=" + iconURL +
+		"&colName=" + colName +
+		"&refID=" + refID,
 		{
 			method: "GET",
 			headers: {

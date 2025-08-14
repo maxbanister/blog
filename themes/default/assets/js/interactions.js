@@ -40,8 +40,9 @@ async function renderInteractions(typ) {
         const actorName = item.actor.preferredUsername;
         const handle = "@" + actorName + "@" + actorHost;
         const imgSrc = "/image_proxy/" +
-            encodeURIComponent(item.actor.icon) + "/" +
-            encodeURIComponent(item.actor.id);
+            encodeURIComponent(item.actor.icon) +
+            "/" + typ + "/" +
+            encodeURIComponent(item.id);
 
         const aPreview = document.createElement("a");
         aPreview.href = url;

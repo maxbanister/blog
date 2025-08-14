@@ -120,7 +120,9 @@ function createAndAddReply(parentEl, params, deleted) {
 
 	const profileImage = clone.querySelector(".reply-top > img");
 	profileImage.src = deleted ? "" : "/image_proxy/" +
-		encodeURIComponent(picURL) + "/" + encodeURIComponent(userURL);
+		encodeURIComponent(picURL) +
+		"/replies/" +
+		encodeURIComponent(id);
 	profileImage.style.backgroundColor = colorHash(nameEl.innerText + hostEl.innerText);
 	if (deleted)
 		profileImage.alt = "";
