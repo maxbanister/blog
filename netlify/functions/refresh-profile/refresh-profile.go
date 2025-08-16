@@ -59,9 +59,11 @@ func handle(ctx context.Context, request LambdaRequest) (*LambdaResponse, error)
 	}
 
 	if docObj.Actor.Icon != iconURL {
-		return GetErrorResp(
-			fmt.Errorf("provided icon URL does not match actor icon"),
-		)
+		// another function invocation might have raced us here
+		return &events.APIGatewayProxyResponse{
+			StatusCode: 200,
+			Body:       docObj.Actor.Icon.(string),
+		}, nil
 	}
 
 	// fetch the new actor profile
