@@ -3,8 +3,25 @@
 	"id": "https://maxbanister.com/ap/outbox",
 	"summary": "Recent posts from Max's blog",
 	"type": "OrderedCollection",
-	"totalItems": 2,
+	"totalItems": 4,
 	"orderedItems": [
+		{
+			"@context": "https://www.w3.org/ns/activitystreams",
+			"id": "https://maxbanister.com/posts/post-4/#delete",
+			"type": "Delete",
+			"actor": "https://maxbanister.com/ap/user/max",
+			"to": [
+				"https://www.w3.org/ns/activitystreams#Public"
+			],
+			"cc": [
+				"https://maxbanister.com/ap/followers"
+			],
+			"object": {
+				"@context": "https://www.w3.org/ns/activitystreams",
+				"id": "https://maxbanister.com/posts/post-4/",
+				"type": "Tombstone"
+			}
+		}, 
 		{
 			"@context": "https://www.w3.org/ns/activitystreams",
 			"id": "https://maxbanister.com/posts/soviet-banking/#create",
@@ -54,6 +71,23 @@
 						"Name": "#communism"
 					}
 				]
+			}
+		}, 
+		{
+			"@context": "https://www.w3.org/ns/activitystreams",
+			"id": "https://maxbanister.com/posts/post-5/#delete",
+			"type": "Delete",
+			"actor": "https://maxbanister.com/ap/user/max",
+			"to": [
+				"https://www.w3.org/ns/activitystreams#Public"
+			],
+			"cc": [
+				"https://maxbanister.com/ap/followers"
+			],
+			"object": {
+				"@context": "https://www.w3.org/ns/activitystreams",
+				"id": "https://maxbanister.com/posts/post-5/",
+				"type": "Tombstone"
 			}
 		}, 
 		{
