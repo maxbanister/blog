@@ -54,7 +54,7 @@
 				"id": "{{ .Permalink }}",
 				"type": "Note",
 				{{- /* TODO: format across mastodon, bluesky, and threads */ -}}
-				{{- $postBody := printf "%s<br/>%s" .Title (strings.Replace .Summary "\n" `\n`) -}}
+				{{- $postBody := printf "%s<br/>\\n%s" .Title (strings.Replace .Summary "\n" `\n`) -}}
 				{{- $postBodyTrunc := $postBody | safeHTML | truncate (sub 499 23) -}}
 				{{- $postAnchor := printf `<a href=\"%s\">%s</a>` .Permalink .Permalink }}
 				{{- $postWithURL := printf "%s %s" $postBodyTrunc $postAnchor }}

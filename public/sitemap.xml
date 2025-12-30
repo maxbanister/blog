@@ -2,33 +2,48 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
-    <loc>https://maxbanister.com/posts/soviet-banking/</loc>
+    <loc>http://localhost:1313/posts/post-4/</loc>
+    <lastmod>2025-12-29T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>http://localhost:1313/posts/soviet-banking/</loc>
     <lastmod>2025-12-29T21:51:51-07:00</lastmod>
   </url><url>
-    <loc>https://maxbanister.com/tags/communism/</loc>
+    <loc>http://localhost:1313/tags/communism/</loc>
     <lastmod>2025-12-29T21:51:51-07:00</lastmod>
   </url><url>
-    <loc>https://maxbanister.com/tags/economics/</loc>
+    <loc>http://localhost:1313/tags/economics/</loc>
     <lastmod>2025-12-29T21:51:51-07:00</lastmod>
   </url><url>
-    <loc>https://maxbanister.com/tags/finance/</loc>
+    <loc>http://localhost:1313/tags/finance/</loc>
     <lastmod>2025-12-29T21:51:51-07:00</lastmod>
   </url><url>
-    <loc>https://maxbanister.com/tags/</loc>
+    <loc>http://localhost:1313/tags/</loc>
     <lastmod>2025-12-29T21:51:51-07:00</lastmod>
   </url><url>
-    <loc>https://maxbanister.com/tags/ussr/</loc>
+    <loc>http://localhost:1313/tags/ussr/</loc>
     <lastmod>2025-12-29T21:51:51-07:00</lastmod>
   </url><url>
-    <loc>https://maxbanister.com/posts/my-first-post/</loc>
+    <loc>http://localhost:1313/tags/red/</loc>
+    <lastmod>2025-12-29T21:51:51-07:00</lastmod>
+  </url><url>
+    <loc>http://localhost:1313/tags/blue/</loc>
+    <lastmod>2025-12-29T21:51:51-07:00</lastmod>
+  </url><url>
+    <loc>http://localhost:1313/tags/green/</loc>
+    <lastmod>2025-12-29T21:51:51-07:00</lastmod>
+  </url><url>
+    <loc>http://localhost:1313/posts/post-5/</loc>
+    <lastmod>2025-12-29T21:51:51-07:00</lastmod>
+  </url><url>
+    <loc>http://localhost:1313/posts/my-first-post/</loc>
     <lastmod>2025-05-02T09:07:22-07:00</lastmod>
   </url><url>
-    <loc>https://maxbanister.com/posts/</loc>
+    <loc>http://localhost:1313/posts/</loc>
     <lastmod>2025-12-29T21:53:34-07:00</lastmod>
   </url><url>
-    <loc>https://maxbanister.com/</loc>
+    <loc>http://localhost:1313/</loc>
     <lastmod>2025-12-29T21:51:51-07:00</lastmod>
   </url><url>
-    <loc>https://maxbanister.com/categories/</loc>
+    <loc>http://localhost:1313/categories/</loc>
   </url>
 </urlset>
