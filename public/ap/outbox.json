@@ -3,45 +3,8 @@
 	"id": "https://maxbanister.com/ap/outbox",
 	"summary": "Recent posts from Max's blog",
 	"type": "OrderedCollection",
-	"totalItems": 4,
+	"totalItems": 2,
 	"orderedItems": [
-		{
-			"@context": "https://www.w3.org/ns/activitystreams",
-			"id": "https://maxbanister.com/posts/post-4/#update",
-			"type": "Update",
-			"actor": "https://maxbanister.com/ap/user/max",
-			"to": [
-				"https://www.w3.org/ns/activitystreams#Public"
-			],
-			"cc": [
-				"https://maxbanister.com/ap/followers"
-			],
-			"published": "2025-05-11T00:00:00+00:00",
-			"object": {
-				"@context": "https://www.w3.org/ns/activitystreams",
-				"id": "https://maxbanister.com/posts/post-4/",
-				"type": "Note",
-				"content": "Post 4<br/>\nTempor proident minim aliquip reprehenderit dolor et ad anim Lorem duis sint eiusmod. Labore ut ea duis dolor. Incididunt consectetur proident qui occaecat incididunt do nisi Lorem. Tempor do laborum elit laboris excepteur eiusmod do. Eiusmod nisi excepteur ut amet pariatur adipisicing Lorem.\nOccaecat nulla excepteur dolore excepteur duis eiusmod ullamco officia anim in voluptate ea occaecat officia. Cillum sint esse velit ea officia minim fugiat. Elit ea esse id … <a href=\"https://maxbanister.com/posts/post-4/\">https://maxbanister.com/posts/post-4/</a>",
-				"url": "https://maxbanister.com/posts/post-4/",
-				"attributedTo": "https://maxbanister.com/ap/user/max",
-				"to": [
-					"https://www.w3.org/ns/activitystreams#Public"
-				],
-				"cc": [],
-				"published": "2025-05-11T00:00:00+00:00",
-				"updated": "2025-12-29T00:00:00+00:00",
-				"replies": "https://maxbanister.com/posts/post-4/replies",
-				"likes": "https://maxbanister.com/posts/post-4/likes",
-				"shares": "https://maxbanister.com/posts/post-4/shares",
-				"tag": [
-					{
-						"Type": "Hashtag",
-						"Href": "https://maxbanister.com/tags/red",
-						"Name": "#red"
-					}
-				]
-			}
-		}, 
 		{
 			"@context": "https://www.w3.org/ns/activitystreams",
 			"id": "https://maxbanister.com/posts/soviet-banking/#create",
@@ -91,23 +54,6 @@
 						"Name": "#communism"
 					}
 				]
-			}
-		}, 
-		{
-			"@context": "https://www.w3.org/ns/activitystreams",
-			"id": "https://maxbanister.com/posts/post-5/#delete",
-			"type": "Delete",
-			"actor": "https://maxbanister.com/ap/user/max",
-			"to": [
-				"https://www.w3.org/ns/activitystreams#Public"
-			],
-			"cc": [
-				"https://maxbanister.com/ap/followers"
-			],
-			"object": {
-				"@context": "https://www.w3.org/ns/activitystreams",
-				"id": "https://maxbanister.com/posts/post-5/",
-				"type": "Tombstone"
 			}
 		}, 
 		{

@@ -2,6 +2,7 @@
 title = 'Post 4'
 date = "2025-05-11"
 lastmod = "2025-12-29"
+expirydate = "2025-12-30"
 weight = 500
 draft = false
 tags = ['red']
