@@ -1,6 +1,7 @@
 +++
 title = 'Post 4'
 date = 2025-05-11
+expiryDate = "2025-12-29"
 lastmod = 2025-05-11
 weight = 500
 draft = false

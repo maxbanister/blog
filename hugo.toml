@@ -5,7 +5,7 @@ theme = "default"
 enableGitInfo = true
 
 [params]
-    subtitle = "The boys are retowned."
+    subtitle = "Permanently set to wumbo."
 
 [frontmatter]
     lastmod = ["lastmod", ":git", ":fileModTime"]

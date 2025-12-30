@@ -5,6 +5,4 @@ date = 2023-01-01T08:00:00-07:00
 draft = false
 +++
 
-Laborum voluptate pariatur ex culpa magna nostrud est incididunt fugiat
-pariatur do dolor ipsum enim. Consequat tempor do dolor eu. Non id id anim anim
-excepteur excepteur pariatur nostrud qui irure ullamco.
+Welcome, internet cretins. This is my home on the internet. I post about whatever I feel like, so don't take anything too seriously. The opinions represented here are NOT my own, in fact, they are shared by everyone and everything I am associated with.

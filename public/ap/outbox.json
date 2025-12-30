@@ -3,11 +3,11 @@
 	"id": "https://maxbanister.com/ap/outbox",
 	"summary": "Recent posts from Max's blog",
 	"type": "OrderedCollection",
-	"totalItems": 3,
+	"totalItems": 2,
 	"orderedItems": [
 		{
 			"@context": "https://www.w3.org/ns/activitystreams",
-			"id": "https://maxbanister.com/posts/post-4/#create",
+			"id": "https://maxbanister.com/posts/soviet-banking/#create",
 			"type": "Create",
 			"actor": "https://maxbanister.com/ap/user/max",
 			"to": [
@@ -16,73 +16,42 @@
 			"cc": [
 				"https://maxbanister.com/ap/followers"
 			],
-			"published": "2025-05-11T00:00:00+00:00",
+			"published": "2025-12-29T00:00:00+00:00",
 			"object": {
 				"@context": "https://www.w3.org/ns/activitystreams",
-				"id": "https://maxbanister.com/posts/post-4/",
+				"id": "https://maxbanister.com/posts/soviet-banking/",
 				"type": "Note",
-				"content": "Post 4<br/>Tempor proident minim aliquip reprehenderit dolor et ad anim Lorem duis sint eiusmod. Labore ut ea duis dolor. Incididunt consectetur proident qui occaecat incididunt do nisi Lorem. Tempor do laborum elit laboris excepteur eiusmod do. Eiusmod nisi excepteur ut amet pariatur adipisicing Lorem.\nOccaecat nulla excepteur dolore excepteur duis eiusmod ullamco officia anim in voluptate ea occaecat officia. Cillum sint esse velit ea officia minim fugiat. Elit ea esse id … <a href=\"https://maxbanister.com/posts/post-4/\">https://maxbanister.com/posts/post-4/</a>",
-				"url": "https://maxbanister.com/posts/post-4/",
+				"content": "Banking in the Soviet Union<br/>There is perhaps no industry more quintessentially capitalist than banking. Bankers are widely derided by communists as a useless appendage of society, perpetuating and profiting from the corrupt capitalist system. However, while Marx envisioned a moneyless society, it is true that socialist states in the 20th century never quite achieved their utopian vision of a post-money world. So, I wondered what banking would look like in a socialist … <a href=\"https://maxbanister.com/posts/soviet-banking/\">https://maxbanister.com/posts/soviet-banking/</a>",
+				"url": "https://maxbanister.com/posts/soviet-banking/",
 				"attributedTo": "https://maxbanister.com/ap/user/max",
 				"to": [
 					"https://www.w3.org/ns/activitystreams#Public"
 				],
 				"cc": [],
-				"published": "2025-05-11T00:00:00+00:00",
-				"replies": "https://maxbanister.com/posts/post-4/replies",
-				"likes": "https://maxbanister.com/posts/post-4/likes",
-				"shares": "https://maxbanister.com/posts/post-4/shares",
+				"published": "2025-12-29T00:00:00+00:00",
+				"replies": "https://maxbanister.com/posts/soviet-banking/replies",
+				"likes": "https://maxbanister.com/posts/soviet-banking/likes",
+				"shares": "https://maxbanister.com/posts/soviet-banking/shares",
 				"tag": [
 					{
 						"Type": "Hashtag",
-						"Href": "https://maxbanister.com/tags/red",
-						"Name": "#red"
-					}
-				]
-			}
-		}, 
-		{
-			"@context": "https://www.w3.org/ns/activitystreams",
-			"id": "https://maxbanister.com/posts/post-5/#create",
-			"type": "Create",
-			"actor": "https://maxbanister.com/ap/user/max",
-			"to": [
-				"https://www.w3.org/ns/activitystreams#Public"
-			],
-			"cc": [
-				"https://maxbanister.com/ap/followers"
-			],
-			"published": "2025-05-09T11:00:00-07:00",
-			"object": {
-				"@context": "https://www.w3.org/ns/activitystreams",
-				"id": "https://maxbanister.com/posts/post-5/",
-				"type": "Note",
-				"content": "Post 5<br/>Occaecat aliqua consequat laborum ut ex aute aliqua culpa quis irure esse magna dolore quis. Proident fugiat labore eu laboris officia Lorem enim. Ipsum occaecat cillum ut tempor id sint aliqua incididunt nisi incididunt reprehenderit. Voluptate ad minim sint est aute aliquip esse occaecat tempor officia qui sunt. Aute ex ipsum id ut in est velit est laborum incididunt. Aliqua qui id do esse sunt eiusmod id deserunt eu nostrud aute sit ipsum. <a href=\"https://maxbanister.com/posts/post-5/\">https://maxbanister.com/posts/post-5/</a>",
-				"url": "https://maxbanister.com/posts/post-5/",
-				"attributedTo": "https://maxbanister.com/ap/user/max",
-				"to": [
-					"https://www.w3.org/ns/activitystreams#Public"
-				],
-				"cc": [],
-				"published": "2025-05-09T11:00:00-07:00",
-				"replies": "https://maxbanister.com/posts/post-5/replies",
-				"likes": "https://maxbanister.com/posts/post-5/likes",
-				"shares": "https://maxbanister.com/posts/post-5/shares",
-				"tag": [
-					{
-						"Type": "Hashtag",
-						"Href": "https://maxbanister.com/tags/red",
-						"Name": "#red"
+						"Href": "https://maxbanister.com/tags/economics",
+						"Name": "#economics"
 					}, 
 					{
 						"Type": "Hashtag",
-						"Href": "https://maxbanister.com/tags/green",
-						"Name": "#green"
+						"Href": "https://maxbanister.com/tags/finance",
+						"Name": "#finance"
 					}, 
 					{
 						"Type": "Hashtag",
-						"Href": "https://maxbanister.com/tags/blue",
-						"Name": "#blue"
+						"Href": "https://maxbanister.com/tags/ussr",
+						"Name": "#ussr"
+					}, 
+					{
+						"Type": "Hashtag",
+						"Href": "https://maxbanister.com/tags/communism",
+						"Name": "#communism"
 					}
 				]
 			}
