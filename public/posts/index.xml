@@ -2,38 +2,24 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Posts on Max Banister&#39;s Notes</title>
-    <link>https://maxbanister.com/posts/</link>
+    <link>http://localhost:1313/posts/</link>
     <description>Recent content in Posts on Max Banister&#39;s Notes</description>
     <generator>Hugo</generator>
     <language>en-us</language>
-    <lastBuildDate>Mon, 29 Dec 2025 23:58:24 -0700</lastBuildDate>
-    <atom:link href="https://maxbanister.com/posts/index.xml" rel="self" type="application/rss+xml" />
-    <item>
-      <title>Post 4</title>
-      <link>https://maxbanister.com/posts/post-4/</link>
-      <pubDate>Sun, 11 May 2025 00:00:00 +0000</pubDate>
-      <guid>https://maxbanister.com/posts/post-4/</guid>
-      <description>Tempor proident minim aliquip reprehenderit dolor et ad anim Lorem duis sint eiusmod. Labore ut ea duis dolor. Incididunt consectetur proident qui occaecat incididunt do nisi Lorem. Tempor do laborum elit laboris excepteur eiusmod do. Eiusmod nisi excepteur ut amet pariatur adipisicing Lorem.&#xA;Occaecat nulla excepteur dolore excepteur duis eiusmod ullamco officia anim in voluptate ea occaecat officia. Cillum sint esse velit ea officia minim fugiat. Elit ea esse id aliquip pariatur cupidatat id duis minim incididunt ea ea.</description>
-    </item>
+    <lastBuildDate>Mon, 29 Dec 2025 21:51:51 -0700</lastBuildDate>
+    <atom:link href="http://localhost:1313/posts/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>Banking in the Soviet Union</title>
-      <link>https://maxbanister.com/posts/soviet-banking/</link>
+      <link>http://localhost:1313/posts/soviet-banking/</link>
       <pubDate>Mon, 29 Dec 2025 00:00:00 +0000</pubDate>
-      <guid>https://maxbanister.com/posts/soviet-banking/</guid>
+      <guid>http://localhost:1313/posts/soviet-banking/</guid>
       <description>There is perhaps no industry more quintessentially capitalist than banking. Bankers are widely derided by communists as a useless appendage of society, perpetuating and profiting from the corrupt capitalist system. However, while Marx envisioned a moneyless society, it is true that socialist states in the 20th century never quite achieved their utopian vision of a post-money world. So, I wondered what banking would look like in a socialist state, such as the U.S.S.R.</description>
     </item>
     <item>
-      <title>Post 5</title>
-      <link>https://maxbanister.com/posts/post-5/</link>
-      <pubDate>Fri, 09 May 2025 11:00:00 -0700</pubDate>
-      <guid>https://maxbanister.com/posts/post-5/</guid>
-      <description>Occaecat aliqua consequat laborum ut ex aute aliqua culpa quis irure esse magna dolore quis. Proident fugiat labore eu laboris officia Lorem enim. Ipsum occaecat cillum ut tempor id sint aliqua incididunt nisi incididunt reprehenderit. Voluptate ad minim sint est aute aliquip esse occaecat tempor officia qui sunt. Aute ex ipsum id ut in est velit est laborum incididunt. Aliqua qui id do esse sunt eiusmod id deserunt eu nostrud aute sit ipsum.</description>
-    </item>
-    <item>
       <title>My First Post</title>
-      <link>https://maxbanister.com/posts/my-first-post/</link>
+      <link>http://localhost:1313/posts/my-first-post/</link>
       <pubDate>Wed, 30 Apr 2025 00:00:00 +0000</pubDate>
-      <guid>https://maxbanister.com/posts/my-first-post/</guid>
+      <guid>http://localhost:1313/posts/my-first-post/</guid>
       <description>Introduction Testing ActivityPub crossposting.&#xA;This is bold text, and this is emphasized text.&#xA;Visit my website !</description>
     </item>
   </channel>

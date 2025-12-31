@@ -1,73 +1,56 @@
 {
 	"@context": "https://www.w3.org/ns/activitystreams",
-	"id": "https://maxbanister.com/ap/outbox",
+	"id": "http://localhost:1313/ap/outbox",
 	"summary": "Recent posts from Max's blog",
 	"type": "OrderedCollection",
-	"totalItems": 4,
+	"totalItems": 2,
 	"orderedItems": [
 		{
 			"@context": "https://www.w3.org/ns/activitystreams",
-			"id": "https://maxbanister.com/posts/post-4/#delete",
-			"type": "Delete",
-			"actor": "https://maxbanister.com/ap/user/max",
-			"to": [
-				"https://www.w3.org/ns/activitystreams#Public"
-			],
-			"cc": [
-				"https://maxbanister.com/ap/followers"
-			],
-			"object": {
-				"@context": "https://www.w3.org/ns/activitystreams",
-				"id": "https://maxbanister.com/posts/post-4/",
-				"type": "Tombstone"
-			}
-		}, 
-		{
-			"@context": "https://www.w3.org/ns/activitystreams",
-			"id": "https://maxbanister.com/posts/soviet-banking/#create",
+			"id": "http://localhost:1313/posts/soviet-banking/#create",
 			"type": "Create",
-			"actor": "https://maxbanister.com/ap/user/max",
+			"actor": "http://localhost:1313/ap/user/max",
 			"to": [
 				"https://www.w3.org/ns/activitystreams#Public"
 			],
 			"cc": [
-				"https://maxbanister.com/ap/followers"
+				"http://localhost:1313/ap/followers"
 			],
 			"published": "2025-12-29T00:00:00+00:00",
 			"object": {
 				"@context": "https://www.w3.org/ns/activitystreams",
-				"id": "https://maxbanister.com/posts/soviet-banking/",
+				"id": "http://localhost:1313/posts/soviet-banking/",
 				"type": "Note",
-				"content": "Banking in the Soviet Union<br/>\nThere is perhaps no industry more quintessentially capitalist than banking. Bankers are widely derided by communists as a useless appendage of society, perpetuating and profiting from the corrupt capitalist system. However, while Marx envisioned a moneyless society, it is true that socialist states in the 20th century never quite achieved their utopian vision of a post-money world. So, I wondered what banking would look like in a socialist … <a href=\"https://maxbanister.com/posts/soviet-banking/\">https://maxbanister.com/posts/soviet-banking/</a>",
-				"url": "https://maxbanister.com/posts/soviet-banking/",
-				"attributedTo": "https://maxbanister.com/ap/user/max",
+				"content": "Banking in the Soviet Union<br/>\nThere is perhaps no industry more quintessentially capitalist than banking. Bankers are widely derided by communists as a useless appendage of society, perpetuating and profiting from the corrupt capitalist system. However, while Marx envisioned a moneyless society, it is true that socialist states in the 20th century never quite achieved their utopian vision of a post-money world. So, I wondered what banking would look like in a socialist … <a href=\"http://localhost:1313/posts/soviet-banking/\">http://localhost:1313/posts/soviet-banking/</a>",
+				"url": "http://localhost:1313/posts/soviet-banking/",
+				"attributedTo": "http://localhost:1313/ap/user/max",
 				"to": [
 					"https://www.w3.org/ns/activitystreams#Public"
 				],
 				"cc": [],
 				"published": "2025-12-29T00:00:00+00:00",
-				"replies": "https://maxbanister.com/posts/soviet-banking/replies",
-				"likes": "https://maxbanister.com/posts/soviet-banking/likes",
-				"shares": "https://maxbanister.com/posts/soviet-banking/shares",
+				"replies": "http://localhost:1313/posts/soviet-banking/replies",
+				"likes": "http://localhost:1313/posts/soviet-banking/likes",
+				"shares": "http://localhost:1313/posts/soviet-banking/shares",
 				"tag": [
 					{
 						"Type": "Hashtag",
-						"Href": "https://maxbanister.com/tags/economics",
+						"Href": "http://localhost:1313/tags/economics",
 						"Name": "#economics"
 					}, 
 					{
 						"Type": "Hashtag",
-						"Href": "https://maxbanister.com/tags/finance",
+						"Href": "http://localhost:1313/tags/finance",
 						"Name": "#finance"
 					}, 
 					{
 						"Type": "Hashtag",
-						"Href": "https://maxbanister.com/tags/ussr",
+						"Href": "http://localhost:1313/tags/ussr",
 						"Name": "#ussr"
 					}, 
 					{
 						"Type": "Hashtag",
-						"Href": "https://maxbanister.com/tags/communism",
+						"Href": "http://localhost:1313/tags/communism",
 						"Name": "#communism"
 					}
 				]
@@ -75,49 +58,32 @@
 		}, 
 		{
 			"@context": "https://www.w3.org/ns/activitystreams",
-			"id": "https://maxbanister.com/posts/post-5/#delete",
-			"type": "Delete",
-			"actor": "https://maxbanister.com/ap/user/max",
-			"to": [
-				"https://www.w3.org/ns/activitystreams#Public"
-			],
-			"cc": [
-				"https://maxbanister.com/ap/followers"
-			],
-			"object": {
-				"@context": "https://www.w3.org/ns/activitystreams",
-				"id": "https://maxbanister.com/posts/post-5/",
-				"type": "Tombstone"
-			}
-		}, 
-		{
-			"@context": "https://www.w3.org/ns/activitystreams",
-			"id": "https://maxbanister.com/posts/my-first-post/#update",
+			"id": "http://localhost:1313/posts/my-first-post/#update",
 			"type": "Update",
-			"actor": "https://maxbanister.com/ap/user/max",
+			"actor": "http://localhost:1313/ap/user/max",
 			"to": [
 				"https://www.w3.org/ns/activitystreams#Public"
 			],
 			"cc": [
-				"https://maxbanister.com/ap/followers"
+				"http://localhost:1313/ap/followers"
 			],
 			"published": "2025-04-30T00:00:00+00:00",
 			"object": {
 				"@context": "https://www.w3.org/ns/activitystreams",
-				"id": "https://maxbanister.com/posts/my-first-post/",
+				"id": "http://localhost:1313/posts/my-first-post/",
 				"type": "Note",
-				"content": "My First Post<br/>\nIntroduction Testing ActivityPub crossposting.\nThis is bold text, and this is emphasized text.\nVisit my website ! <a href=\"https://maxbanister.com/posts/my-first-post/\">https://maxbanister.com/posts/my-first-post/</a>",
-				"url": "https://maxbanister.com/posts/my-first-post/",
-				"attributedTo": "https://maxbanister.com/ap/user/max",
+				"content": "My First Post<br/>\nIntroduction Testing ActivityPub crossposting.\nThis is bold text, and this is emphasized text.\nVisit my website ! <a href=\"http://localhost:1313/posts/my-first-post/\">http://localhost:1313/posts/my-first-post/</a>",
+				"url": "http://localhost:1313/posts/my-first-post/",
+				"attributedTo": "http://localhost:1313/ap/user/max",
 				"to": [
 					"https://www.w3.org/ns/activitystreams#Public"
 				],
 				"cc": [],
 				"published": "2025-04-30T00:00:00+00:00",
 				"updated": "2025-05-02T09:07:22-07:00",
-				"replies": "https://maxbanister.com/posts/my-first-post/replies",
-				"likes": "https://maxbanister.com/posts/my-first-post/likes",
-				"shares": "https://maxbanister.com/posts/my-first-post/shares"
+				"replies": "http://localhost:1313/posts/my-first-post/replies",
+				"likes": "http://localhost:1313/posts/my-first-post/likes",
+				"shares": "http://localhost:1313/posts/my-first-post/shares"
 			}
 		}
 	]
