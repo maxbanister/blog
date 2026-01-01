@@ -5,3 +5,4 @@ firebase-svc.json
 .hugo_build.lock
 node_modules/
 package-lock.json
+scripts/update_profile/
