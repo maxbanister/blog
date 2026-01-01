@@ -1,0 +1,125 @@
+{
+	"@context": "https://www.w3.org/ns/activitystreams",
+	"id": "http://localhost:1313/ap/outbox",
+	"summary": "Recent posts from Max's blog",
+	"type": "OrderedCollection",
+	"totalItems": 4,
+	"orderedItems": [
+		{
+			"@context": "https://www.w3.org/ns/activitystreams",
+			"id": "http://localhost:1313/posts/my-first-post/#create",
+			"type": "Create",
+			"actor": "http://localhost:1313/user/max",
+			"to": "https://www.w3.org/ns/activitystreams#Public",
+			"published": "2025-04-30T00:00:00+00:00",
+			"object": {
+				"id": "http://localhost:1313/posts/my-first-post/",
+				"type": "Note",
+				"content": "My First Post\nIntroduction Testing ActivityPub crossposting.\nThis is bold text, and this is emphasized text.\nVisit my website ! http://localhost:1313/posts/my-first-post/",
+				"url": "http://localhost:1313/posts/my-first-post/",
+				"attributedTo": "http://localhost:1313/ap/user/max",
+				"to": "https://www.w3.org/ns/activitystreams#Public",
+				"published": "2025-04-30T00:00:00+00:00",
+				"replies": "http://localhost:1313/posts/my-first-post/replies",
+				"likes": "http://localhost:1313/posts/my-first-post/likes",
+				"shares": "http://localhost:1313/posts/my-first-post/shares"
+			}
+		}, 
+		{
+			"@context": "https://www.w3.org/ns/activitystreams",
+			"id": "http://localhost:1313/posts/post-3/#create",
+			"type": "Create",
+			"actor": "http://localhost:1313/user/max",
+			"to": "https://www.w3.org/ns/activitystreams#Public",
+			"published": "2023-03-15T11:00:00-07:00",
+			"object": {
+				"id": "http://localhost:1313/posts/post-3/",
+				"type": "Note",
+				"content": "Post 3\nOccaecat aliqua consequat laborum ut ex aute aliqua culpa quis irure esse magna dolore quis. Proident fugiat labore eu laboris officia Lorem enim. Ipsum occaecat cillum ut tempor id sint aliqua incididunt nisi incididunt reprehenderit. Voluptate ad minim … http://localhost:1313/posts/post-3/",
+				"url": "http://localhost:1313/posts/post-3/",
+				"attributedTo": "http://localhost:1313/ap/user/max",
+				"to": "https://www.w3.org/ns/activitystreams#Public",
+				"published": "2023-03-15T11:00:00-07:00",
+				"replies": "http://localhost:1313/posts/post-3/replies",
+				"likes": "http://localhost:1313/posts/post-3/likes",
+				"shares": "http://localhost:1313/posts/post-3/shares",
+				"tag": [
+					{
+						"Type": "Hashtag",
+						"Href": "http://localhost:1313/tags/red",
+						"Name": "#red"
+					}, 
+					{
+						"Type": "Hashtag",
+						"Href": "http://localhost:1313/tags/green",
+						"Name": "#green"
+					}, 
+					{
+						"Type": "Hashtag",
+						"Href": "http://localhost:1313/tags/blue",
+						"Name": "#blue"
+					}
+				]
+			}
+		}, 
+		{
+			"@context": "https://www.w3.org/ns/activitystreams",
+			"id": "http://localhost:1313/posts/post-2/#create",
+			"type": "Create",
+			"actor": "http://localhost:1313/user/max",
+			"to": "https://www.w3.org/ns/activitystreams#Public",
+			"published": "2023-02-15T10:00:00-07:00",
+			"object": {
+				"id": "http://localhost:1313/posts/post-2/",
+				"type": "Note",
+				"content": "Post 2\nAnim eiusmod irure incididunt sint cupidatat. Incididunt irure irure irure nisi ipsum do ut quis fugiat consectetur proident cupidatat incididunt cillum. Dolore voluptate occaecat qui mollit laborum ullamco et. Ipsum laboris officia anim laboris culpa … http://localhost:1313/posts/post-2/",
+				"url": "http://localhost:1313/posts/post-2/",
+				"attributedTo": "http://localhost:1313/ap/user/max",
+				"to": "https://www.w3.org/ns/activitystreams#Public",
+				"published": "2023-02-15T10:00:00-07:00",
+				"replies": "http://localhost:1313/posts/post-2/replies",
+				"likes": "http://localhost:1313/posts/post-2/likes",
+				"shares": "http://localhost:1313/posts/post-2/shares",
+				"tag": [
+					{
+						"Type": "Hashtag",
+						"Href": "http://localhost:1313/tags/red",
+						"Name": "#red"
+					}, 
+					{
+						"Type": "Hashtag",
+						"Href": "http://localhost:1313/tags/green",
+						"Name": "#green"
+					}
+				]
+			}
+		}, 
+		{
+			"@context": "https://www.w3.org/ns/activitystreams",
+			"id": "http://localhost:1313/posts/post-1/#create",
+			"type": "Create",
+			"actor": "http://localhost:1313/user/max",
+			"to": "https://www.w3.org/ns/activitystreams#Public",
+			"published": "2023-01-15T09:00:00-07:00",
+			"object": {
+				"id": "http://localhost:1313/posts/post-1/",
+				"type": "Note",
+				"content": "Post 1\nTempor proident minim aliquip reprehenderit dolor et ad anim Lorem duis sint eiusmod. Labore ut ea duis dolor. Incididunt consectetur proident qui occaecat incididunt do nisi Lorem. Tempor do laborum elit laboris excepteur eiusmod do. Eiusmod nisi … http://localhost:1313/posts/post-1/",
+				"url": "http://localhost:1313/posts/post-1/",
+				"attributedTo": "http://localhost:1313/ap/user/max",
+				"to": "https://www.w3.org/ns/activitystreams#Public",
+				"published": "2023-01-15T09:00:00-07:00",
+				"replies": "http://localhost:1313/posts/post-1/replies",
+				"likes": "http://localhost:1313/posts/post-1/likes",
+				"shares": "http://localhost:1313/posts/post-1/shares",
+				"tag": [
+					{
+						"Type": "Hashtag",
+						"Href": "http://localhost:1313/tags/red",
+						"Name": "#red"
+					}
+				]
+			}
+		}
+	]
+}

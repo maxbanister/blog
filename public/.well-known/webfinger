@@ -1,0 +1,18 @@
+{
+    "subject": "acct:max@maxbanister.com",
+    "aliases": [
+        "https://maxbanister.com/ap/user/max"
+    ],
+    "links": [
+        {
+            "rel": "self",
+            "type": "application/activity+json",
+            "href": "https://maxbanister.com/ap/user/max"
+        },
+        {
+            "rel":"http://webfinger.net/rel/profile-page",
+            "type":"text/html",
+            "href":"https://maxbanister.com/"
+        }
+    ]
+}

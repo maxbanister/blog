@@ -1,0 +1,129 @@
+#likes, #shares {
+    display: none; /* flex */
+    align-items: center;
+    margin: 0;
+    margin-top: 1rem;
+}
+
+input {
+    display: none;
+}
+
+input:checked + div + .expanded {
+    max-height: 96px;
+    padding: 16px 32px;
+    overflow: auto;
+    transition: max-height 0.5s ease, padding 0.5s ease;
+    animation: expand 0.5s;
+}
+
+input:checked + div > label {
+    background-color: transparent;
+}
+
+.chevron {
+    transition: transform 0.5s ease;
+}
+
+input:checked + div > label > .chevron {
+    transform: rotate(90deg);
+}
+
+input:checked + div > label > .preview_images {
+    visibility: hidden;
+}
+
+form label {
+    display: flex;
+    width: 100%;
+    align-items: center;
+    border-radius: 0.5rem;
+    padding: 0.15rem 0.5rem;
+    cursor: pointer;
+}
+
+form label:hover {
+    background-color: #333;
+}
+
+.preview_images {
+    display: flex;
+    align-items: center;
+    padding-left: 1rem;
+    flex-grow: 1;
+}
+
+.preview_images img {
+    display: block;
+}
+
+form img {
+    font-size: 18px;
+    border-radius: 50%;
+    color: white;
+    width: 32px;
+    height: 32px;
+    display: inline-block;
+    text-align: center;
+}
+
+form a:hover {
+    text-shadow: none;
+    text-decoration: none;
+}
+
+.expanded {
+    display: none; /* flex */
+    flex-wrap: wrap;
+    column-gap: 6px;
+    row-gap: 4px;
+    max-height: 0;
+    transition: max-height 0.5s ease, padding 0.5s ease;
+    animation: condense 0.5s;
+    padding: 0 32px;
+    overflow: hidden;
+    border-radius: 0.15rem;
+    background-color: #00000033;
+}
+
+@keyframes expand {
+    from {
+        overflow: hidden;
+    }
+    to {
+        overflow: hidden;
+    }
+}
+@keyframes condense {
+    from {
+        overflow: hidden;
+    }
+    to {
+        overflow: hidden;
+    }
+}
+
+.expanded img {
+    vertical-align: middle;
+    margin-right: 0.35rem;
+}
+
+.expanded a {
+    display: inline-block;
+    white-space: pre;
+}
+
+.expanded span {
+    font-size: 16px;
+    border: 1px solid grey;
+    border-radius: 32px;
+    padding: 0.15rem 0.75rem 0.15rem 0.25rem;
+    display: flex;
+    align-items: center;
+}
+
+.expanded span:hover {
+    text-decoration: none;
+    text-shadow: none;
+    background-color: #ffffff33;
+}
