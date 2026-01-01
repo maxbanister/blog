@@ -2,38 +2,38 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Tags on Max Banister&#39;s Notes</title>
-    <link>http://localhost:1313/tags/</link>
+    <link>https://maxbanister.com/tags/</link>
     <description>Recent content in Tags on Max Banister&#39;s Notes</description>
     <generator>Hugo</generator>
     <language>en-us</language>
     <lastBuildDate>Mon, 29 Dec 2025 21:51:51 -0700</lastBuildDate>
-    <atom:link href="http://localhost:1313/tags/index.xml" rel="self" type="application/rss+xml" />
+    <atom:link href="https://maxbanister.com/tags/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>Communism</title>
-      <link>http://localhost:1313/tags/communism/</link>
+      <link>https://maxbanister.com/tags/communism/</link>
       <pubDate>Mon, 29 Dec 2025 00:00:00 +0000</pubDate>
-      <guid>http://localhost:1313/tags/communism/</guid>
+      <guid>https://maxbanister.com/tags/communism/</guid>
       <description></description>
     </item>
     <item>
       <title>Economics</title>
-      <link>http://localhost:1313/tags/economics/</link>
+      <link>https://maxbanister.com/tags/economics/</link>
       <pubDate>Mon, 29 Dec 2025 00:00:00 +0000</pubDate>
-      <guid>http://localhost:1313/tags/economics/</guid>
+      <guid>https://maxbanister.com/tags/economics/</guid>
       <description></description>
     </item>
     <item>
       <title>Finance</title>
-      <link>http://localhost:1313/tags/finance/</link>
+      <link>https://maxbanister.com/tags/finance/</link>
       <pubDate>Mon, 29 Dec 2025 00:00:00 +0000</pubDate>
-      <guid>http://localhost:1313/tags/finance/</guid>
+      <guid>https://maxbanister.com/tags/finance/</guid>
       <description></description>
     </item>
     <item>
       <title>Ussr</title>
-      <link>http://localhost:1313/tags/ussr/</link>
+      <link>https://maxbanister.com/tags/ussr/</link>
       <pubDate>Mon, 29 Dec 2025 00:00:00 +0000</pubDate>
-      <guid>http://localhost:1313/tags/ussr/</guid>
+      <guid>https://maxbanister.com/tags/ussr/</guid>
       <description></description>
     </item>
   </channel>
